@@ -10,14 +10,20 @@ require('./db/migrate');
 const { apiLimiter } = require('./middleware/rate-limit');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Security headers
 app.use(helmet());
 
-// CORS — only allow requests from the frontend
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+// CORS — allow requests from the frontend (with and without www)
+const allowedOrigins = [FRONTEND_URL];
+if (FRONTEND_URL.includes('://www.')) {
+  allowedOrigins.push(FRONTEND_URL.replace('://www.', '://'));
+} else if (FRONTEND_URL.includes('://') && !FRONTEND_URL.includes('://www.')) {
+  allowedOrigins.push(FRONTEND_URL.replace('://', '://www.'));
+}
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 
 // Request logging
 app.use(morgan('short'));
