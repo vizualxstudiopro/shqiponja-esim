@@ -1,0 +1,288 @@
+export interface EsimPackage {
+  id: number;
+  name: string;
+  region: string;
+  flag: string;
+  data: string;
+  duration: string;
+  price: number;
+  currency: string;
+  highlight: boolean;
+  description: string;
+}
+
+export interface Order {
+  id: number;
+  package_id: number;
+  email: string;
+  status: string;
+  payment_status: string;
+  paddle_transaction_id: string | null;
+  qr_data: string | null;
+  created_at: string;
+  package_name: string;
+  package_flag: string;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_TIMEOUT = 30_000; // 30 seconds
+
+function fetchWithTimeout(url: string, options?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), API_TIMEOUT);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
+}
+
+export async function getPackages(): Promise<EsimPackage[]> {
+  const res = await fetchWithTimeout(`${API_URL}/api/packages`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) throw new Error("Failed to fetch packages");
+  return res.json();
+}
+
+export async function getPackageById(id: number): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/packages/${id}`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) throw new Error("Package not found");
+  return res.json();
+}
+
+export interface CheckoutResponse {
+  url?: string;
+  transactionId?: string;
+  orderId?: number;
+  order?: Order;
+}
+
+export async function checkout(
+  packageId: number,
+  email: string
+): Promise<CheckoutResponse> {
+  const res = await fetchWithTimeout(`${API_URL}/api/checkout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ packageId, email }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Checkout failed" }));
+    throw new Error(err.error);
+  }
+  return res.json();
+}
+
+export async function getOrderById(id: number): Promise<Order> {
+  const res = await fetchWithTimeout(`${API_URL}/api/orders/${id}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Order not found");
+  return res.json();
+}
+
+/* ─── Auth ─── */
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  email_verified: number;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+export async function register(
+  name: string,
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Regjistrimi dështoi" }));
+    throw new Error(err.error);
+  }
+  return res.json();
+}
+
+export async function login(
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Hyrja dështoi" }));
+    throw new Error(err.error);
+  }
+  return res.json();
+}
+
+export async function getMe(token: string): Promise<User> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Nuk je i kyçur");
+  return res.json();
+}
+
+export async function verifyEmail(verifyToken: string): Promise<{ ok: boolean; message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: verifyToken }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Verifikimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export async function resendVerification(token: string) {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/resend-verify`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+/* ─── Admin helpers ─── */
+
+function authHeaders(token: string) {
+  return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+}
+
+export async function adminGetStats(token: string) {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/stats`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json() as Promise<{ totalOrders: number; paidOrders: number; totalRevenue: number; totalUsers: number; totalPackages: number; monthlyRevenue: { month: string; revenue: number; orders: number }[]; monthlyUsers: { month: string; users: number }[] }>;
+}
+
+export interface PaginatedUsers { users: User[]; total: number; page: number; totalPages: number }
+export async function adminGetUsers(token: string, page = 1, q = ''): Promise<PaginatedUsers> {
+  const params = new URLSearchParams({ page: String(page) });
+  if (q.trim()) params.set('q', q.trim());
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/users?${params}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminUpdateUserRole(token: string, userId: number, role: string): Promise<User> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/users/${userId}/role`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ role }) });
+  if (!res.ok) throw new Error("Ndryshimi dështoi");
+  return res.json();
+}
+
+export async function adminDeleteUser(token: string, userId: number) {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/users/${userId}`, { method: "DELETE", headers: authHeaders(token) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Fshirja dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export interface PaginatedOrders { orders: Order[]; total: number; page: number; totalPages: number }
+export async function adminGetOrders(token: string, page = 1, filters?: { status?: string; payment_status?: string; q?: string }): Promise<PaginatedOrders> {
+  const params = new URLSearchParams({ page: String(page) });
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.payment_status) params.set('payment_status', filters.payment_status);
+  if (filters?.q?.trim()) params.set('q', filters.q.trim());
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders?${params}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminUpdateOrderStatus(token: string, orderId: number, data: { status?: string; payment_status?: string }) {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${orderId}/status`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Ndryshimi dështoi");
+  return res.json();
+}
+
+export async function adminCreatePackage(token: string, data: Omit<EsimPackage, "id">): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages`, { method: "POST", headers: authHeaders(token), body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Krijimi dështoi");
+  return res.json();
+}
+
+export async function adminUpdatePackage(token: string, id: number, data: Omit<EsimPackage, "id">): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}`, { method: "PUT", headers: authHeaders(token), body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Përditësimi dështoi");
+  return res.json();
+}
+
+export async function adminDeletePackage(token: string, id: number) {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}`, { method: "DELETE", headers: authHeaders(token) });
+  if (!res.ok) throw new Error("Fshirja dështoi");
+  return res.json();
+}
+
+/* ─── User orders ─── */
+
+export async function getMyOrders(token: string): Promise<Order[]> {
+  const res = await fetchWithTimeout(`${API_URL}/api/orders/my`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+/* ─── Forgot / Reset password ─── */
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  return res.json();
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ ok: boolean; message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Rivendosja dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+/* ─── Contact ─── */
+
+export async function submitContact(name: string, email: string, message: string): Promise<{ ok: boolean }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/contact`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, message }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Dërgimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+/* ─── Profile update ─── */
+
+export async function updateProfile(token: string, name: string): Promise<User> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/update-profile`, {
+    method: "PATCH",
+    headers: authHeaders(token),
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Përditësimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export async function changePassword(token: string, currentPassword: string, newPassword: string): Promise<{ ok: boolean; message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/change-password`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Ndryshimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}

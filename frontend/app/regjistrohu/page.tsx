@@ -1,0 +1,144 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+export default function RegisterPage() {
+  const { register } = useAuth();
+  const { t } = useI18n();
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError(t("auth.passwordMismatch"));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await register(name, email, password);
+      router.push("/");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Diçka shkoi keq");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 dark:bg-zinc-950">
+      <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="text-center">
+          <span className="text-4xl">🦅</span>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight">
+            {t("auth.registerTitle")}
+          </h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            {t("auth.registerSubtitle")}
+          </p>
+        </div>
+
+        {error && (
+          <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 border border-red-100">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {t("auth.name")}
+            </label>
+            <input
+              id="name"
+              type="text"
+              required
+              autoComplete="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Emri Mbiemri"
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {t("auth.email")}
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="emri@email.com"
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {t("auth.password")}
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              autoComplete="new-password"
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Minimum 6 karaktere"
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {t("auth.confirmPassword")}
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              required
+              autoComplete="new-password"
+              minLength={6}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Përsërit fjalëkalimin"
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-shqiponja py-3 text-sm font-semibold text-white shadow-md shadow-shqiponja/25 transition hover:bg-shqiponja-dark disabled:opacity-50"
+          >
+            {loading ? t("auth.registering") : t("auth.registerBtn")}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-zinc-500">
+          {t("auth.hasAccount")}{" "}
+          <Link href="/hyr" className="font-semibold text-shqiponja hover:underline">
+            {t("nav.login")}
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}

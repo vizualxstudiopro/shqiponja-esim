@@ -1,0 +1,60 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n-context";
+import type { EsimPackage } from "@/lib/api";
+import Navbar from "@/components/navbar";
+import OrderForm from "./order-form";
+
+export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
+  const { t } = useI18n();
+
+  return (
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <Navbar />
+
+      <div className="mx-auto max-w-2xl px-6 py-16">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-700 dark:bg-zinc-800">
+          <div className="flex items-center gap-4">
+            <span className="text-5xl">{pkg.flag}</span>
+            <div>
+              <h1 className="text-2xl font-extrabold">{pkg.name}</h1>
+              <p className="text-sm text-zinc-500">{pkg.description}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+            <div className="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-900">
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                {t("buy.data")}
+              </p>
+              <p className="mt-1 text-lg font-bold">{pkg.data}</p>
+            </div>
+            <div className="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-900">
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                {t("buy.duration")}
+              </p>
+              <p className="mt-1 text-lg font-bold">{pkg.duration}</p>
+            </div>
+            <div className="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-900">
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                {t("buy.price")}
+              </p>
+              <p className="mt-1 text-lg font-bold text-shqiponja">
+                €{pkg.price.toFixed(2)}
+              </p>
+            </div>
+          </div>
+
+          <div className="my-8 border-t border-zinc-100" />
+
+          <h2 className="text-lg font-bold">{t("buy.fillOrder")}</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            {t("buy.fillOrderSub")}
+          </p>
+
+          <OrderForm packageId={pkg.id} price={pkg.price} />
+        </div>
+      </div>
+    </div>
+  );
+}
