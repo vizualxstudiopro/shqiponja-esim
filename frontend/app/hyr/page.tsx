@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import OAuthButtons from "@/components/oauth-buttons";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -89,6 +90,8 @@ export default function LoginPage() {
             {loading ? t("auth.loggingIn") : t("auth.loginBtn")}
           </button>
         </form>
+
+        <OAuthButtons mode="login" />
 
         <p className="mt-4 text-center">
           <Link href="/harrova-fjalekalimin" className="text-sm text-shqiponja hover:underline">

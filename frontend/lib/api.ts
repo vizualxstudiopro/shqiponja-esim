@@ -101,6 +101,7 @@ export interface User {
   role: string;
   email_verified: number;
   created_at: string;
+  oauth_provider?: string;
 }
 
 export interface AuthResponse {
@@ -165,6 +166,47 @@ export async function resendVerification(token: string) {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
+  return res.json();
+}
+
+/* ─── OAuth ─── */
+
+export async function oauthGoogle(idToken: string): Promise<AuthResponse> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/oauth/google`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Google login dështoi" }));
+    throw new Error(err.error);
+  }
+  return res.json();
+}
+
+export async function oauthMicrosoft(code: string, redirectUri: string): Promise<AuthResponse> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/oauth/microsoft`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, redirectUri }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Microsoft login dështoi" }));
+    throw new Error(err.error);
+  }
+  return res.json();
+}
+
+export async function oauthApple(idToken: string, code: string, user?: { name?: { firstName?: string; lastName?: string } }): Promise<AuthResponse> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/oauth/apple`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken, code, user }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Apple login dështoi" }));
+    throw new Error(err.error);
+  }
   return res.json();
 }
 

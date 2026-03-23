@@ -11,6 +11,9 @@ import {
 import {
   login as apiLogin,
   register as apiRegister,
+  oauthGoogle as apiOauthGoogle,
+  oauthMicrosoft as apiOauthMicrosoft,
+  oauthApple as apiOauthApple,
   getMe,
   type User,
 } from "@/lib/api";
@@ -21,6 +24,9 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
+  loginWithMicrosoft: (code: string, redirectUri: string) => Promise<void>;
+  loginWithApple: (idToken: string, code: string, user?: { name?: { firstName?: string; lastName?: string } }) => Promise<void>;
   logout: () => void;
   setUser: (u: User) => void;
 }
@@ -82,8 +88,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user);
   }
 
+  async function loginWithGoogle(idToken: string) {
+    const res = await apiOauthGoogle(idToken);
+    localStorage.setItem("token", res.token);
+    setToken(res.token);
+    setUser(res.user);
+  }
+
+  async function loginWithMicrosoft(code: string, redirectUri: string) {
+    const res = await apiOauthMicrosoft(code, redirectUri);
+    localStorage.setItem("token", res.token);
+    setToken(res.token);
+    setUser(res.user);
+  }
+
+  async function loginWithApple(idToken: string, code: string, user?: { name?: { firstName?: string; lastName?: string } }) {
+    const res = await apiOauthApple(idToken, code, user);
+    localStorage.setItem("token", res.token);
+    setToken(res.token);
+    setUser(res.user);
+  }
+
   return (
-    <AuthContext value={{ user, token, loading, login, register, logout, setUser }}>
+    <AuthContext value={{ user, token, loading, login, register, loginWithGoogle, loginWithMicrosoft, loginWithApple, logout, setUser }}>
       {children}
     </AuthContext>
   );

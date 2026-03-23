@@ -90,6 +90,11 @@ const translations = {
     "auth.resetSuccess": "Fjalëkalimi u ndryshua me sukses!",
     "auth.resetNoToken": "Link i pavlefshëm. Kërko një link të ri.",
 
+    // OAuth
+    "auth.orContinueWith": "ose vazhdo me",
+    "auth.continueWith": "Vazhdo me",
+    "auth.signUpWith": "Regjistrohu me",
+
     // About & FAQ
     "nav.about": "Rreth Nesh",
     "nav.faq": "FAQ",
@@ -365,6 +370,11 @@ const translations = {
     "auth.resetBtn": "Reset",
     "auth.resetSuccess": "Password changed successfully!",
     "auth.resetNoToken": "Invalid link. Request a new one.",
+
+    // OAuth
+    "auth.orContinueWith": "or continue with",
+    "auth.continueWith": "Continue with",
+    "auth.signUpWith": "Sign up with",
 
     // About & FAQ
     "nav.about": "About Us",

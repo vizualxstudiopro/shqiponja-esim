@@ -76,6 +76,14 @@ function migrate() {
   if (!userCols.includes('reset_token_expires')) {
     db.exec("ALTER TABLE users ADD COLUMN reset_token_expires TEXT");
   }
+
+  // OAuth columns
+  if (!userCols.includes('oauth_provider')) {
+    db.exec("ALTER TABLE users ADD COLUMN oauth_provider TEXT");
+  }
+  if (!userCols.includes('oauth_id')) {
+    db.exec("ALTER TABLE users ADD COLUMN oauth_id TEXT");
+  }
 }
 
 function seed() {

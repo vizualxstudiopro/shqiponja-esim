@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import OAuthButtons from "@/components/oauth-buttons";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -131,6 +132,8 @@ export default function RegisterPage() {
             {loading ? t("auth.registering") : t("auth.registerBtn")}
           </button>
         </form>
+
+        <OAuthButtons mode="register" />
 
         <p className="mt-6 text-center text-sm text-zinc-500">
           {t("auth.hasAccount")}{" "}
