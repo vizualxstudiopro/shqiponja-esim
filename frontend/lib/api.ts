@@ -34,19 +34,27 @@ function fetchWithTimeout(url: string, options?: RequestInit): Promise<Response>
 }
 
 export async function getPackages(): Promise<EsimPackage[]> {
-  const res = await fetchWithTimeout(`${API_URL}/api/packages`, {
-    next: { revalidate: 60 },
-  });
-  if (!res.ok) throw new Error("Failed to fetch packages");
-  return res.json();
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/packages`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
 }
 
-export async function getPackageById(id: number): Promise<EsimPackage> {
-  const res = await fetchWithTimeout(`${API_URL}/api/packages/${id}`, {
-    next: { revalidate: 60 },
-  });
-  if (!res.ok) throw new Error("Package not found");
-  return res.json();
+export async function getPackageById(id: number): Promise<EsimPackage | null> {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/packages/${id}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 export interface CheckoutResponse {
@@ -72,12 +80,16 @@ export async function checkout(
   return res.json();
 }
 
-export async function getOrderById(id: number): Promise<Order> {
-  const res = await fetchWithTimeout(`${API_URL}/api/orders/${id}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error("Order not found");
-  return res.json();
+export async function getOrderById(id: number): Promise<Order | null> {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/orders/${id}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 /* ─── Auth ─── */
