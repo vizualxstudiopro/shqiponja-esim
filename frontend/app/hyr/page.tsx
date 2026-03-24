@@ -29,6 +29,17 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+      // Get fresh user to check role for redirect
+      const saved = localStorage.getItem("token");
+      if (saved) {
+        try {
+          const payload = JSON.parse(atob(saved.split(".")[1]));
+          if (payload.role === "admin") {
+            router.push("/admin");
+            return;
+          }
+        } catch {}
+      }
       router.push("/");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Diçka shkoi keq");

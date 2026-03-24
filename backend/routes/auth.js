@@ -94,7 +94,7 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
     { expiresIn: '7d' }
   );
 
-  const { password: _, ...safeUser } = user;
+  const { password: _, totp_secret: __, ...safeUser } = user;
   res.json({ user: safeUser, token });
 });
 
