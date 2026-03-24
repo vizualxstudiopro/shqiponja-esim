@@ -22,7 +22,6 @@ function migrate() {
       user_id           INTEGER REFERENCES users(id),
       email             TEXT    NOT NULL,
       status            TEXT    NOT NULL DEFAULT 'pending',
-      stripe_session_id TEXT,
       payment_status    TEXT    NOT NULL DEFAULT 'unpaid',
       qr_data           TEXT,
       created_at        TEXT    NOT NULL DEFAULT (datetime('now'))
@@ -44,9 +43,6 @@ function migrate() {
 
   // Add columns if upgrading from older schema
   const columns = db.prepare("PRAGMA table_info(orders)").all().map(c => c.name);
-  if (!columns.includes('stripe_session_id')) {
-    db.exec("ALTER TABLE orders ADD COLUMN stripe_session_id TEXT");
-  }
   if (!columns.includes('payment_status')) {
     db.exec("ALTER TABLE orders ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'unpaid'");
   }
@@ -208,6 +204,5 @@ fixAdminEmail();
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
-  CREATE INDEX IF NOT EXISTS idx_orders_stripe_session ON orders(stripe_session_id);
 `);
 console.log('✔ Database indexes ensured');

@@ -6,7 +6,7 @@ Platformë e-commerce për shitjen e paketave eSIM ndërkombëtare. Ndërtuar me
 
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS v4
 - **Backend:** Express 5, better-sqlite3, JWT, bcryptjs
-- **Pagesa:** Stripe Checkout + Webhooks
+- **Pagesa:** Paddle Checkout + Webhooks
 - **Email:** Nodemailer (dev: console log)
 
 ## Struktura
@@ -31,8 +31,6 @@ Krijo `.env`:
 ```env
 PORT=3001
 JWT_SECRET=your-secret-here
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
 FRONTEND_URL=http://localhost:3000
 ADMIN_EMAIL=admin@shqiponja.com
 SMTP_HOST=smtp.example.com
@@ -82,7 +80,7 @@ Backend lejon kërkesa vetëm nga `FRONTEND_URL` (default `http://localhost:3000
 ## Features
 
 - Katalog paketash eSIM me kërkim & filtrim
-- Blerje me Stripe Checkout
+- Blerje me Paddle Checkout
 - Gjenerim QR Code pas pagesës
 - Regjistrim / Kyçje me JWT
 - Verifikim email-i
@@ -112,8 +110,6 @@ Backend lejon kërkesa vetëm nga `FRONTEND_URL` (default `http://localhost:3000
 |---|---|---|
 | `PORT` | Port i serverit | `3001` |
 | `JWT_SECRET` | Secret për JWT tokens | *(kërkohet në produksion)* |
-| `STRIPE_SECRET_KEY` | Stripe API key | — |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | — |
 | `FRONTEND_URL` | URL e frontend | `http://localhost:3000` |
 | `ADMIN_EMAIL` | Email i admin | `admin@shqiponja-esim.com` |
 | `ADMIN_DEFAULT_PASSWORD` | Fjalëkalimi fillestar i admin | `admin123` |
