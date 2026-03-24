@@ -177,11 +177,25 @@ function seedAdmin() {
 
 // Fix admin email if it was created with old hardcoded value
 function fixAdminEmail() {
+  const bcrypt = require('bcryptjs');
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@shqiponjaesim.com';
+  const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD;
+  
+  // Fix old hardcoded email
   const old = db.prepare("SELECT id FROM users WHERE email = 'admin@shqiponja-esim.com' AND role = 'admin'").get();
   if (old && adminEmail !== 'admin@shqiponja-esim.com') {
     db.prepare('UPDATE users SET email = ? WHERE id = ?').run(adminEmail, old.id);
     console.log(`✔ Admin email updated to ${adminEmail}`);
+  }
+
+  // Sync admin password with env var on every startup
+  if (adminPassword) {
+    const admin = db.prepare("SELECT id FROM users WHERE email = ? AND role = 'admin'").get(adminEmail);
+    if (admin) {
+      const hash = bcrypt.hashSync(adminPassword, 12);
+      db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hash, admin.id);
+      console.log('✔ Admin password synced from ADMIN_DEFAULT_PASSWORD');
+    }
   }
 }
 
