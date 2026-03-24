@@ -7,6 +7,20 @@ const { authLimiter } = require('../middleware/rate-limit');
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'shqiponja-dev-secret';
 
+// ─── Available Providers ───
+// Frontend checks which OAuth providers the backend has configured
+router.get('/providers', (req, res) => {
+  res.json({
+    google: !!process.env.GOOGLE_CLIENT_ID,
+    microsoft: !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET),
+    apple: !!process.env.APPLE_CLIENT_ID,
+    // Send Google Client ID so frontend can initialise Google Sign-In
+    googleClientId: process.env.GOOGLE_CLIENT_ID || null,
+    microsoftClientId: process.env.MICROSOFT_CLIENT_ID || null,
+    appleClientId: process.env.APPLE_CLIENT_ID || null,
+  });
+});
+
 /**
  * Find or create a user from OAuth profile data.
  * If the email already exists, link the OAuth provider.

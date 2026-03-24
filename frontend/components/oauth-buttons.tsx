@@ -2,12 +2,9 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
+import { getOAuthProviders, type OAuthProviders } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
-
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
-const MICROSOFT_CLIENT_ID = process.env.NEXT_PUBLIC_MICROSOFT_CLIENT_ID || "";
-const APPLE_CLIENT_ID = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || "";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface OAuthButtonsProps {
   mode: "login" | "register";
@@ -19,6 +16,15 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
+  const [providers, setProviders] = useState<OAuthProviders | null>(null);
+  const fetched = useRef(false);
+
+  // Fetch available OAuth providers from backend
+  useEffect(() => {
+    if (fetched.current) return;
+    fetched.current = true;
+    getOAuthProviders().then(setProviders).catch(() => setProviders(null));
+  }, []);
 
   // ─── Google Sign-In ───
   const handleGoogleCallback = useCallback(
@@ -39,7 +45,7 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
   );
 
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID) return;
+    if (!providers?.googleClientId) return;
 
     // Load Google Identity Services script
     const script = document.createElement("script");
@@ -49,7 +55,7 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
     script.onload = () => {
       if (typeof window !== "undefined" && window.google) {
         window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
+          client_id: providers.googleClientId!,
           callback: handleGoogleCallback,
         });
         const btnContainer = document.getElementById("google-btn");
@@ -69,17 +75,17 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
     return () => {
       document.body.removeChild(script);
     };
-  }, [handleGoogleCallback, mode]);
+  }, [handleGoogleCallback, mode, providers]);
 
   // ─── Microsoft Sign-In ───
   function handleMicrosoft() {
-    if (!MICROSOFT_CLIENT_ID) return;
+    if (!providers?.microsoftClientId) return;
     setError("");
     const redirectUri = `${window.location.origin}/auth/microsoft/callback`;
     const scope = "openid email profile";
     const url =
       `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?` +
-      `client_id=${encodeURIComponent(MICROSOFT_CLIENT_ID)}` +
+      `client_id=${encodeURIComponent(providers.microsoftClientId)}` +
       `&response_type=code` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&scope=${encodeURIComponent(scope)}` +
@@ -89,12 +95,12 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
 
   // ─── Apple Sign-In ───
   function handleApple() {
-    if (!APPLE_CLIENT_ID) return;
+    if (!providers?.appleClientId) return;
     setError("");
     const redirectUri = `${window.location.origin}/auth/apple/callback`;
     const url =
       `https://appleid.apple.com/auth/authorize?` +
-      `client_id=${encodeURIComponent(APPLE_CLIENT_ID)}` +
+      `client_id=${encodeURIComponent(providers.appleClientId)}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&response_type=code id_token` +
       `&scope=name email` +
@@ -102,7 +108,8 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
     window.location.href = url;
   }
 
-  const hasAnyProvider = GOOGLE_CLIENT_ID || MICROSOFT_CLIENT_ID || APPLE_CLIENT_ID;
+  if (!providers) return null;
+  const hasAnyProvider = providers.google || providers.microsoft || providers.apple;
   if (!hasAnyProvider) return null;
 
   const label = mode === "login" ? t("auth.continueWith") : t("auth.signUpWith");
@@ -128,12 +135,12 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
 
       <div className="mt-4 space-y-3">
         {/* Google */}
-        {GOOGLE_CLIENT_ID && (
+        {providers.google && (
           <div id="google-btn" className="flex justify-center" />
         )}
 
         {/* Microsoft */}
-        {MICROSOFT_CLIENT_ID && (
+        {providers.microsoft && (
           <button
             type="button"
             onClick={handleMicrosoft}
@@ -151,7 +158,7 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
         )}
 
         {/* Apple */}
-        {APPLE_CLIENT_ID && (
+        {providers.apple && (
           <button
             type="button"
             onClick={handleApple}

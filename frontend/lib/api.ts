@@ -173,6 +173,21 @@ export async function resendVerification(token: string) {
 
 /* ─── OAuth ─── */
 
+export interface OAuthProviders {
+  google: boolean;
+  microsoft: boolean;
+  apple: boolean;
+  googleClientId: string | null;
+  microsoftClientId: string | null;
+  appleClientId: string | null;
+}
+
+export async function getOAuthProviders(): Promise<OAuthProviders> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/oauth/providers`);
+  if (!res.ok) return { google: false, microsoft: false, apple: false, googleClientId: null, microsoftClientId: null, appleClientId: null };
+  return res.json();
+}
+
 export async function oauthGoogle(idToken: string): Promise<AuthResponse> {
   const res = await fetchWithTimeout(`${API_URL}/api/auth/oauth/google`, {
     method: "POST",
