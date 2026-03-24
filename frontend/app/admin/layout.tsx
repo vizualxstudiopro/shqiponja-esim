@@ -17,6 +17,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: "/admin/paketat", label: t("admin.packages") },
     { href: "/admin/porosite", label: t("admin.orders") },
     { href: "/admin/perdoruesit", label: t("admin.users") },
+    { href: "/admin/siguria", label: t("admin.security") },
   ];
 
   useEffect(() => {

@@ -59,7 +59,7 @@ router.post('/register', authLimiter, validateRegister, async (req, res) => {
 
 // POST /api/auth/login
 router.post('/login', authLimiter, validateLogin, async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, totpCode } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email-i dhe fjalëkalimi janë të detyrueshëm' });
@@ -73,6 +73,19 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) {
     return res.status(401).json({ error: 'Email ose fjalëkalim i gabuar' });
+  }
+
+  // Check if 2FA is enabled for this user
+  if (user.totp_enabled && user.totp_secret) {
+    if (!totpCode) {
+      // Return a challenge — client must re-submit with totpCode
+      return res.json({ requires2FA: true });
+    }
+    const { authenticator } = require('otplib');
+    const isValid = authenticator.check(totpCode, user.totp_secret);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Kodi 2FA i pavlefshëm' });
+    }
   }
 
   const token = jwt.sign(

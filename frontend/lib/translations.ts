@@ -95,6 +95,10 @@ const translations = {
     "auth.continueWith": "Vazhdo me",
     "auth.signUpWith": "Regjistrohu me",
 
+    // 2FA
+    "auth.totpCode": "Kodi 2FA",
+    "auth.totpHint": "Fut kodin 6-shifror nga aplikacioni juaj autentifikues",
+
     // About & FAQ
     "nav.about": "Rreth Nesh",
     "nav.faq": "FAQ",
@@ -246,6 +250,21 @@ const translations = {
     "admin.cancelled": "Anuluar",
     "admin.refunded": "Rimbursuar",
 
+    // Admin Security / 2FA
+    "admin.security": "Siguria",
+    "admin.securityDesc": "Menaxho sigurinë e llogarisë suaj admin",
+    "admin.twoFactor": "Autentifikimi me dy faktorë (2FA)",
+    "admin.twoFactorDesc": "Shto një shtresë shtesë sigurie me Google Authenticator ose ndonjë aplikacion tjetër TOTP",
+    "admin.twoFactorOn": "Aktive",
+    "admin.twoFactorOff": "Joaktive",
+    "admin.enable2FA": "Aktivizo 2FA",
+    "admin.scanQR": "Skanoni këtë QR kod me aplikacionin tuaj autentifikues:",
+    "admin.manualKey": "Ose futni këtë çelës manualisht:",
+    "admin.enterCode": "Futni kodin 6-shifror nga aplikacioni:",
+    "admin.verify2FA": "Verifiko dhe Aktivizo",
+    "admin.disable2FATitle": "Çaktivizo 2FA",
+    "admin.disable2FA": "Çaktivizo 2FA",
+
     // Buy page
     "buy.data": "Të dhëna",
     "buy.duration": "Kohëzgjatja",
@@ -375,6 +394,10 @@ const translations = {
     "auth.orContinueWith": "or continue with",
     "auth.continueWith": "Continue with",
     "auth.signUpWith": "Sign up with",
+
+    // 2FA
+    "auth.totpCode": "2FA Code",
+    "auth.totpHint": "Enter the 6-digit code from your authenticator app",
 
     // About & FAQ
     "nav.about": "About Us",
@@ -526,6 +549,21 @@ const translations = {
     "admin.filterByStatus": "Filter by status",
     "admin.cancelled": "Cancelled",
     "admin.refunded": "Refunded",
+
+    // Admin Security / 2FA
+    "admin.security": "Security",
+    "admin.securityDesc": "Manage your admin account security",
+    "admin.twoFactor": "Two-Factor Authentication (2FA)",
+    "admin.twoFactorDesc": "Add an extra layer of security with Google Authenticator or any TOTP app",
+    "admin.twoFactorOn": "Enabled",
+    "admin.twoFactorOff": "Disabled",
+    "admin.enable2FA": "Enable 2FA",
+    "admin.scanQR": "Scan this QR code with your authenticator app:",
+    "admin.manualKey": "Or enter this key manually:",
+    "admin.enterCode": "Enter the 6-digit code from your app:",
+    "admin.verify2FA": "Verify and Enable",
+    "admin.disable2FATitle": "Disable 2FA",
+    "admin.disable2FA": "Disable 2FA",
 
     // Buy page
     "buy.data": "Data",

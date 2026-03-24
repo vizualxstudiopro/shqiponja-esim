@@ -13,6 +13,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const [needs2FA, setNeeds2FA] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +23,12 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
+      const result = await login(email, password, needs2FA ? totpCode : undefined);
+      if (result.requires2FA) {
+        setNeeds2FA(true);
+        setLoading(false);
+        return;
+      }
       router.push("/");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Diçka shkoi keq");
@@ -81,6 +88,29 @@ export default function LoginPage() {
               className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
             />
           </div>
+
+          {needs2FA && (
+            <div>
+              <label htmlFor="totpCode" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {t("auth.totpCode")}
+              </label>
+              <p className="mt-0.5 text-xs text-zinc-500">{t("auth.totpHint")}</p>
+              <input
+                id="totpCode"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                required
+                autoFocus
+                autoComplete="one-time-code"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
+                placeholder="000000"
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-center text-lg font-mono tracking-[0.3em] outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+              />
+            </div>
+          )}
 
           <button
             type="submit"

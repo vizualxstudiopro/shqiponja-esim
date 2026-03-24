@@ -107,6 +107,7 @@ export interface User {
 export interface AuthResponse {
   user: User;
   token: string;
+  requires2FA?: boolean;
 }
 
 export async function register(
@@ -128,12 +129,13 @@ export async function register(
 
 export async function login(
   email: string,
-  password: string
+  password: string,
+  totpCode?: string
 ): Promise<AuthResponse> {
   const res = await fetchWithTimeout(`${API_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, totpCode }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Hyrja dështoi" }));
@@ -275,6 +277,32 @@ export async function adminUpdatePackage(token: string, id: number, data: Omit<E
 export async function adminDeletePackage(token: string, id: number) {
   const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}`, { method: "DELETE", headers: authHeaders(token) });
   if (!res.ok) throw new Error("Fshirja dështoi");
+  return res.json();
+}
+
+/* ─── 2FA ─── */
+
+export async function twoFactorSetup(token: string): Promise<{ secret: string; qrCode: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/2fa/setup`, { method: "POST", headers: authHeaders(token) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Setup dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export async function twoFactorVerifySetup(token: string, code: string): Promise<{ ok: boolean; message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/2fa/verify-setup`, { method: "POST", headers: authHeaders(token), body: JSON.stringify({ code }) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Verifikimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export async function twoFactorDisable(token: string, code: string): Promise<{ ok: boolean; message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/2fa/disable`, { method: "POST", headers: authHeaders(token), body: JSON.stringify({ code }) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Çaktivizimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export async function twoFactorStatus(token: string): Promise<{ enabled: boolean }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/2fa/status`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
   return res.json();
 }
 

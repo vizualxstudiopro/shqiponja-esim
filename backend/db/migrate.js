@@ -84,6 +84,14 @@ function migrate() {
   if (!userCols.includes('oauth_id')) {
     db.exec("ALTER TABLE users ADD COLUMN oauth_id TEXT");
   }
+
+  // 2FA columns
+  if (!userCols.includes('totp_secret')) {
+    db.exec("ALTER TABLE users ADD COLUMN totp_secret TEXT");
+  }
+  if (!userCols.includes('totp_enabled')) {
+    db.exec("ALTER TABLE users ADD COLUMN totp_enabled INTEGER NOT NULL DEFAULT 0");
+  }
 }
 
 function seed() {
