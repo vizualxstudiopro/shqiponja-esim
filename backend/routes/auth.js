@@ -81,8 +81,9 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
       // Return a challenge — client must re-submit with totpCode
       return res.json({ requires2FA: true });
     }
-    const { authenticator } = require('otplib');
-    const isValid = authenticator.check(totpCode, user.totp_secret);
+    const { TOTP, Secret } = require('otpauth');
+    const totp = new TOTP({ issuer: 'Shqiponja eSIM Admin', label: user.email, secret: Secret.fromBase32(user.totp_secret), digits: 6, period: 30 });
+    const isValid = totp.validate({ token: totpCode, window: 1 }) !== null;
     if (!isValid) {
       return res.status(401).json({ error: 'Kodi 2FA i pavlefshëm' });
     }

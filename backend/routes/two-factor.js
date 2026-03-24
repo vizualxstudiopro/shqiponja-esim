@@ -1,8 +1,13 @@
 const express = require('express');
-const { authenticator } = require('otplib');
+const { TOTP, Secret } = require('otpauth');
 const QRCode = require('qrcode');
+const crypto = require('crypto');
 const db = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
+
+function createTOTP(secret, email) {
+  return new TOTP({ issuer: 'Shqiponja eSIM Admin', label: email, secret: Secret.fromBase32(secret), digits: 6, period: 30 });
+}
 
 const router = express.Router();
 
@@ -16,13 +21,13 @@ router.post('/setup', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'Përdoruesi nuk u gjet' });
     if (user.totp_enabled) return res.status(400).json({ error: '2FA është aktive tashmë' });
 
-    const secret = authenticator.generateSecret();
+    const secret = new Secret({ size: 20 }).base32;
 
     // Store secret temporarily (not enabled yet until verified)
     db.prepare('UPDATE users SET totp_secret = ? WHERE id = ?').run(secret, user.id);
 
-    const otpauth = authenticator.keyuri(user.email, 'Shqiponja eSIM Admin', secret);
-    const qrCode = await QRCode.toDataURL(otpauth);
+    const totp = createTOTP(secret, user.email);
+    const qrCode = await QRCode.toDataURL(totp.toString());
 
     res.json({ secret, qrCode });
   } catch (err) {
@@ -41,7 +46,8 @@ router.post('/verify-setup', (req, res) => {
   if (user.totp_enabled) return res.status(400).json({ error: '2FA është aktive tashmë' });
   if (!user.totp_secret) return res.status(400).json({ error: 'Fillo setup-in fillimisht' });
 
-  const isValid = authenticator.check(code, user.totp_secret);
+  const totp = createTOTP(user.totp_secret, 'admin');
+  const isValid = totp.validate({ token: code, window: 1 }) !== null;
   if (!isValid) return res.status(400).json({ error: 'Kodi i pavlefshëm. Provo përsëri.' });
 
   db.prepare('UPDATE users SET totp_enabled = 1 WHERE id = ?').run(user.id);
@@ -57,7 +63,8 @@ router.post('/disable', (req, res) => {
   if (!user) return res.status(404).json({ error: 'Përdoruesi nuk u gjet' });
   if (!user.totp_enabled) return res.status(400).json({ error: '2FA nuk është aktive' });
 
-  const isValid = authenticator.check(code, user.totp_secret);
+  const totp = createTOTP(user.totp_secret, 'admin');
+  const isValid = totp.validate({ token: code, window: 1 }) !== null;
   if (!isValid) return res.status(400).json({ error: 'Kodi i pavlefshëm' });
 
   db.prepare('UPDATE users SET totp_enabled = 0, totp_secret = NULL WHERE id = ?').run(user.id);
