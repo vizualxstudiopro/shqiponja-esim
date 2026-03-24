@@ -166,17 +166,29 @@ function seedAdmin() {
   if (existing) return;
 
   const bcrypt = require('bcryptjs');
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@shqiponjaesim.com';
   const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
   const hash = bcrypt.hashSync(adminPassword, 12);
   db.prepare(
     'INSERT INTO users (name, email, password, role, email_verified) VALUES (?, ?, ?, ?, ?)'
-  ).run('Admin', 'admin@shqiponja-esim.com', hash, 'admin', 1);
-  console.log('✔ Default admin created (admin@shqiponja-esim.com) — NDRYSHO FJALËKALIMIN NË PRODUKSION!');
+  ).run('Admin', adminEmail, hash, 'admin', 1);
+  console.log(`✔ Default admin created (${adminEmail})`);
+}
+
+// Fix admin email if it was created with old hardcoded value
+function fixAdminEmail() {
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@shqiponjaesim.com';
+  const old = db.prepare("SELECT id FROM users WHERE email = 'admin@shqiponja-esim.com' AND role = 'admin'").get();
+  if (old && adminEmail !== 'admin@shqiponja-esim.com') {
+    db.prepare('UPDATE users SET email = ? WHERE id = ?').run(adminEmail, old.id);
+    console.log(`✔ Admin email updated to ${adminEmail}`);
+  }
 }
 
 migrate();
 seed();
 seedAdmin();
+fixAdminEmail();
 
 // Performance indexes
 db.exec(`
