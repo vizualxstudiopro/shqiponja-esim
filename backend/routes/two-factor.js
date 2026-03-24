@@ -11,19 +11,24 @@ router.use(authMiddleware, adminOnly);
 
 // POST /api/auth/2fa/setup - Generate TOTP secret and QR code
 router.post('/setup', async (req, res) => {
-  const user = db.prepare('SELECT id, email, totp_enabled FROM users WHERE id = ?').get(req.user.id);
-  if (!user) return res.status(404).json({ error: 'Përdoruesi nuk u gjet' });
-  if (user.totp_enabled) return res.status(400).json({ error: '2FA është aktive tashmë' });
+  try {
+    const user = db.prepare('SELECT id, email, totp_enabled FROM users WHERE id = ?').get(req.user.id);
+    if (!user) return res.status(404).json({ error: 'Përdoruesi nuk u gjet' });
+    if (user.totp_enabled) return res.status(400).json({ error: '2FA është aktive tashmë' });
 
-  const secret = authenticator.generateSecret();
+    const secret = authenticator.generateSecret();
 
-  // Store secret temporarily (not enabled yet until verified)
-  db.prepare('UPDATE users SET totp_secret = ? WHERE id = ?').run(secret, user.id);
+    // Store secret temporarily (not enabled yet until verified)
+    db.prepare('UPDATE users SET totp_secret = ? WHERE id = ?').run(secret, user.id);
 
-  const otpauth = authenticator.keyuri(user.email, 'Shqiponja eSIM Admin', secret);
-  const qrCode = await QRCode.toDataURL(otpauth);
+    const otpauth = authenticator.keyuri(user.email, 'Shqiponja eSIM Admin', secret);
+    const qrCode = await QRCode.toDataURL(otpauth);
 
-  res.json({ secret, qrCode });
+    res.json({ secret, qrCode });
+  } catch (err) {
+    console.error('2FA setup error:', err);
+    res.status(500).json({ error: 'Gabim i brendshëm i serverit' });
+  }
 });
 
 // POST /api/auth/2fa/verify-setup - Verify first TOTP code and enable 2FA
