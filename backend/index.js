@@ -16,14 +16,25 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 // Security headers
 app.use(helmet());
 
-// CORS — allow requests from the frontend (with and without www)
+// CORS — allow requests from the frontend
 const allowedOrigins = [FRONTEND_URL];
 if (FRONTEND_URL.includes('://www.')) {
   allowedOrigins.push(FRONTEND_URL.replace('://www.', '://'));
 } else if (FRONTEND_URL.includes('://') && !FRONTEND_URL.includes('://www.')) {
   allowedOrigins.push(FRONTEND_URL.replace('://', '://www.'));
 }
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    // Allow if in allowed origins list
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow Vercel preview deployments
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 
 // Request logging
 app.use(morgan('short'));
