@@ -13,6 +13,9 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
+// Trust proxy (Railway, Heroku, etc. use reverse proxies)
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
 
