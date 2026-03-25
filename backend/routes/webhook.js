@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const router = express.Router();
 const db = require('../db');
 const { sendMail } = require('../lib/email');
+const { sendTemplateEmail } = require('../lib/emailService');
 
 const PADDLE_WEBHOOK_SECRET = process.env.PADDLE_WEBHOOK_SECRET;
 
@@ -68,6 +69,7 @@ router.post('/', (req, res) => {
         FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = ?
       `).get(Number(orderId));
       if (order) {
+        // Dërgo email me SMTP (fallback)
         sendMail(
           order.email,
           'Porosia jote — Shqiponja eSIM',
@@ -81,6 +83,18 @@ router.post('/', (req, res) => {
             <p>Skano QR kodin në Cilësimet > Celular > Shto Plan eSIM për ta aktivizuar.</p>
           </div>`
         ).catch(err => console.error('Order email error:', err));
+
+        // Dërgo email me Brevo template (nëse BREVO_API_KEY është konfiguruar)
+        const customerEmail = txnData.customer?.email || txnData.custom_data?.email || order.email;
+        const activationCode = txnData.custom_data?.activation_code || qrData;
+        const country = txnData.custom_data?.country || order.package_name || '';
+        const firstName = txnData.custom_data?.firstname || customerEmail.split('@')[0];
+
+        sendTemplateEmail(customerEmail, 1, {
+          FIRSTNAME: firstName,
+          COUNTRY: country,
+          ACTIVATION_CODE: activationCode,
+        }).catch(err => console.error('Brevo template email error:', err));
       }
     }
   }
