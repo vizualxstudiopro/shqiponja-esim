@@ -17,7 +17,7 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-zinc-100 dark:bg-zinc-950/80 dark:border-zinc-800">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
-          <Logo size={36} /> Shqiponja
+          <Logo size={44} variant="icon" /> Shqiponja
           <span className="font-light text-zinc-400">eSIM</span>
         </Link>
 

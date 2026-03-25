@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <>
       <div className="flex h-14 items-center gap-2 border-b border-zinc-100 px-5 dark:border-zinc-800">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <Logo size={28} /> Admin
+          <Logo size={32} variant="icon" /> Admin
         </Link>
         <button
           onClick={() => setSidebarOpen(false)}
@@ -113,7 +113,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
-            <span className="text-sm font-bold flex items-center gap-1.5"><Logo size={24} /> Admin</span>
+            <span className="text-sm font-bold flex items-center gap-1.5"><Logo size={28} variant="icon" /> Admin</span>
           </header>
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>

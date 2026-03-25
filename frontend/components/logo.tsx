@@ -1,17 +1,26 @@
 import Image from "next/image";
 
-export default function Logo({ size = 40, className = "" }: { size?: number; className?: string }) {
+interface LogoProps {
+  size?: number;
+  className?: string;
+  variant?: "full" | "icon";
+}
+
+export default function Logo({ size = 40, className = "", variant = "full" }: LogoProps) {
+  const lightSrc = variant === "icon" ? "/icon-light.svg" : "/logo-light.svg";
+  const darkSrc = variant === "icon" ? "/icon-dark.svg" : "/logo-dark.svg";
+
   return (
     <>
       <Image
-        src="/logo-light.svg"
+        src={lightSrc}
         alt="Shqiponja eSIM"
         width={size}
         height={size}
         className={`dark:hidden ${className}`}
       />
       <Image
-        src="/logo-dark.svg"
+        src={darkSrc}
         alt="Shqiponja eSIM"
         width={size}
         height={size}
