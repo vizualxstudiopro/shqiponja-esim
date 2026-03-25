@@ -97,6 +97,11 @@ export default function RootLayout({
             </I18nProvider>
           </AuthProvider>
         </ThemeProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(d,w,c){w.BrevoConversationsID='69c42990ed5ccd0b86050335';w[c]=w[c]||function(){(w[c].q=w[c].q||[]).push(arguments)};var s=d.createElement('script');s.async=true;s.src='https://conversations-widget.brevo.com/brevo-conversations.js';if(d.head)d.head.appendChild(s)})(document,window,'BrevoConversations');`,
+          }}
+        />
       </body>
     </html>
   );
