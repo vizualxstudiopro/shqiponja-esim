@@ -6,7 +6,7 @@ export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
 export default function Icon() {
-  const svg = readFileSync(join(process.cwd(), "public", "logo-light.svg"));
+  const svg = readFileSync(join(process.cwd(), "public", "icon-dark.svg"));
   const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 
   return new ImageResponse(
@@ -18,11 +18,10 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "white",
-          borderRadius: 6,
+          background: "transparent",
         }}
       >
-        <img src={dataUri} width={30} height={30} />
+        <img src={dataUri} width={32} height={32} />
       </div>
     ),
     { ...size }
