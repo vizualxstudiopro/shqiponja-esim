@@ -64,17 +64,17 @@ export default function AdminDashboard() {
       <h1 className="text-2xl font-extrabold">{t("admin.dashboard")}</h1>
       <p className="mt-1 text-sm text-zinc-500">{t("admin.summary")}</p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         {cards.map((c) => (
-          <div key={c.label} className={`rounded-xl border border-zinc-200 p-5 dark:border-zinc-700 ${c.color}`}>
-            <p className="text-xs font-semibold uppercase tracking-wider opacity-70">{c.label}</p>
-            <p className="mt-2 text-2xl font-extrabold">{c.value}</p>
+          <div key={c.label} className={`rounded-xl border border-zinc-200 p-4 sm:p-5 dark:border-zinc-700 ${c.color}`}>
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider opacity-70">{c.label}</p>
+            <p className="mt-1 sm:mt-2 text-xl sm:text-2xl font-extrabold">{c.value}</p>
           </div>
         ))}
       </div>
 
       {/* Charts */}
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
           <BarChart data={stats.monthlyRevenue} valueKey="revenue" label={t("admin.monthlyRevenue")} color="bg-shqiponja" noDataLabel={t("admin.noData")} />
         </div>

@@ -91,28 +91,29 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold">{t("admin.orders")}</h1>
+          <h1 className="text-xl sm:text-2xl font-extrabold">{t("admin.orders")}</h1>
           <p className="mt-1 text-sm text-zinc-500">{total} {t("admin.totalSuffix")}</p>
         </div>
-        <button onClick={exportCSV} className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-50 transition dark:border-zinc-700 dark:hover:bg-zinc-800">
+        <button onClick={exportCSV} className="w-full sm:w-auto rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 transition dark:border-zinc-700 dark:hover:bg-zinc-800">
           {t("admin.exportCSV")}
         </button>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <input
           type="text"
           placeholder={t("admin.search")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-xs rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
+          className="w-full sm:max-w-xs rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
         />
+        <div className="flex gap-3">
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
+          className="flex-1 sm:flex-none rounded-lg border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
         >
           <option value="">{t("admin.allStatuses")}</option>
           <option value="pending">{t("admin.pendingStatus")}</option>
@@ -122,13 +123,14 @@ export default function AdminOrdersPage() {
         <select
           value={paymentFilter}
           onChange={(e) => setPaymentFilter(e.target.value)}
-          className="rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
+          className="flex-1 sm:flex-none rounded-lg border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
         >
           <option value="">{t("admin.allStatuses")}</option>
           <option value="unpaid">{t("admin.unpaid")}</option>
           <option value="paid">{t("admin.paid")}</option>
           <option value="refunded">{t("admin.refunded")}</option>
         </select>
+        </div>
       </div>
 
       <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">

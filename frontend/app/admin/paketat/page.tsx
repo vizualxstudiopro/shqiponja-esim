@@ -97,14 +97,14 @@ export default function AdminPackagesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold">{t("admin.packages")}</h1>
+          <h1 className="text-xl sm:text-2xl font-extrabold">{t("admin.packages")}</h1>
           <p className="mt-1 text-sm text-zinc-500">{packages.length} {t("admin.totalSuffix")}</p>
         </div>
         <button
           onClick={openNew}
-          className="rounded-lg bg-shqiponja px-4 py-2 text-sm font-semibold text-white shadow-md shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
+          className="w-full sm:w-auto rounded-lg bg-shqiponja px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
         >
           {t("admin.addPackage")}
         </button>
@@ -115,7 +115,7 @@ export default function AdminPackagesPage() {
         placeholder={t("admin.search")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="mt-4 w-full max-w-xs rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
+        className="mt-4 w-full sm:max-w-xs rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
       />
 
       {/* Table */}
@@ -155,18 +155,18 @@ export default function AdminPackagesPage() {
 
       {/* Modal */}
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-800">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4">
+          <div className="w-full sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white p-5 sm:p-6 shadow-xl dark:bg-zinc-800">
             <h2 className="text-lg font-bold">{isNew ? t("admin.addPackageTitle") : t("admin.editPackage")}</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 grid gap-3 grid-cols-1 sm:grid-cols-2">
               <input required placeholder={t("admin.name")} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
               <input required placeholder={t("admin.region")} value={editing.region} onChange={(e) => setEditing({ ...editing, region: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
               <input placeholder="Flag emoji" value={editing.flag} onChange={(e) => setEditing({ ...editing, flag: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
               <input required placeholder={t("admin.data")} value={editing.data} onChange={(e) => setEditing({ ...editing, data: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
               <input required placeholder={t("admin.duration")} value={editing.duration} onChange={(e) => setEditing({ ...editing, duration: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
               <input required min="0" step="0.01" placeholder={t("admin.price")} type="number" value={editing.price} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) || 0 })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
-              <input placeholder={t("admin.description")} value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="col-span-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
-              <label className="col-span-2 flex items-center gap-2 text-sm">
+              <input placeholder={t("admin.description")} value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="sm:col-span-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
+              <label className="sm:col-span-2 flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={editing.highlight} onChange={(e) => setEditing({ ...editing, highlight: e.target.checked })} className="rounded border-zinc-300" />
                 {t("admin.popular")}
               </label>

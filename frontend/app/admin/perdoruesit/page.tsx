@@ -73,7 +73,7 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold">{t("admin.users")}</h1>
+      <h1 className="text-xl sm:text-2xl font-extrabold">{t("admin.users")}</h1>
       <p className="mt-1 text-sm text-zinc-500">{total} {t("admin.totalSuffix")}</p>
 
       <input
@@ -81,7 +81,7 @@ export default function AdminUsersPage() {
         placeholder={t("admin.search")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="mt-4 w-full max-w-xs rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
+        className="mt-4 w-full sm:max-w-xs rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
       />
 
       <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
