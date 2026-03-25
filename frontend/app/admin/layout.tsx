@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { useEffect, useState, type ReactNode } from "react";
+import Logo from "@/components/logo";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -46,7 +47,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <>
       <div className="flex h-14 items-center gap-2 border-b border-zinc-100 px-5 dark:border-zinc-800">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="text-shqiponja">🦅</span> Admin
+          <Logo size={28} /> Admin
         </Link>
         <button
           onClick={() => setSidebarOpen(false)}
@@ -112,7 +113,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
-            <span className="text-sm font-bold"><span className="text-shqiponja">🦅</span> Admin</span>
+            <span className="text-sm font-bold flex items-center gap-1.5"><Logo size={24} /> Admin</span>
           </header>
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>

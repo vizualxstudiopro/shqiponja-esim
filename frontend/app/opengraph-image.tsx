@@ -1,11 +1,15 @@
 import { ImageResponse } from "next/og";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-export const runtime = "edge";
 export const alt = "Shqiponja eSIM — Paketa eSIM ndërkombëtare";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function Image() {
+  const svg = readFileSync(join(process.cwd(), "public", "logo-dark.svg"));
+  const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -31,7 +35,7 @@ export default function Image() {
             background: "rgba(185, 28, 28, 0.08)",
           }}
         />
-        <div style={{ fontSize: 80, marginBottom: 8 }}>🦅</div>
+        <img src={dataUri} width={120} height={120} style={{ marginBottom: 8 }} />
         <div
           style={{
             fontSize: 64,

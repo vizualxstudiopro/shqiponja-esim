@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import LangSwitch from "@/components/lang-switch";
 import ThemeToggle from "@/components/theme-toggle";
+import Logo from "@/components/logo";
 
 export default function Navbar() {
   const { user, loading, logout } = useAuth();
@@ -16,7 +17,7 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-zinc-100 dark:bg-zinc-950/80 dark:border-zinc-800">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
-          <span className="text-shqiponja">🦅</span> Shqiponja
+          <Logo size={36} /> Shqiponja
           <span className="font-light text-zinc-400">eSIM</span>
         </Link>
 

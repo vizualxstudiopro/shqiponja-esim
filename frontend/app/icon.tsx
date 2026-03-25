@@ -1,9 +1,14 @@
 import { ImageResponse } from "next/og";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
 export default function Icon() {
+  const svg = readFileSync(join(process.cwd(), "public", "logo-light.svg"));
+  const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -13,11 +18,11 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%)",
+          background: "white",
           borderRadius: 6,
         }}
       >
-        <div style={{ fontSize: 22, lineHeight: 1 }}>🦅</div>
+        <img src={dataUri} width={30} height={30} />
       </div>
     ),
     { ...size }
