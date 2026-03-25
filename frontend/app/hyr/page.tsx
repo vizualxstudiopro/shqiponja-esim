@@ -53,7 +53,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 dark:bg-zinc-950">
       <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
         <div className="text-center">
-          <Logo size={48} className="mx-auto" />
+          <Logo size={80} variant="icon" className="mx-auto" />
           <h1 className="mt-2 text-2xl font-extrabold tracking-tight">
             {t("auth.loginTitle")}
           </h1>
