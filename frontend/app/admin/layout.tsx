@@ -37,6 +37,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   if (!user || user.role !== "admin") return null;
 
   return (
+    <>
+      <meta name="robots" content="noindex, nofollow" />
     <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
       {/* Sidebar */}
       <aside className="relative flex w-64 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
@@ -70,5 +72,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {/* Main */}
       <main className="flex-1 p-8">{children}</main>
     </div>
+    </>
   );
 }

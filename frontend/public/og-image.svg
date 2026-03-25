@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#09090b"/>
+      <stop offset="100%" style="stop-color:#18181b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1050" cy="100" r="200" fill="#b91c1c" opacity="0.08"/>
+  <circle cx="150" cy="530" r="180" fill="#b91c1c" opacity="0.05"/>
+  <text x="600" y="240" text-anchor="middle" fill="white" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="800" letter-spacing="-1">
+    🦅 Shqiponja eSIM
+  </text>
+  <text x="600" y="330" text-anchor="middle" fill="#a1a1aa" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="400">
+    Lidhu me botën menjëherë
+  </text>
+  <line x1="500" y1="370" x2="700" y2="370" stroke="#b91c1c" stroke-width="3" opacity="0.6"/>
+  <text x="600" y="430" text-anchor="middle" fill="#71717a" font-family="system-ui, -apple-system, sans-serif" font-size="24">
+    Paketa eSIM ndërkombëtare · Pa roaming · Pa SIM fizike
+  </text>
+  <g transform="translate(370, 470)">
+    <text x="0" y="30" fill="#d4d4d8" font-family="system-ui, sans-serif" font-size="28" font-weight="700">190+</text>
+    <text x="0" y="55" fill="#52525b" font-family="system-ui, sans-serif" font-size="14" text-transform="uppercase">Vende</text>
+  </g>
+  <g transform="translate(530, 470)">
+    <text x="0" y="30" fill="#d4d4d8" font-family="system-ui, sans-serif" font-size="28" font-weight="700">50K+</text>
+    <text x="0" y="55" fill="#52525b" font-family="system-ui, sans-serif" font-size="14">Klientë</text>
+  </g>
+  <g transform="translate(690, 470)">
+    <text x="0" y="30" fill="#d4d4d8" font-family="system-ui, sans-serif" font-size="28" font-weight="700">99.9%</text>
+    <text x="0" y="55" fill="#52525b" font-family="system-ui, sans-serif" font-size="14">Uptime</text>
+  </g>
+</svg>

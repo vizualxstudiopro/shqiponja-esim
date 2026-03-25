@@ -1,0 +1,16 @@
+{
+  "name": "Shqiponja eSIM",
+  "short_name": "Shqiponja",
+  "description": "Bli paketa eSIM ndërkombëtare. Interneti kudo pa roaming, pa SIM fizike.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#b91c1c",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

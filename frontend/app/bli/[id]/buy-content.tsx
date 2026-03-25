@@ -15,7 +15,7 @@ export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
       <div className="mx-auto max-w-2xl px-6 py-16">
         <div className="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-700 dark:bg-zinc-800">
           <div className="flex items-center gap-4">
-            <span className="text-5xl">{pkg.flag}</span>
+            <span className="text-5xl" role="img" aria-label={pkg.region}>{pkg.flag}</span>
             <div>
               <h1 className="text-2xl font-extrabold">{pkg.name}</h1>
               <p className="text-sm text-zinc-500">{pkg.description}</p>

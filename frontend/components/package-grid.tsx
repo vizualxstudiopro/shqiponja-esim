@@ -104,7 +104,7 @@ export default function PackageGrid({ packages }: Props) {
               </span>
             )}
 
-            <span className="text-4xl">{pkg.flag}</span>
+            <span className="text-4xl" role="img" aria-label={pkg.region}>{pkg.flag}</span>
 
             <h3 className="mt-4 text-lg font-bold">{pkg.name}</h3>
 

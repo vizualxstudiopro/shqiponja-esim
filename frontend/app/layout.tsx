@@ -24,18 +24,36 @@ export const metadata: Metadata = {
   },
   description:
     "Bli paketa eSIM ndërkombëtare nga operatorët më të mëdhenj. Interneti kudo pa roaming, pa SIM fizike.",
+  alternates: {
+    canonical: "https://shqiponja-esim.com",
+  },
   openGraph: {
     type: "website",
     locale: "sq_AL",
     siteName: "Shqiponja eSIM",
     title: "Shqiponja eSIM — Lidhu me botën menjëherë",
     description: "Bli paketa eSIM ndërkombëtare. Interneti kudo pa roaming, pa SIM fizike.",
+    url: "https://shqiponja-esim.com",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Shqiponja eSIM — Paketa eSIM ndërkombëtare",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Shqiponja eSIM — Lidhu me botën menjëherë",
     description: "Bli paketa eSIM ndërkombëtare. Interneti kudo pa roaming, pa SIM fizike.",
+    images: ["/opengraph-image"],
   },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -58,7 +76,14 @@ export default function RootLayout({
               "@type": "Organization",
               name: "Shqiponja eSIM",
               url: "https://shqiponja-esim.com",
+              logo: "https://shqiponja-esim.com/opengraph-image",
               description: "Platformë e-commerce për shitjen e paketave eSIM ndërkombëtare.",
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "customer service",
+                url: "https://shqiponja-esim.com/kontakti",
+              },
+              sameAs: [],
             }),
           }}
         />
