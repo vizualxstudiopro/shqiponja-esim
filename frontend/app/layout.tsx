@@ -49,10 +49,6 @@ export const metadata: Metadata = {
     description: "Bli paketa eSIM ndërkombëtare. Interneti kudo pa roaming, pa SIM fizike.",
     images: ["/opengraph-image"],
   },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
   manifest: "/manifest.json",
 };
 
