@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const db = require('../db');
 const { authMiddleware } = require('../middleware/auth');
 const { sendMail, escapeHtml } = require('../lib/email');
+const { sendTemplateEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { validateRegister, validateLogin } = require('../middleware/validate');
 
@@ -147,17 +148,33 @@ router.post('/forgot-password', authLimiter, (req, res) => {
   // Always return success to prevent email enumeration
   if (!user) return res.json({ message: 'Nëse ky email ekziston, do të marrësh një link për rivendosjen e fjalëkalimit' });
 
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 min
+  // Gjenero JWT token që skadon pas 1 ore
+  const resetToken = jwt.sign(
+    { id: user.id, purpose: 'password-reset' },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+
+  // Ruaj token-in në DB si backup (30 min legacy)
+  const randomToken = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 orë
   db.prepare('UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?')
-    .run(resetToken, expires, user.id);
+    .run(randomToken, expires, user.id);
 
   const resetUrl = `${FRONTEND_URL}/rivendos-fjalekalimin?token=${resetToken}`;
+
+  // Dërgo me SMTP (fallback)
   sendMail(
     email,
     'Rivendos fjalëkalimin — Shqiponja eSIM',
-    `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për të rivendosur fjalëkalimin (i vlefshëm për 30 minuta):</p><a href="${resetUrl}">${resetUrl}</a><p>Nëse nuk e kërkove këtë, injoroje këtë email.</p>`
+    `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për të rivendosur fjalëkalimin (i vlefshëm për 1 orë):</p><a href="${resetUrl}">${resetUrl}</a><p>Nëse nuk e kërkove këtë, injoroje këtë email.</p>`
   ).catch(err => console.error('Email error:', err));
+
+  // Dërgo me Brevo Template #2
+  sendTemplateEmail(email, 2, {
+    FIRSTNAME: user.name || email.split('@')[0],
+    RESET_LINK: resetUrl,
+  }).catch(err => console.error('Brevo reset email error:', err));
 
   res.json({ message: 'Nëse ky email ekziston, do të marrësh një link për rivendosjen e fjalëkalimit' });
 });
@@ -169,8 +186,24 @@ router.post('/reset-password', async (req, res) => {
   if (password.length < 6) return res.status(400).json({ error: 'Fjalëkalimi duhet të ketë së paku 6 karaktere' });
   if (password.length > 128) return res.status(400).json({ error: 'Fjalëkalimi është shumë i gjatë' });
 
-  const user = db.prepare('SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > ?')
-    .get(resetToken, new Date().toISOString());
+  let user;
+
+  // Provo JWT token (i ri — 1 orë)
+  try {
+    const payload = jwt.verify(resetToken, JWT_SECRET);
+    if (payload.purpose === 'password-reset') {
+      user = db.prepare('SELECT id FROM users WHERE id = ?').get(payload.id);
+    }
+  } catch {
+    // JWT i pavlefshëm — provo token-in legacy nga DB
+  }
+
+  // Fallback: token legacy nga DB
+  if (!user) {
+    user = db.prepare('SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > ?')
+      .get(resetToken, new Date().toISOString());
+  }
+
   if (!user) return res.status(400).json({ error: 'Token i pavlefshëm ose i skaduar' });
 
   const hash = await bcrypt.hash(password, 12);
