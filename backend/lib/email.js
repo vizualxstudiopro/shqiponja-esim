@@ -4,7 +4,7 @@ const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = process.env.SMTP_PORT || 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-const SMTP_FROM = process.env.SMTP_FROM || 'noreply@shqiponja-esim.com';
+const SMTP_FROM = process.env.SMTP_FROM || 'Shqiponja eSIM <suport@shqiponjaesim.com>';
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
