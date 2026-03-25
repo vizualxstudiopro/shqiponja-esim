@@ -184,10 +184,16 @@ const translations = {
     "contact.email": "Email-i juaj",
     "contact.message": "Mesazhi",
     "contact.send": "Dërgo Mesazhin",
+    "contact.sending": "Po dërgohet...",
     "contact.required": "Të gjitha fushat janë të detyrueshme",
     "contact.success": "Mesazhi u dërgua me sukses!",
     "contact.error": "Dërgimi dështoi. Provoni përsëri.",
     "contact.sent": "Faleminderit! Mesazhi juaj u dërgua me sukses.",
+    "contact.confirmEmail": "Do të merrni një email konfirmimi së shpejti.",
+    "contact.sendAnother": "Dërgo mesazh tjetër",
+    "contact.namePlaceholder": "Emri dhe mbiemri",
+    "contact.emailPlaceholder": "email@shembull.com",
+    "contact.messagePlaceholder": "Shkruani mesazhin tuaj këtu...",
 
     // Admin
     "admin.dashboard": "Dashboard",
@@ -484,10 +490,16 @@ const translations = {
     "contact.email": "Your email",
     "contact.message": "Message",
     "contact.send": "Send Message",
+    "contact.sending": "Sending...",
     "contact.required": "All fields are required",
     "contact.success": "Message sent successfully!",
     "contact.error": "Sending failed. Please try again.",
     "contact.sent": "Thank you! Your message has been sent successfully.",
+    "contact.confirmEmail": "You will receive a confirmation email shortly.",
+    "contact.sendAnother": "Send another message",
+    "contact.namePlaceholder": "First and last name",
+    "contact.emailPlaceholder": "email@example.com",
+    "contact.messagePlaceholder": "Write your message here...",
 
     // Admin
     "admin.dashboard": "Dashboard",

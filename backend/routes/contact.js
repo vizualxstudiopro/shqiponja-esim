@@ -1,10 +1,11 @@
 const express = require('express');
 const { sendMail, escapeHtml } = require('../lib/email');
+const { sendTemplateEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { sanitizeString } = require('../middleware/validate');
 
 const router = express.Router();
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@shqiponja.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'suport@shqiponjaesim.com';
 
 // POST /api/contact
 router.post('/', authLimiter, async (req, res) => {
@@ -26,6 +27,7 @@ router.post('/', authLimiter, async (req, res) => {
   }
 
   try {
+    // Njoftim te admini me SMTP
     await sendMail(
       ADMIN_EMAIL,
       `Kontakt nga ${escapeHtml(name)} — Shqiponja eSIM`,
@@ -36,8 +38,21 @@ router.post('/', authLimiter, async (req, res) => {
        <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`
     );
   } catch (err) {
-    console.error('Contact email error:', err);
+    console.error('Contact admin email error:', err);
   }
+
+  // Email konfirmimi te klienti me Brevo Template #3
+  sendTemplateEmail(email, 3, {
+    FIRSTNAME: name,
+    MESSAGE: message,
+  }).catch(err => console.error('Brevo contact confirmation error:', err));
+
+  // Njoftim te admini me Brevo (pa template — përdor SMTP)
+  sendTemplateEmail(ADMIN_EMAIL, 4, {
+    FIRSTNAME: name,
+    EMAIL: email,
+    MESSAGE: message,
+  }).catch(err => console.error('Brevo admin notification error:', err));
 
   res.json({ ok: true, message: 'Mesazhi u dërgua me sukses' });
 });
