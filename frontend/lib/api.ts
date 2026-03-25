@@ -337,6 +337,10 @@ export async function forgotPassword(email: string): Promise<{ message: string }
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({ error: "Kërkesa dështoi" }));
+    throw new Error(e.error);
+  }
   return res.json();
 }
 

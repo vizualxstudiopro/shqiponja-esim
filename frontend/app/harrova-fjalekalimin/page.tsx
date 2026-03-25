@@ -11,13 +11,20 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    await forgotPassword(email);
-    setSent(true);
-    setLoading(false);
+    try {
+      await forgotPassword(email);
+      setSent(true);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Diçka shkoi gabim");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -32,6 +39,12 @@ export default function ForgotPasswordPage() {
             {t("auth.forgotSubtitle")}
           </p>
         </div>
+
+        {error && (
+          <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 border border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
+            {error}
+          </div>
+        )}
 
         {sent ? (
           <div className="mt-6 rounded-lg bg-green-50 px-4 py-4 text-sm text-green-700 border border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
