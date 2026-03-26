@@ -92,7 +92,7 @@ export default function PackageGrid({ packages }: Props) {
         {filtered.map((pkg) => (
           <div
             key={pkg.id}
-            className={`group relative flex flex-col rounded-2xl border p-6 transition hover:shadow-xl ${
+            className={`card-shine group relative flex flex-col rounded-2xl border p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
               pkg.highlight
                 ? "border-shqiponja bg-shqiponja/[0.03] shadow-lg shadow-shqiponja/10"
                 : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"

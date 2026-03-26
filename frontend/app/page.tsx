@@ -11,7 +11,7 @@ export default async function Home() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Ballina", item: "https://shqiponja-esim.com" },
+      { "@type": "ListItem", position: 1, name: "Ballina", item: "https://shqiponjaesim.com" },
     ],
   };
 
@@ -19,11 +19,11 @@ export default async function Home() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Shqiponja eSIM",
-    url: "https://shqiponja-esim.com",
+    url: "https://shqiponjaesim.com",
     description: "Bli paketa eSIM ndërkombëtare nga operatorët më të mëdhenj.",
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://shqiponja-esim.com/?search={search_term_string}",
+      target: "https://shqiponjaesim.com/?search={search_term_string}",
       "query-input": "required name=search_term_string",
     },
   };

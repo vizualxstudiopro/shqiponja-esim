@@ -29,7 +29,7 @@ export default function FaqPage() {
           {faqKeys.map((faq, i) => (
             <div
               key={i}
-              className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800"
+              className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800 transition-shadow hover:shadow-md"
             >
               <button
                 onClick={() => setOpenIdx(openIdx === i ? null : i)}
@@ -37,7 +37,7 @@ export default function FaqPage() {
               >
                 <span>{t(faq.q)}</span>
                 <svg
-                  className={`h-5 w-5 shrink-0 text-zinc-400 transition ${openIdx === i ? "rotate-180" : ""}`}
+                  className={`h-5 w-5 shrink-0 text-zinc-400 transition-transform duration-300 ${openIdx === i ? "rotate-180" : ""}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -46,11 +46,13 @@ export default function FaqPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" />
                 </svg>
               </button>
-              {openIdx === i && (
-                <div className="border-t border-zinc-100 px-6 py-4 text-sm leading-relaxed text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
-                  {t(faq.a)}
+              <div className={`accordion-content ${openIdx === i ? "open" : ""}`}>
+                <div className="accordion-inner">
+                  <div className="border-t border-zinc-100 px-6 py-4 text-sm leading-relaxed text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                    {t(faq.a)}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>

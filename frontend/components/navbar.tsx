@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
@@ -12,9 +12,16 @@ export default function Navbar() {
   const { user, loading, logout } = useAuth();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-zinc-100 dark:bg-zinc-950/80 dark:border-zinc-800">
+    <nav className={`sticky top-0 z-50 bg-white/80 backdrop-blur border-b transition-shadow duration-300 ${scrolled ? "border-zinc-200 shadow-md dark:border-zinc-700" : "border-zinc-100 dark:border-zinc-800"} dark:bg-zinc-950/80`}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
           <Logo size={44} variant="icon" /> Shqiponja
