@@ -30,7 +30,7 @@ function verifyPaddleSignature(rawBody, signature, secret) {
 }
 
 // POST /api/webhook/paddle - Paddle webhook handler
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   if (!PADDLE_WEBHOOK_SECRET) {
     console.error('Webhook: PADDLE_WEBHOOK_SECRET not configured');
     return res.status(500).json({ error: 'Webhook secret not configured' });
