@@ -138,8 +138,27 @@ router.patch('/orders/:id/status', (req, res) => {
 
 /* ─── PACKAGES ─── */
 router.get('/packages', (req, res) => {
-  const packages = db.prepare('SELECT * FROM packages ORDER BY visible DESC, region, price').all();
-  res.json(packages.map((p) => ({ ...p, highlight: !!p.highlight, visible: !!p.visible })));
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+  const offset = (page - 1) * limit;
+  const searchQuery = req.query.q || '';
+
+  let where = '1=1';
+  const params = [];
+  if (searchQuery.trim()) {
+    where += ' AND (name LIKE ? OR region LIKE ? OR country_code LIKE ?)';
+    const like = `%${searchQuery.trim()}%`;
+    params.push(like, like, like);
+  }
+
+  const total = db.prepare(`SELECT COUNT(*) AS cnt FROM packages WHERE ${where}`).get(...params).cnt;
+  const packages = db.prepare(`SELECT * FROM packages WHERE ${where} ORDER BY visible DESC, region, price LIMIT ? OFFSET ?`).all(...params, limit, offset);
+  res.json({
+    packages: packages.map((p) => ({ ...p, highlight: !!p.highlight, visible: !!p.visible })),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  });
 });
 
 router.patch('/packages/:id/visible', (req, res) => {

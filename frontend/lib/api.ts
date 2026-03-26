@@ -290,8 +290,17 @@ export async function adminUpdateOrderStatus(token: string, orderId: number, dat
   return res.json();
 }
 
-export async function adminGetPackages(token: string): Promise<EsimPackage[]> {
-  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages`, { headers: authHeaders(token), cache: "no-store" });
+export interface PaginatedPackages {
+  packages: EsimPackage[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function adminGetPackages(token: string, page = 1, limit = 50, q = ""): Promise<PaginatedPackages> {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (q.trim()) params.set("q", q.trim());
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages?${params}`, { headers: authHeaders(token), cache: "no-store" });
   if (!res.ok) throw new Error("Nuk ke qasje");
   return res.json();
 }
