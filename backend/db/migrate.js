@@ -249,5 +249,70 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_packages_airalo ON packages(airalo_package_id);
   CREATE INDEX IF NOT EXISTS idx_packages_country ON packages(country_code);
   CREATE INDEX IF NOT EXISTS idx_orders_iccid ON orders(iccid);
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_packages_airalo_unique ON packages(airalo_package_id);
 `);
 console.log('✔ Database indexes ensured');
+
+// Import Airalo packages from CSV if not yet imported
+function importAiraloCSV() {
+  const fs = require('fs');
+  const path = require('path');
+  const csvPath = path.join(__dirname, '..', 'data', 'airalo-packages.csv');
+  if (!fs.existsSync(csvPath)) return;
+
+  const existing = db.prepare('SELECT COUNT(*) as cnt FROM packages WHERE airalo_package_id IS NOT NULL').get();
+  if (existing.cnt > 0) {
+    console.log(`ℹ Airalo packages already imported (${existing.cnt})`);
+    return;
+  }
+
+  // Inline CSV import (same logic as scripts/import-airalo-csv.js)
+  const { parseCSV, COUNTRY_CODES, REGIONS, countryToFlag, extractDuration, calculateRetailPrice, getRegionForSpecial } = require('../scripts/import-airalo-csv-lib');
+  const csvContent = fs.readFileSync(csvPath, 'utf-8');
+  const rows = parseCSV(csvContent);
+
+  const upsert = db.prepare(`
+    INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description,
+                          airalo_package_id, country_code, networks, package_type, net_price, sms, voice)
+    VALUES (@name, @region, @flag, @data, @duration, @price, @currency, @highlight, @description,
+            @airalo_package_id, @country_code, @networks, @package_type, @net_price, @sms, @voice)
+    ON CONFLICT(airalo_package_id) DO UPDATE SET
+      price = @price, net_price = @net_price, data = @data, duration = @duration,
+      networks = @networks, sms = @sms, voice = @voice, name = @name, description = @description
+  `);
+
+  let imported = 0;
+  const importAll = db.transaction((rows) => {
+    for (const row of rows) {
+      const country = row['Country Region'];
+      const packageId = row['Package Id'];
+      const type = row['Type'];
+      const netPrice = parseFloat(row['Net Price']);
+      const minPrice = parseFloat(row['Minimum selling price']);
+      const data = row['Data'];
+      const sms = parseInt(row['SMS']) || 0;
+      const voice = parseInt(row['Voice']) || 0;
+      const networks = row['Networks'];
+      if (!packageId || !country || isNaN(netPrice) || isNaN(minPrice)) continue;
+      const countryCode = COUNTRY_CODES[country] || '';
+      const flag = countryToFlag(countryCode);
+      const region = REGIONS[countryCode] || getRegionForSpecial(country) || 'Other';
+      const duration = extractDuration(packageId);
+      const retailPrice = calculateRetailPrice(netPrice, minPrice);
+      upsert.run({
+        name: `${country} — ${data}`, region, flag, data, duration, price: retailPrice,
+        currency: 'USD', highlight: 0, description: `${networks} — ${data} / ${duration}`,
+        airalo_package_id: packageId, country_code: countryCode, networks,
+        package_type: type, net_price: netPrice, sms, voice,
+      });
+      imported++;
+    }
+  });
+  importAll(rows);
+
+  // Remove old dummy packages with no airalo_package_id (if no orders reference them)
+  try { db.prepare('DELETE FROM packages WHERE airalo_package_id IS NULL').run(); } catch(e) { /* FK constraint */ }
+
+  console.log(`✔ Imported ${imported} Airalo packages from CSV`);
+}
+importAiraloCSV();
