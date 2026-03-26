@@ -52,8 +52,8 @@ router.post('/', async (req, res) => {
     const orderId = txnData.custom_data?.order_id;
 
     if (orderId) {
-      const existingOrder = db.prepare('SELECT id FROM orders WHERE id = ?').get(Number(orderId));
-      if (!existingOrder) {
+      const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(Number(orderId));
+      if (!order) {
         console.error('Webhook: Order not found:', orderId);
         return res.json({ received: true });
       }
