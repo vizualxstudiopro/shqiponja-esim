@@ -8,7 +8,7 @@ const airalo = require('../lib/airaloService');
 router.get('/', (req, res) => {
   const { country, region, type } = req.query;
 
-  let sql = 'SELECT * FROM packages WHERE 1=1';
+  let sql = 'SELECT * FROM packages WHERE visible = 1';
   const params = [];
 
   if (country) {

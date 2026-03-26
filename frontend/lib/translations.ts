@@ -257,6 +257,10 @@ const translations = {
     "admin.exportCSV": "Eksporto CSV",
     "admin.allStatuses": "Të gjitha statuset",
     "admin.filterByStatus": "Filtro sipas statusit",
+    "admin.showOnWeb": "Shto në Web",
+    "admin.hideFromWeb": "Hiq nga Web",
+    "admin.visibleOnWeb": "Aktiv në Web",
+    "admin.hiddenFromWeb": "I fshehur",
     "admin.cancelled": "Anuluar",
     "admin.refunded": "Rimbursuar",
 
@@ -568,6 +572,10 @@ const translations = {
     "admin.exportCSV": "Export CSV",
     "admin.allStatuses": "All statuses",
     "admin.filterByStatus": "Filter by status",
+    "admin.showOnWeb": "Add to Web",
+    "admin.hideFromWeb": "Remove from Web",
+    "admin.visibleOnWeb": "Live on Web",
+    "admin.hiddenFromWeb": "Hidden",
     "admin.cancelled": "Cancelled",
     "admin.refunded": "Refunded",
 

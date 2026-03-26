@@ -16,6 +16,7 @@ export interface EsimPackage {
   net_price?: number;
   sms?: number;
   voice?: number;
+  visible?: boolean;
 }
 
 export interface Order {
@@ -285,6 +286,18 @@ export async function adminGetOrders(token: string, page = 1, filters?: { status
 
 export async function adminUpdateOrderStatus(token: string, orderId: number, data: { status?: string; payment_status?: string }) {
   const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${orderId}/status`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Ndryshimi dështoi");
+  return res.json();
+}
+
+export async function adminGetPackages(token: string): Promise<EsimPackage[]> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminTogglePackageVisible(token: string, id: number, visible: boolean): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}/visible`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ visible }) });
   if (!res.ok) throw new Error("Ndryshimi dështoi");
   return res.json();
 }

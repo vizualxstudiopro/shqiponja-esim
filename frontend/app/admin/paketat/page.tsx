@@ -4,10 +4,11 @@ import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import {
-  getPackages,
+  adminGetPackages,
   adminCreatePackage,
   adminUpdatePackage,
   adminDeletePackage,
+  adminTogglePackageVisible,
   type EsimPackage,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
@@ -25,8 +26,9 @@ export default function AdminPackagesPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    getPackages().then(setPackages).finally(() => setLoading(false));
-  }, []);
+    if (!token) return;
+    adminGetPackages(token).then(setPackages).finally(() => setLoading(false));
+  }, [token]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return packages;
@@ -69,6 +71,17 @@ export default function AdminPackagesPage() {
       }
       setEditing(null);
       toast(isNew ? "Paketa u shtua" : "Paketa u përditësua", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Error", "error");
+    }
+  }
+
+  async function handleToggleVisible(pkg: EsimPackage) {
+    if (!token) return;
+    try {
+      const updated = await adminTogglePackageVisible(token, pkg.id, !pkg.visible);
+      setPackages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      toast(updated.visible ? "Paketa u shtua në Web" : "Paketa u hoq nga Web", "success");
     } catch (err) {
       toast(err instanceof Error ? err.message : "Error", "error");
     }
@@ -129,6 +142,7 @@ export default function AdminPackagesPage() {
               <th className="px-4 py-3 font-semibold">{t("admin.data")}</th>
               <th className="px-4 py-3 font-semibold">{t("admin.duration")}</th>
               <th className="px-4 py-3 font-semibold">{t("admin.price")}</th>
+              <th className="px-4 py-3 font-semibold">Web</th>
               <th className="px-4 py-3 font-semibold">{t("admin.actions")}</th>
             </tr>
           </thead>
@@ -143,6 +157,18 @@ export default function AdminPackagesPage() {
                 <td className="px-4 py-3">{p.data}</td>
                 <td className="px-4 py-3">{p.duration}</td>
                 <td className="px-4 py-3 font-semibold">€{p.price.toFixed(2)}</td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => handleToggleVisible(p)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                      p.visible
+                        ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400"
+                        : "bg-zinc-100 text-zinc-500 hover:bg-shqiponja/10 hover:text-shqiponja dark:bg-zinc-700 dark:text-zinc-400"
+                    }`}
+                  >
+                    {p.visible ? t("admin.visibleOnWeb") : t("admin.showOnWeb")}
+                  </button>
+                </td>
                 <td className="px-4 py-3 flex gap-2">
                   <button onClick={() => openEdit(p)} className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition dark:border-zinc-600 dark:hover:bg-zinc-700">{t("admin.edit")}</button>
                   <button onClick={() => handleDelete(p.id)} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition dark:border-red-800 dark:hover:bg-red-900/30">{t("admin.delete")}</button>

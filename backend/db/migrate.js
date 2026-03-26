@@ -220,6 +220,9 @@ fixAdminEmail();
   if (!pkgCols.includes('net_price')) {
     db.exec("ALTER TABLE packages ADD COLUMN net_price REAL");
   }
+  if (!pkgCols.includes('visible')) {
+    db.exec("ALTER TABLE packages ADD COLUMN visible INTEGER NOT NULL DEFAULT 0");
+  }
   if (!pkgCols.includes('sms')) {
     db.exec("ALTER TABLE packages ADD COLUMN sms INTEGER DEFAULT 0");
   }

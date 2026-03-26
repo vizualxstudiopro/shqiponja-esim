@@ -137,6 +137,21 @@ router.patch('/orders/:id/status', (req, res) => {
 });
 
 /* ─── PACKAGES ─── */
+router.get('/packages', (req, res) => {
+  const packages = db.prepare('SELECT * FROM packages ORDER BY visible DESC, region, price').all();
+  res.json(packages.map((p) => ({ ...p, highlight: !!p.highlight, visible: !!p.visible })));
+});
+
+router.patch('/packages/:id/visible', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+  const { visible } = req.body;
+  db.prepare('UPDATE packages SET visible = ? WHERE id = ?').run(visible ? 1 : 0, id);
+  const pkg = db.prepare('SELECT * FROM packages WHERE id = ?').get(id);
+  if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
+  res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+});
+
 router.post('/packages', (req, res) => {
   const { name, region, flag, data, duration, price, currency, highlight, description } = req.body;
   if (!name || !region || !flag || !data || !duration || price == null) {
