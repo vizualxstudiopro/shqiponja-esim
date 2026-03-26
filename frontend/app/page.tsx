@@ -1,12 +1,7 @@
-import { getPackages } from "@/lib/api";
 import Navbar from "@/components/navbar";
 import LandingContent from "@/components/landing-content";
 
-export const dynamic = "force-dynamic";
-
-export default async function Home() {
-  const packages = await getPackages();
-
+export default function Home() {
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -33,7 +28,7 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <Navbar />
-      <LandingContent packages={packages} />
+      <LandingContent />
     </div>
   );
 }

@@ -1,23 +1,35 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
-import type { EsimPackage } from "@/lib/api";
+import { getPackages, type EsimPackage } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
-
-interface Props {
-  packages: EsimPackage[];
-}
 
 const SUGGESTIONS = ["Europa", "USA", "Turqi", "Itali", "Gjermani", "Greqi", "Global"];
 
-export default function PackageGrid({ packages }: Props) {
+export default function PackageGrid() {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [region, setRegion] = useState("all");
   const [sort, setSort] = useState<"default" | "price-asc" | "price-desc">("default");
+  const [packages, setPackages] = useState<EsimPackage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const fetchedRef = useRef(false);
 
   const hasFilter = search.trim() !== "" || region !== "all";
+
+  // Fetch all packages once — only when user first starts filtering
+  useEffect(() => {
+    if (!hasFilter || fetchedRef.current) return;
+    fetchedRef.current = true;
+    setLoading(true);
+    setError(false);
+    getPackages()
+      .then((data) => setPackages(data))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, [hasFilter]);
 
   const regions = useMemo(
     () => ["all", ...Array.from(new Set(packages.map((p) => p.region)))],
@@ -34,7 +46,7 @@ export default function PackageGrid({ packages }: Props) {
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.region.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
+          (p.description || "").toLowerCase().includes(q)
       );
     }
 
@@ -92,7 +104,7 @@ export default function PackageGrid({ packages }: Props) {
         </select>
       </div>
 
-      {/* Empty state — no search yet */}
+      {/* Empty state — waiting for search */}
       {!hasFilter && (
         <div className="mt-12 flex flex-col items-center gap-5 py-10 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-shqiponja/10 text-shqiponja">
@@ -120,8 +132,22 @@ export default function PackageGrid({ packages }: Props) {
         </div>
       )}
 
+      {/* Loading state */}
+      {hasFilter && loading && (
+        <div className="mt-12 flex justify-center py-10">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-shqiponja" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {hasFilter && error && (
+        <p className="mt-8 text-center text-sm text-red-400">
+          {t("packages.fetchError")}
+        </p>
+      )}
+
       {/* Results grid */}
-      {hasFilter && (
+      {hasFilter && !loading && !error && (
         <>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {filtered.map((pkg) => (
@@ -178,7 +204,7 @@ export default function PackageGrid({ packages }: Props) {
             ))}
           </div>
 
-          {filtered.length === 0 && (
+          {filtered.length === 0 && packages.length > 0 && (
             <p className="mt-8 text-center text-sm text-zinc-400">
               {t("packages.noResults")}
             </p>

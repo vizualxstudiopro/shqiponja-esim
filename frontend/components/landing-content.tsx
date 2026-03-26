@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { useI18n } from "@/lib/i18n-context";
-import type { EsimPackage } from "@/lib/api";
 import PackageGrid from "@/components/package-grid";
 
 import Link from "next/link";
@@ -59,7 +58,7 @@ function StepIcon3() {
 
 const stepIcons = [<StepIcon1 key="1" />, <StepIcon2 key="2" />, <StepIcon3 key="3" />];
 
-export default function LandingContent({ packages }: { packages: EsimPackage[] }) {
+export default function LandingContent() {
   const { t } = useI18n();
   const packagesRef = useReveal();
   const howRef = useReveal();
@@ -161,7 +160,7 @@ export default function LandingContent({ packages }: { packages: EsimPackage[] }
             </p>
           </div>
 
-          <PackageGrid packages={packages} />
+          <PackageGrid />
         </div>
       </section>
 
