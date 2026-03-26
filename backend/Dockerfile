@@ -8,7 +8,7 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 
 # Force cache invalidation - change this value to force rebuild
-ARG CACHE_DATE=2026-03-26T15:10:00
+ARG CACHE_DATE=2026-03-26T16:45:00
 RUN echo "Cache bust: ${CACHE_DATE}"
 
 COPY . .
