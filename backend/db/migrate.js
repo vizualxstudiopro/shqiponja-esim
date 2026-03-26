@@ -164,6 +164,9 @@ function seedAdmin() {
   const bcrypt = require('bcryptjs');
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@shqiponjaesim.com';
   const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
+  if (!process.env.ADMIN_DEFAULT_PASSWORD) {
+    console.warn('⚠️  WARNING: ADMIN_DEFAULT_PASSWORD not set — using insecure default password "admin123". Set this env var immediately!');
+  }
   const hash = bcrypt.hashSync(adminPassword, 12);
   db.prepare(
     'INSERT INTO users (name, email, password, role, email_verified) VALUES (?, ?, ?, ?, ?)'

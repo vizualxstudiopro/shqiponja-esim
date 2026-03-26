@@ -68,7 +68,8 @@ router.post('/', async (req, res) => {
       let activationCode = null;
       let airaloOrderId = null;
 
-      if (airalo.isEnabled() && pkg && pkg.airalo_package_id) {
+      const esimProvisioningAttempted = airalo.isEnabled() && pkg && pkg.airalo_package_id;
+      if (esimProvisioningAttempted) {
         try {
           const airaloData = await airalo.createOrder(pkg.airalo_package_id, 1, `Order #${orderId}`);
           const esim = airaloData?.data?.sims?.[0];
@@ -90,7 +91,7 @@ router.post('/', async (req, res) => {
           airalo_order_id = ?, iccid = ?, esim_status = ?, qr_code_url = ?, activation_code = ?
         WHERE id = ?
       `).run('paid', 'completed', airaloQr,
-        airaloOrderId, iccid, iccid ? 'active' : null,
+        airaloOrderId, iccid, iccid ? 'active' : (esimProvisioningAttempted ? 'provisioning_failed' : null),
         qrCodeUrl, activationCode, Number(orderId));
       console.log(`✔ Webhook: Order #${orderId} marked as paid (event: ${event.event_id})`);
 

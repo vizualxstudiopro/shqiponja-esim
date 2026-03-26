@@ -18,4 +18,13 @@ const apiLimiter = rateLimit({
   message: { error: 'Shumë kërkesa. Provo përsëri pas disa minutash.' },
 });
 
-module.exports = { authLimiter, apiLimiter };
+// Stricter limiter for order endpoints
+const orderLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Shumë kërkesa. Provo përsëri pas disa minutash.' },
+});
+
+module.exports = { authLimiter, apiLimiter, orderLimiter };

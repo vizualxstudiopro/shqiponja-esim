@@ -153,14 +153,38 @@ router.post('/apple', authLimiter, async (req, res) => {
     const { code, idToken, user: appleUser } = req.body;
     if (!idToken && !code) return res.status(400).json({ error: 'Token ose code mungon' });
 
-    // Decode Apple ID token (JWT) to get user info
-    // Apple ID tokens are signed JWTs — we decode the payload
-    const parts = (idToken || '').split('.');
-    if (parts.length !== 3) {
-      return res.status(400).json({ error: 'Token i pavlefshëm nga Apple' });
+    if (!idToken) {
+      return res.status(400).json({ error: 'ID token kërkohet nga Apple' });
     }
 
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+    const clientId = process.env.APPLE_CLIENT_ID;
+    if (!clientId) return res.status(500).json({ error: 'Apple OAuth nuk është konfiguruar' });
+
+    // Fetch Apple's public keys
+    const axios = require('axios');
+    const { createPublicKey } = require('crypto');
+
+    const keysRes = await axios.get('https://appleid.apple.com/auth/keys', { timeout: 5000 });
+    const appleKeys = keysRes.data.keys;
+
+    // Decode JWT header to find the right key
+    const headerPart = idToken.split('.')[0];
+    if (!headerPart) return res.status(400).json({ error: 'Token i pavlefshëm nga Apple' });
+    const header = JSON.parse(Buffer.from(headerPart, 'base64url').toString());
+
+    const appleKey = appleKeys.find(k => k.kid === header.kid);
+    if (!appleKey) return res.status(400).json({ error: 'Çelësi publik i Apple nuk u gjet' });
+
+    // Convert JWK to PEM using Node.js built-in crypto
+    const publicKey = createPublicKey({ key: appleKey, format: 'jwk' });
+
+    // Verify JWT signature and claims
+    const payload = jwt.verify(idToken, publicKey, {
+      algorithms: ['RS256'],
+      issuer: 'https://appleid.apple.com',
+      audience: clientId,
+    });
+
     if (!payload.email) {
       return res.status(400).json({ error: 'Nuk u mor email-i nga Apple' });
     }

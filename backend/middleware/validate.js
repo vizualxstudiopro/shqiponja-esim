@@ -7,7 +7,7 @@ function validateEmail(email) {
 }
 
 function validatePassword(password) {
-  return typeof password === 'string' && password.length >= 6 && password.length <= 128;
+  return typeof password === 'string' && password.length >= 8 && password.length <= 128;
 }
 
 function sanitizeString(str, maxLen = 2000) {
@@ -24,7 +24,7 @@ function validateRegister(req, res, next) {
     return res.status(400).json({ error: 'Email i pavlefshëm' });
   }
   if (!validatePassword(password)) {
-    return res.status(400).json({ error: 'Fjalëkalimi duhet të jetë 6-128 karaktere' });
+    return res.status(400).json({ error: 'Fjalëkalimi duhet të jetë 8-128 karaktere' });
   }
   req.body.name = sanitizeString(name);
   req.body.email = email.trim().toLowerCase();

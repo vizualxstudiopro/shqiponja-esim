@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
-const { apiLimiter } = require('../middleware/rate-limit');
+const { apiLimiter, orderLimiter } = require('../middleware/rate-limit');
+const { validateEmail } = require('../middleware/validate');
 const airalo = require('../lib/airaloService');
 
 // GET /api/orders/my - Get orders for logged-in user (MUST be before /:id)
@@ -57,8 +58,8 @@ router.get('/', authMiddleware, adminOnly, (req, res) => {
 });
 
 // GET /api/orders/:id - Get a single order
-// Requires auth (owner/admin) OR matching email from a recent dev-mode order
-router.get('/:id', (req, res) => {
+// Requires auth (owner/admin) OR matching paddle_transaction_id
+router.get('/:id', orderLimiter, (req, res) => {
   const id = parseInt(req.params.id, 10);
   const order = db.prepare(`
     SELECT o.*, p.name AS package_name, p.flag AS package_flag
@@ -72,15 +73,6 @@ router.get('/:id', (req, res) => {
   const txnId = req.query.transaction_id;
   if (txnId && order.paddle_transaction_id && txnId === order.paddle_transaction_id) {
     return res.json(order);
-  }
-
-  // Allow SSR access within 10 minutes of order creation (post-payment confirmation)
-  if (!req.headers.authorization && order.status === 'completed') {
-    const created = new Date(order.created_at).getTime();
-    const tenMin = 10 * 60 * 1000;
-    if (Date.now() - created < tenMin) {
-      return res.json(order);
-    }
   }
 
   // Otherwise require authentication
@@ -107,6 +99,9 @@ router.post('/', apiLimiter, (req, res) => {
   if (!packageId || !email) {
     return res.status(400).json({ error: 'packageId and email are required' });
   }
+  if (!validateEmail(email)) {
+    return res.status(400).json({ error: 'Email i pavlefshëm' });
+  }
 
   // Verify package exists
   const pkg = db.prepare('SELECT id FROM packages WHERE id = ?').get(packageId);
@@ -116,7 +111,7 @@ router.post('/', apiLimiter, (req, res) => {
 
   const result = db.prepare(`
     INSERT INTO orders (package_id, email) VALUES (?, ?)
-  `).run(packageId, email);
+  `).run(packageId, email.trim().toLowerCase());
 
   const order = db.prepare(`
     SELECT o.*, p.name AS package_name, p.flag AS package_flag
