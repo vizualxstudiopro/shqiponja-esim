@@ -4,6 +4,7 @@ const axios = require('axios');
 const router = express.Router();
 const db = require('../db');
 const { sendMail } = require('../lib/email');
+const airalo = require('../lib/airaloService');
 const { apiLimiter } = require('../middleware/rate-limit');
 const { validateCheckout } = require('../middleware/validate');
 const jwt = require('jsonwebtoken');
@@ -49,9 +50,37 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
   // If Paddle is not configured, skip payment (dev mode)
   if (!paddleEnabled) {
     const qrData = `SHQIPONJA-ESIM-${orderId}-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
-    db.prepare(
-      'UPDATE orders SET payment_status = ?, status = ?, qr_data = ? WHERE id = ?'
-    ).run('paid', 'completed', qrData, orderId);
+
+    // Try to order real eSIM from Airalo if credentials are available
+    let airaloData = null;
+    if (airalo.isEnabled() && pkg.airalo_package_id) {
+      try {
+        airaloData = await airalo.createOrder(pkg.airalo_package_id, 1, `Order #${orderId}`);
+        const esim = airaloData?.data?.sims?.[0];
+        if (esim) {
+          db.prepare(`
+            UPDATE orders SET payment_status = ?, status = ?, qr_data = ?,
+              airalo_order_id = ?, iccid = ?, esim_status = ?, qr_code_url = ?, activation_code = ?
+            WHERE id = ?
+          `).run('paid', 'completed', esim.qrcode || qrData,
+            String(airaloData.data.id), esim.iccid, 'active',
+            esim.qrcode_url || null, esim.direct_apple_installation_url || null, orderId);
+        } else {
+          db.prepare(
+            'UPDATE orders SET payment_status = ?, status = ?, qr_data = ? WHERE id = ?'
+          ).run('paid', 'completed', qrData, orderId);
+        }
+      } catch (err) {
+        console.error('[AIRALO ORDER ERROR] Dev mode:', err.message);
+        db.prepare(
+          'UPDATE orders SET payment_status = ?, status = ?, qr_data = ? WHERE id = ?'
+        ).run('paid', 'completed', qrData, orderId);
+      }
+    } else {
+      db.prepare(
+        'UPDATE orders SET payment_status = ?, status = ?, qr_data = ? WHERE id = ?'
+      ).run('paid', 'completed', qrData, orderId);
+    }
 
     const order = db.prepare(`
       SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price

@@ -9,6 +9,13 @@ export interface EsimPackage {
   currency: string;
   highlight: boolean;
   description: string;
+  airalo_package_id?: string;
+  country_code?: string;
+  networks?: string;
+  package_type?: string;
+  net_price?: number;
+  sms?: number;
+  voice?: number;
 }
 
 export interface Order {
@@ -22,6 +29,11 @@ export interface Order {
   created_at: string;
   package_name: string;
   package_flag: string;
+  airalo_order_id?: string;
+  iccid?: string;
+  esim_status?: string;
+  qr_code_url?: string;
+  activation_code?: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";

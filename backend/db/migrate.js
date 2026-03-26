@@ -200,9 +200,54 @@ seed();
 seedAdmin();
 fixAdminEmail();
 
+  // Airalo integration columns on packages
+  const pkgCols = db.prepare("PRAGMA table_info(packages)").all().map(c => c.name);
+  if (!pkgCols.includes('airalo_package_id')) {
+    db.exec("ALTER TABLE packages ADD COLUMN airalo_package_id TEXT");
+  }
+  if (!pkgCols.includes('country_code')) {
+    db.exec("ALTER TABLE packages ADD COLUMN country_code TEXT");
+  }
+  if (!pkgCols.includes('networks')) {
+    db.exec("ALTER TABLE packages ADD COLUMN networks TEXT");
+  }
+  if (!pkgCols.includes('package_type')) {
+    db.exec("ALTER TABLE packages ADD COLUMN package_type TEXT DEFAULT 'sim'");
+  }
+  if (!pkgCols.includes('net_price')) {
+    db.exec("ALTER TABLE packages ADD COLUMN net_price REAL");
+  }
+  if (!pkgCols.includes('sms')) {
+    db.exec("ALTER TABLE packages ADD COLUMN sms INTEGER DEFAULT 0");
+  }
+  if (!pkgCols.includes('voice')) {
+    db.exec("ALTER TABLE packages ADD COLUMN voice INTEGER DEFAULT 0");
+  }
+
+  // Airalo integration columns on orders
+  const orderCols = db.prepare("PRAGMA table_info(orders)").all().map(c => c.name);
+  if (!orderCols.includes('airalo_order_id')) {
+    db.exec("ALTER TABLE orders ADD COLUMN airalo_order_id TEXT");
+  }
+  if (!orderCols.includes('iccid')) {
+    db.exec("ALTER TABLE orders ADD COLUMN iccid TEXT");
+  }
+  if (!orderCols.includes('esim_status')) {
+    db.exec("ALTER TABLE orders ADD COLUMN esim_status TEXT");
+  }
+  if (!orderCols.includes('qr_code_url')) {
+    db.exec("ALTER TABLE orders ADD COLUMN qr_code_url TEXT");
+  }
+  if (!orderCols.includes('activation_code')) {
+    db.exec("ALTER TABLE orders ADD COLUMN activation_code TEXT");
+  }
+
 // Performance indexes
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+  CREATE INDEX IF NOT EXISTS idx_packages_airalo ON packages(airalo_package_id);
+  CREATE INDEX IF NOT EXISTS idx_packages_country ON packages(country_code);
+  CREATE INDEX IF NOT EXISTS idx_orders_iccid ON orders(iccid);
 `);
 console.log('✔ Database indexes ensured');

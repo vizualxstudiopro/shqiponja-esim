@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const { apiLimiter } = require('../middleware/rate-limit');
+const airalo = require('../lib/airaloService');
 
 // GET /api/orders/my - Get orders for logged-in user (MUST be before /:id)
 router.get('/my', authMiddleware, (req, res) => {
@@ -14,6 +15,34 @@ router.get('/my', authMiddleware, (req, res) => {
     ORDER BY o.created_at DESC
   `).all(req.user.id, req.user.id);
   res.json(orders);
+});
+
+// GET /api/orders/:id/usage - Get eSIM usage from Airalo
+router.get('/:id/usage', authMiddleware, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+
+  // Check ownership
+  if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
+    return res.status(403).json({ error: 'Nuk ke qasje' });
+  }
+
+  if (!order.iccid) {
+    return res.json({ usage: null, message: 'Kjo porosi nuk ka eSIM ICCID' });
+  }
+
+  if (!airalo.isEnabled()) {
+    return res.json({ usage: null, message: 'Airalo API nuk është konfiguruar' });
+  }
+
+  try {
+    const usage = await airalo.getEsimUsage(order.iccid);
+    res.json({ usage: usage?.data || null });
+  } catch (err) {
+    console.error('[AIRALO USAGE ERROR]', err.message);
+    res.status(500).json({ error: 'Gabim gjatë marrjes së përdorimit' });
+  }
 });
 
 // GET /api/orders - List all orders (admin only)

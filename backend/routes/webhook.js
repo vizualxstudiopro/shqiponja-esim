@@ -4,6 +4,7 @@ const router = express.Router();
 const db = require('../db');
 const { sendMail } = require('../lib/email');
 const { sendTemplateEmail } = require('../lib/emailService');
+const airalo = require('../lib/airaloService');
 
 const PADDLE_WEBHOOK_SECRET = process.env.PADDLE_WEBHOOK_SECRET;
 
@@ -58,38 +59,69 @@ router.post('/', (req, res) => {
       }
 
       const qrData = `SHQIPONJA-ESIM-${orderId}-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
-      db.prepare(
-        'UPDATE orders SET payment_status = ?, status = ?, qr_data = ? WHERE id = ?'
-      ).run('paid', 'completed', qrData, Number(orderId));
+
+      // Try to order real eSIM from Airalo
+      const pkg = db.prepare('SELECT * FROM packages WHERE id = ?').get(order.package_id);
+      let airaloQr = qrData;
+      let iccid = null;
+      let qrCodeUrl = null;
+      let activationCode = null;
+      let airaloOrderId = null;
+
+      if (airalo.isEnabled() && pkg && pkg.airalo_package_id) {
+        try {
+          const airaloData = await airalo.createOrder(pkg.airalo_package_id, 1, `Order #${orderId}`);
+          const esim = airaloData?.data?.sims?.[0];
+          if (esim) {
+            airaloQr = esim.qrcode || qrData;
+            iccid = esim.iccid || null;
+            qrCodeUrl = esim.qrcode_url || null;
+            activationCode = esim.direct_apple_installation_url || null;
+            airaloOrderId = String(airaloData.data.id);
+            console.log(`[AIRALO] eSIM ordered for Order #${orderId}, ICCID: ${iccid}`);
+          }
+        } catch (err) {
+          console.error(`[AIRALO ORDER ERROR] Order #${orderId}:`, err.message);
+        }
+      }
+
+      db.prepare(`
+        UPDATE orders SET payment_status = ?, status = ?, qr_data = ?,
+          airalo_order_id = ?, iccid = ?, esim_status = ?, qr_code_url = ?, activation_code = ?
+        WHERE id = ?
+      `).run('paid', 'completed', airaloQr,
+        airaloOrderId, iccid, iccid ? 'active' : null,
+        qrCodeUrl, activationCode, Number(orderId));
       console.log(`✔ Webhook: Order #${orderId} marked as paid (event: ${event.event_id})`);
 
-      // Send confirmation email
-      const order = db.prepare(`
+      // Send confirmation email — re-fetch the updated order
+      const updatedOrder = db.prepare(`
         SELECT o.*, p.name AS package_name, p.flag AS package_flag
         FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = ?
       `).get(Number(orderId));
-      if (order) {
-        const customerEmail = txnData.customer?.email || txnData.custom_data?.email || order.email;
-        const activationCode = txnData.custom_data?.activation_code || qrData;
-        const country = txnData.custom_data?.country || order.package_name || '';
+      if (updatedOrder) {
+        const customerEmail = txnData.customer?.email || txnData.custom_data?.email || updatedOrder.email;
+        const country = updatedOrder.package_name || '';
         const firstName = txnData.custom_data?.firstname || customerEmail.split('@')[0];
+        const esimCode = updatedOrder.iccid || updatedOrder.qr_data || airaloQr;
 
         // Dërgo me Brevo Template #1 (primar), SMTP si fallback
         sendTemplateEmail(customerEmail, 1, {
           FIRSTNAME: firstName,
           COUNTRY: country,
-          ACTIVATION_CODE: activationCode,
+          ACTIVATION_CODE: esimCode,
         }).catch(err => {
           console.error('Brevo template email error:', err);
           sendMail(
-            order.email,
+            updatedOrder.email,
             'Porosia jote — Shqiponja eSIM',
             `<div style="font-family:sans-serif;max-width:500px;margin:0 auto">
               <h2>🦅 Shqiponja eSIM</h2>
               <p>Faleminderit për blerjen! Porosia jote #${orderId} është konfirmuar.</p>
               <div style="background:#f4f4f5;padding:16px;border-radius:12px;margin:16px 0">
-                <p><strong>${order.package_flag} ${order.package_name}</strong></p>
-                <p>QR Kodi yt: <strong>${qrData}</strong></p>
+                <p><strong>${updatedOrder.package_flag} ${updatedOrder.package_name}</strong></p>
+                <p>ICCID: <strong>${updatedOrder.iccid || 'N/A'}</strong></p>
+                <p>QR Kodi: <strong>${updatedOrder.qr_data}</strong></p>
               </div>
               <p>Skano QR kodin në Cilësimet > Celular > Shto Plan eSIM për ta aktivizuar.</p>
             </div>`
