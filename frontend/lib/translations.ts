@@ -18,7 +18,7 @@ const translations = {
     "hero.cta": "Bli Tani →",
     "hero.howLink": "Si Funksionon?",
     "hero.countries": "Vende",
-    "hero.clients": "Klientë",
+    "hero.support": "Mbështetje",
 
     // Operators
     "operators.title": "Mbështetur nga operatorët ndërkombëtarë",
@@ -325,6 +325,7 @@ const translations = {
     "hero.howLink": "How It Works?",
     "hero.countries": "Countries",
     "hero.clients": "Clients",
+    "hero.support": "Support",
 
     // Operators
     "operators.title": "Supported by international operators",

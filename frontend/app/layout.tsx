@@ -64,6 +64,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LQ8N3VHELT" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-LQ8N3VHELT');`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -71,13 +77,13 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "Shqiponja eSIM",
-              url: "https://shqiponja-esim.com",
-              logo: "https://shqiponja-esim.com/opengraph-image",
+              url: "https://shqiponjaesim.com",
+              logo: "https://shqiponjaesim.com/opengraph-image",
               description: "Platformë e-commerce për shitjen e paketave eSIM ndërkombëtare.",
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer service",
-                url: "https://shqiponja-esim.com/kontakti",
+                url: "https://shqiponjaesim.com/kontakti",
               },
               sameAs: [],
             }),

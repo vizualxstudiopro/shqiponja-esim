@@ -93,8 +93,8 @@ export default function LandingContent({ packages }: { packages: EsimPackage[] }
               <p className="mt-1 text-xs text-zinc-500 uppercase tracking-wide">{t("hero.countries")}</p>
             </div>
             <div>
-              <p className="text-2xl font-bold sm:text-3xl">50K+</p>
-              <p className="mt-1 text-xs text-zinc-500 uppercase tracking-wide">{t("hero.clients")}</p>
+              <p className="text-2xl font-bold sm:text-3xl">24/7</p>
+              <p className="mt-1 text-xs text-zinc-500 uppercase tracking-wide">{t("hero.support")}</p>
             </div>
             <div>
               <p className="text-2xl font-bold sm:text-3xl">99.9%</p>

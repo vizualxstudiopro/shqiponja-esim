@@ -82,7 +82,7 @@ export default function Image() {
         >
           {[
             { num: "190+", label: "Vende" },
-            { num: "50K+", label: "Klientë" },
+            { num: "24/7", label: "Mbështetje" },
             { num: "99.9%", label: "Uptime" },
           ].map((stat) => (
             <div
