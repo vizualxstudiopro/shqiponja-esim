@@ -37,7 +37,11 @@ export interface Order {
   activation_code?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://shqiponja-esim-production-0524.up.railway.app"
+    : "http://localhost:3001");
 const API_TIMEOUT = 30_000; // 30 seconds
 
 function fetchWithTimeout(url: string, options?: RequestInit): Promise<Response> {
