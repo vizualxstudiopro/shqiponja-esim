@@ -9,7 +9,7 @@ const path = require('path');
 require('../db/migrate');
 const db = require('../db');
 
-const CSV_PATH = path.join(__dirname, '..', 'data', 'airalo-packages.csv');
+const CSV_PATH = path.join(__dirname, '..', 'seeds', 'airalo-packages.csv');
 
 // Country code mapping for flag emojis
 const COUNTRY_CODES = {

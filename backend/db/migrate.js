@@ -257,7 +257,7 @@ console.log('✔ Database indexes ensured');
 function importAiraloCSV() {
   const fs = require('fs');
   const path = require('path');
-  const csvPath = path.join(__dirname, '..', 'data', 'airalo-packages.csv');
+  const csvPath = path.join(__dirname, '..', 'seeds', 'airalo-packages.csv');
   if (!fs.existsSync(csvPath)) return;
 
   const existing = db.prepare('SELECT COUNT(*) as cnt FROM packages WHERE airalo_package_id IS NOT NULL').get();
