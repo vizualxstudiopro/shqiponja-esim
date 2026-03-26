@@ -26,9 +26,20 @@ router.post('/', authLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Email i pavlefshëm' });
   }
 
-  try {
-    // Njoftim te admini me SMTP
-    await sendMail(
+  // Email konfirmimi te klienti me Brevo Template #3
+  sendTemplateEmail(email, 3, {
+    FIRSTNAME: name,
+    MESSAGE: message,
+  }).catch(err => console.error('Brevo contact confirmation error:', err));
+
+  // Njoftim te admini me Brevo Template #4, SMTP si fallback
+  sendTemplateEmail(ADMIN_EMAIL, 4, {
+    FIRSTNAME: name,
+    EMAIL: email,
+    MESSAGE: message,
+  }).catch(err => {
+    console.error('Brevo admin notification error:', err);
+    sendMail(
       ADMIN_EMAIL,
       `Kontakt nga ${escapeHtml(name)} — Shqiponja eSIM`,
       `<h2>Mesazh i ri nga forma e kontaktit</h2>
@@ -36,23 +47,8 @@ router.post('/', authLimiter, async (req, res) => {
        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
        <p><strong>Mesazhi:</strong></p>
        <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`
-    );
-  } catch (err) {
-    console.error('Contact admin email error:', err);
-  }
-
-  // Email konfirmimi te klienti me Brevo Template #3
-  sendTemplateEmail(email, 3, {
-    FIRSTNAME: name,
-    MESSAGE: message,
-  }).catch(err => console.error('Brevo contact confirmation error:', err));
-
-  // Njoftim te admini me Brevo (pa template — përdor SMTP)
-  sendTemplateEmail(ADMIN_EMAIL, 4, {
-    FIRSTNAME: name,
-    EMAIL: email,
-    MESSAGE: message,
-  }).catch(err => console.error('Brevo admin notification error:', err));
+    ).catch(err2 => console.error('SMTP fallback error:', err2));
+  });
 
   res.json({ ok: true, message: 'Mesazhi u dërgua me sukses' });
 });

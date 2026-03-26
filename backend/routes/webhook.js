@@ -69,32 +69,32 @@ router.post('/', (req, res) => {
         FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = ?
       `).get(Number(orderId));
       if (order) {
-        // Dërgo email me SMTP (fallback)
-        sendMail(
-          order.email,
-          'Porosia jote — Shqiponja eSIM',
-          `<div style="font-family:sans-serif;max-width:500px;margin:0 auto">
-            <h2>🦅 Shqiponja eSIM</h2>
-            <p>Faleminderit për blerjen! Porosia jote #${orderId} është konfirmuar.</p>
-            <div style="background:#f4f4f5;padding:16px;border-radius:12px;margin:16px 0">
-              <p><strong>${order.package_flag} ${order.package_name}</strong></p>
-              <p>QR Kodi yt: <strong>${qrData}</strong></p>
-            </div>
-            <p>Skano QR kodin në Cilësimet > Celular > Shto Plan eSIM për ta aktivizuar.</p>
-          </div>`
-        ).catch(err => console.error('Order email error:', err));
-
-        // Dërgo email me Brevo template (nëse BREVO_API_KEY është konfiguruar)
         const customerEmail = txnData.customer?.email || txnData.custom_data?.email || order.email;
         const activationCode = txnData.custom_data?.activation_code || qrData;
         const country = txnData.custom_data?.country || order.package_name || '';
         const firstName = txnData.custom_data?.firstname || customerEmail.split('@')[0];
 
+        // Dërgo me Brevo Template #1 (primar), SMTP si fallback
         sendTemplateEmail(customerEmail, 1, {
           FIRSTNAME: firstName,
           COUNTRY: country,
           ACTIVATION_CODE: activationCode,
-        }).catch(err => console.error('Brevo template email error:', err));
+        }).catch(err => {
+          console.error('Brevo template email error:', err);
+          sendMail(
+            order.email,
+            'Porosia jote — Shqiponja eSIM',
+            `<div style="font-family:sans-serif;max-width:500px;margin:0 auto">
+              <h2>🦅 Shqiponja eSIM</h2>
+              <p>Faleminderit për blerjen! Porosia jote #${orderId} është konfirmuar.</p>
+              <div style="background:#f4f4f5;padding:16px;border-radius:12px;margin:16px 0">
+                <p><strong>${order.package_flag} ${order.package_name}</strong></p>
+                <p>QR Kodi yt: <strong>${qrData}</strong></p>
+              </div>
+              <p>Skano QR kodin në Cilësimet > Celular > Shto Plan eSIM për ta aktivizuar.</p>
+            </div>`
+          ).catch(err2 => console.error('SMTP fallback error:', err2));
+        });
       }
     }
   }

@@ -163,18 +163,19 @@ router.post('/forgot-password', authLimiter, (req, res) => {
 
   const resetUrl = `${FRONTEND_URL}/rivendos-fjalekalimin?token=${resetToken}`;
 
-  // Dërgo me SMTP (fallback)
-  sendMail(
-    email,
-    'Rivendos fjalëkalimin — Shqiponja eSIM',
-    `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për të rivendosur fjalëkalimin (i vlefshëm për 1 orë):</p><a href="${resetUrl}">${resetUrl}</a><p>Nëse nuk e kërkove këtë, injoroje këtë email.</p>`
-  ).catch(err => console.error('Email error:', err));
-
-  // Dërgo me Brevo Template #2
+  // Dërgo me Brevo Template #2 (primar), SMTP si fallback
   sendTemplateEmail(email, 2, {
     FIRSTNAME: user.name || email.split('@')[0],
     RESET_LINK: resetUrl,
-  }).catch(err => console.error('Brevo reset email error:', err));
+  }).catch(err => {
+    console.error('Brevo reset email error:', err);
+    // Fallback: dërgo me SMTP
+    sendMail(
+      email,
+      'Rivendos fjalëkalimin — Shqiponja eSIM',
+      `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për të rivendosur fjalëkalimin (i vlefshëm për 1 orë):</p><a href="${resetUrl}">${resetUrl}</a><p>Nëse nuk e kërkove këtë, injoroje këtë email.</p>`
+    ).catch(err2 => console.error('SMTP fallback error:', err2));
+  });
 
   res.json({ message: 'Nëse ky email ekziston, do të marrësh një link për rivendosjen e fjalëkalimit' });
 });
