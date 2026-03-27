@@ -30,7 +30,7 @@ async function sendMail(to, subject, html) {
   }
 
   try {
-    await transporter.sendMail({
+    return await transporter.sendMail({
       from: process.env.SMTP_FROM || SMTP_FROM,
       to,
       subject,

@@ -166,12 +166,18 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
   const resetHtml = `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për të rivendosur fjalëkalimin (i vlefshëm për 1 orë):</p><a href="${resetUrl}">${resetUrl}</a><p>Nëse nuk e kërkove këtë, injoroje këtë email.</p>`;
 
   try {
-    await sendMail(
+    const smtpInfo = await sendMail(
       email,
       'Rivendos fjalëkalimin — Shqiponja eSIM',
       resetHtml
     );
     console.log(`[EMAIL] Password reset email sent via SMTP to ${email}`);
+    console.log('[EMAIL] SMTP delivery info:', {
+      messageId: smtpInfo?.messageId || null,
+      accepted: smtpInfo?.accepted || [],
+      rejected: smtpInfo?.rejected || [],
+      response: smtpInfo?.response || null,
+    });
   } catch (smtpErr) {
     console.error('SMTP reset email error:', smtpErr);
 
