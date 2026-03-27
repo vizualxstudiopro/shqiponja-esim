@@ -141,10 +141,12 @@ router.post('/resend-verify', authMiddleware, (req, res) => {
 
 // POST /api/auth/forgot-password - Request password reset
 router.post('/forgot-password', authLimiter, async (req, res) => {
-  const { email } = req.body;
+  const rawEmail = req.body?.email;
+  const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
   if (!email) return res.status(400).json({ error: 'Email-i mungon' });
 
-  const user = db.prepare('SELECT id, name FROM users WHERE email = ?').get(email);
+  const user = db.prepare('SELECT id, name FROM users WHERE lower(email) = lower(?)').get(email);
+  console.log(`[FORGOT PASSWORD] Request for ${email} -> userFound=${!!user}`);
   // Always return success to prevent email enumeration
   if (!user) return res.json({ message: 'Nëse ky email ekziston, do të marrësh një link për rivendosjen e fjalëkalimit' });
 
