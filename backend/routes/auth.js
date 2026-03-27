@@ -140,7 +140,7 @@ router.post('/resend-verify', authMiddleware, (req, res) => {
 });
 
 // POST /api/auth/forgot-password - Request password reset
-router.post('/forgot-password', authLimiter, (req, res) => {
+router.post('/forgot-password', authLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email-i mungon' });
 
@@ -163,19 +163,29 @@ router.post('/forgot-password', authLimiter, (req, res) => {
 
   const resetUrl = `${FRONTEND_URL}/rivendos-fjalekalimin?token=${resetToken}`;
 
-  // Dërgo me Brevo Template #2 (primar), SMTP si fallback
-  sendTemplateEmail(email, 2, {
-    FIRSTNAME: user.name || email.split('@')[0],
-    RESET_LINK: resetUrl,
-  }).catch(err => {
-    console.error('Brevo reset email error:', err);
-    // Fallback: dërgo me SMTP
-    sendMail(
+  const resetHtml = `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për të rivendosur fjalëkalimin (i vlefshëm për 1 orë):</p><a href="${resetUrl}">${resetUrl}</a><p>Nëse nuk e kërkove këtë, injoroje këtë email.</p>`;
+
+  try {
+    await sendMail(
       email,
       'Rivendos fjalëkalimin — Shqiponja eSIM',
-      `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për të rivendosur fjalëkalimin (i vlefshëm për 1 orë):</p><a href="${resetUrl}">${resetUrl}</a><p>Nëse nuk e kërkove këtë, injoroje këtë email.</p>`
-    ).catch(err2 => console.error('SMTP fallback error:', err2));
-  });
+      resetHtml
+    );
+    console.log(`[EMAIL] Password reset email sent via SMTP to ${email}`);
+  } catch (smtpErr) {
+    console.error('SMTP reset email error:', smtpErr);
+
+    sendTemplateEmail(email, 2, {
+      FIRSTNAME: user.name || email.split('@')[0],
+      RESET_LINK: resetUrl,
+    })
+      .then(() => {
+        console.log(`[EMAIL] Password reset email sent via Brevo template to ${email}`);
+      })
+      .catch(err => {
+        console.error('Brevo reset email error:', err);
+      });
+  }
 
   res.json({ message: 'Nëse ky email ekziston, do të marrësh një link për rivendosjen e fjalëkalimit' });
 });
