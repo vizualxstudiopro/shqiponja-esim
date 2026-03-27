@@ -16,7 +16,7 @@ if (SMTP_HOST && SMTP_USER) {
   transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465 ? true : false,
+    secure: Number(SMTP_PORT) === 465,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
     tls: { rejectUnauthorized: false },
   });
