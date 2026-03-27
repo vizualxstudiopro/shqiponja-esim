@@ -27,4 +27,13 @@ const orderLimiter = rateLimit({
   message: { error: 'Shumë kërkesa. Provo përsëri pas disa minutash.' },
 });
 
-module.exports = { authLimiter, apiLimiter, orderLimiter };
+// Contact form limiter
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Shumë kërkesa nga forma e kontaktit. Provo përsëri pas disa minutash.' },
+});
+
+module.exports = { authLimiter, apiLimiter, orderLimiter, contactLimiter };
