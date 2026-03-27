@@ -5,7 +5,7 @@ const { authLimiter } = require('../middleware/rate-limit');
 const { sanitizeString } = require('../middleware/validate');
 
 const router = express.Router();
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'suport@shqiponjaesim.com';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'suport@shqiponjaesim.com';
 
 // POST /api/contact
 router.post('/', authLimiter, async (req, res) => {
@@ -45,7 +45,7 @@ router.post('/', authLimiter, async (req, res) => {
        <p><strong>Mesazhi:</strong></p>
        <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`;
   sendTransactionalEmail({
-    toEmail: ADMIN_EMAIL,
+    toEmail: SUPPORT_EMAIL,
     subject: `Kontakt nga ${escapeHtml(name)} — Shqiponja eSIM`,
     html: adminHtml,
     templateId: 4,
