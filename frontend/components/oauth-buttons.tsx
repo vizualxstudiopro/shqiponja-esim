@@ -18,6 +18,7 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [providers, setProviders] = useState<OAuthProviders | null>(null);
   const fetched = useRef(false);
+  const googleReady = useRef(false);
 
   // Fetch available OAuth providers from backend
   useEffect(() => {
@@ -47,34 +48,45 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
   useEffect(() => {
     if (!providers?.googleClientId) return;
 
-    // Load Google Identity Services script
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (typeof window !== "undefined" && window.google) {
+    const renderGoogleButton = () => {
+      if (typeof window === "undefined" || !window.google) return;
+
+      if (!googleReady.current) {
         window.google.accounts.id.initialize({
           client_id: providers.googleClientId!,
           callback: handleGoogleCallback,
         });
-        const btnContainer = document.getElementById("google-btn");
-        if (btnContainer) {
-          window.google.accounts.id.renderButton(btnContainer, {
-            type: "standard",
-            theme: "outline",
-            size: "large",
-            width: "100%",
-            text: mode === "login" ? "signin_with" : "signup_with",
-            logo_alignment: "center",
-          });
-        }
+        googleReady.current = true;
+      }
+
+      const btnContainer = document.getElementById("google-btn");
+      if (btnContainer) {
+        btnContainer.innerHTML = "";
+        const buttonWidth = Math.min(btnContainer.clientWidth || 360, 400);
+        window.google.accounts.id.renderButton(btnContainer, {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          width: String(buttonWidth),
+          text: mode === "login" ? "signin_with" : "signup_with",
+          logo_alignment: "center",
+        });
       }
     };
+
+    const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existingScript) {
+      if (window.google) renderGoogleButton();
+      else existingScript.addEventListener("load", renderGoogleButton, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = renderGoogleButton;
     document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
   }, [handleGoogleCallback, mode, providers]);
 
   // ─── Microsoft Sign-In ───
