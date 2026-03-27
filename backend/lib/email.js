@@ -16,8 +16,9 @@ if (SMTP_HOST && SMTP_USER) {
   transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465,
+    secure: Number(SMTP_PORT) === 465 ? true : false,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
+    tls: { rejectUnauthorized: false },
   });
 }
 
@@ -27,7 +28,18 @@ async function sendMail(to, subject, html) {
     console.log(`[DEV EMAIL] ${html}`);
     return;
   }
-  await transporter.sendMail({ from: SMTP_FROM, to, subject, html });
+
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || SMTP_FROM,
+      to,
+      subject,
+      html,
+    });
+  } catch (err) {
+    console.error('[EMAIL ERROR] SMTP send failed:', err && err.message ? err.message : err);
+    throw err;
+  }
 }
 
 module.exports = { sendMail, escapeHtml };
