@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const db = require('../db');
 const { authMiddleware } = require('../middleware/auth');
 const { sendMail, escapeHtml } = require('../lib/email');
-const { sendTemplateEmail } = require('../lib/emailService');
+const { sendTransactionalEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { validateRegister, validateLogin } = require('../middleware/validate');
 
@@ -165,33 +165,19 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
 
   const resetHtml = `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për të rivendosur fjalëkalimin (i vlefshëm për 1 orë):</p><a href="${resetUrl}">${resetUrl}</a><p>Nëse nuk e kërkove këtë, injoroje këtë email.</p>`;
 
-  try {
-    const smtpInfo = await sendMail(
-      email,
-      'Rivendos fjalëkalimin — Shqiponja eSIM',
-      resetHtml
-    );
-    console.log(`[EMAIL] Password reset email sent via SMTP to ${email}`);
-    console.log('[EMAIL] SMTP delivery info:', {
-      messageId: smtpInfo?.messageId || null,
-      accepted: smtpInfo?.accepted || [],
-      rejected: smtpInfo?.rejected || [],
-      response: smtpInfo?.response || null,
-    });
-  } catch (smtpErr) {
-    console.error('SMTP reset email error:', smtpErr);
-
-    sendTemplateEmail(email, 2, {
+  sendTransactionalEmail({
+    toEmail: email,
+    subject: 'Rivendos fjalëkalimin — Shqiponja eSIM',
+    html: resetHtml,
+    templateId: 2,
+    params: {
       FIRSTNAME: user.name || email.split('@')[0],
       RESET_LINK: resetUrl,
-    })
-      .then(() => {
-        console.log(`[EMAIL] Password reset email sent via Brevo template to ${email}`);
-      })
-      .catch(err => {
-        console.error('Brevo reset email error:', err);
-      });
-  }
+    },
+    logLabel: 'PASSWORD RESET EMAIL',
+  }).catch(err => {
+    console.error('Password reset delivery failed:', err);
+  });
 
   res.json({ message: 'Nëse ky email ekziston, do të marrësh një link për rivendosjen e fjalëkalimit' });
 });

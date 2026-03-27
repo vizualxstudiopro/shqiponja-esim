@@ -1,6 +1,6 @@
 const express = require('express');
-const { sendMail, escapeHtml } = require('../lib/email');
-const { sendTemplateEmail } = require('../lib/emailService');
+const { escapeHtml } = require('../lib/email');
+const { sendTransactionalEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { sanitizeString } = require('../middleware/validate');
 
@@ -26,29 +26,36 @@ router.post('/', authLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Email i pavlefshëm' });
   }
 
-  // Email konfirmimi te klienti me Brevo Template #3
-  sendTemplateEmail(email, 3, {
-    FIRSTNAME: name,
-    MESSAGE: message,
-  }).catch(err => console.error('Brevo contact confirmation error:', err));
+  const customerHtml = `<h2>Përshëndetje, ${escapeHtml(name)}!</h2><p>E morëm mesazhin tënd dhe do të të kontaktojmë sa më shpejt.</p><p><strong>Mesazhi yt:</strong></p><p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`;
+  sendTransactionalEmail({
+    toEmail: email,
+    subject: 'Konfirmim kontakti — Shqiponja eSIM',
+    html: customerHtml,
+    templateId: 3,
+    params: {
+      FIRSTNAME: name,
+      MESSAGE: message,
+    },
+    logLabel: 'CONTACT CUSTOMER EMAIL',
+  }).catch(err => console.error('Contact confirmation delivery failed:', err));
 
-  // Njoftim te admini me Brevo Template #4, SMTP si fallback
-  sendTemplateEmail(ADMIN_EMAIL, 4, {
-    FIRSTNAME: name,
-    EMAIL: email,
-    MESSAGE: message,
-  }).catch(err => {
-    console.error('Brevo admin notification error:', err);
-    sendMail(
-      ADMIN_EMAIL,
-      `Kontakt nga ${escapeHtml(name)} — Shqiponja eSIM`,
-      `<h2>Mesazh i ri nga forma e kontaktit</h2>
+  const adminHtml = `<h2>Mesazh i ri nga forma e kontaktit</h2>
        <p><strong>Emri:</strong> ${escapeHtml(name)}</p>
        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
        <p><strong>Mesazhi:</strong></p>
-       <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`
-    ).catch(err2 => console.error('SMTP fallback error:', err2));
-  });
+       <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`;
+  sendTransactionalEmail({
+    toEmail: ADMIN_EMAIL,
+    subject: `Kontakt nga ${escapeHtml(name)} — Shqiponja eSIM`,
+    html: adminHtml,
+    templateId: 4,
+    params: {
+      FIRSTNAME: name,
+      EMAIL: email,
+      MESSAGE: message,
+    },
+    logLabel: 'CONTACT ADMIN EMAIL',
+  }).catch(err => console.error('Admin contact delivery failed:', err));
 
   res.json({ ok: true, message: 'Mesazhi u dërgua me sukses' });
 });

@@ -2,8 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const db = require('../db');
-const { sendMail } = require('../lib/email');
-const { sendTemplateEmail } = require('../lib/emailService');
+const { sendTransactionalEmail } = require('../lib/emailService');
 const airalo = require('../lib/airaloService');
 
 const PADDLE_WEBHOOK_SECRET = process.env.PADDLE_WEBHOOK_SECRET;
@@ -106,18 +105,8 @@ router.post('/', async (req, res) => {
         const firstName = txnData.custom_data?.firstname || customerEmail.split('@')[0];
         const esimCode = updatedOrder.iccid || updatedOrder.qr_data || airaloQr;
 
-        // Dërgo me Brevo Template #1 (primar), SMTP si fallback
-        sendTemplateEmail(customerEmail, 1, {
-          FIRSTNAME: firstName,
-          COUNTRY: country,
-          ACTIVATION_CODE: esimCode,
-        }).catch(err => {
-          console.error('Brevo template email error:', err);
-          sendMail(
-            updatedOrder.email,
-            'Porosia jote — Shqiponja eSIM',
-            `<div style="font-family:sans-serif;max-width:500px;margin:0 auto">
-              <h2>🦅 Shqiponja eSIM</h2>
+        const orderHtml = `<div style="font-family:sans-serif;max-width:500px;margin:0 auto">
+              <h2>Shqiponja eSIM</h2>
               <p>Faleminderit për blerjen! Porosia jote #${orderId} është konfirmuar.</p>
               <div style="background:#f4f4f5;padding:16px;border-radius:12px;margin:16px 0">
                 <p><strong>${updatedOrder.package_flag} ${updatedOrder.package_name}</strong></p>
@@ -125,8 +114,20 @@ router.post('/', async (req, res) => {
                 <p>QR Kodi: <strong>${updatedOrder.qr_data}</strong></p>
               </div>
               <p>Skano QR kodin në Cilësimet > Celular > Shto Plan eSIM për ta aktivizuar.</p>
-            </div>`
-          ).catch(err2 => console.error('SMTP fallback error:', err2));
+            </div>`;
+        sendTransactionalEmail({
+          toEmail: customerEmail,
+          subject: 'Porosia jote — Shqiponja eSIM',
+          html: orderHtml,
+          templateId: 1,
+          params: {
+            FIRSTNAME: firstName,
+            COUNTRY: country,
+            ACTIVATION_CODE: esimCode,
+          },
+          logLabel: 'ORDER EMAIL',
+        }).catch(err => {
+          console.error('Order confirmation delivery failed:', err);
         });
       }
     }
