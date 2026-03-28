@@ -29,7 +29,7 @@ function AdminFlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: s
   return <span className="text-lg leading-none">{emoji || "🌍"}</span>;
 }
 
-type QuickFilter = "all" | "visible" | "hidden" | "highlighted";
+type QuickFilter = "all" | "visible" | "hidden" | "highlighted" | "local" | "regional" | "global";
 
 export default function AdminPackagesPage() {
   const { token } = useAuth();
@@ -97,6 +97,12 @@ export default function AdminPackagesPage() {
     if (quickFilter === "visible") return p.visible;
     if (quickFilter === "hidden") return !p.visible;
     if (quickFilter === "highlighted") return p.highlight;
+    if (quickFilter === "local") {
+      const cc = (p.country_code || "").toUpperCase();
+      return !REGIONAL_CODES.has(cc) && !GLOBAL_CODES.has(cc);
+    }
+    if (quickFilter === "regional") return REGIONAL_CODES.has((p.country_code || "").toUpperCase());
+    if (quickFilter === "global") return GLOBAL_CODES.has((p.country_code || "").toUpperCase());
     return true;
   });
 
@@ -240,6 +246,9 @@ export default function AdminPackagesPage() {
             { key: "visible" as QuickFilter, label: "🟢 Aktive" },
             { key: "hidden" as QuickFilter, label: "⚪ Jo aktive" },
             { key: "highlighted" as QuickFilter, label: "★ Populare" },
+            { key: "local" as QuickFilter, label: "📍 Lokale" },
+            { key: "regional" as QuickFilter, label: "🗺️ Rajonale" },
+            { key: "global" as QuickFilter, label: "🌍 Globale" },
           ]).map((f) => (
             <button
               key={f.key}
