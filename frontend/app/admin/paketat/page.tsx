@@ -9,6 +9,7 @@ import {
   adminUpdatePackage,
   adminDeletePackage,
   adminTogglePackageVisible,
+  adminTogglePackageHighlight,
   type EsimPackage,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
@@ -103,6 +104,17 @@ export default function AdminPackagesPage() {
     }
   }
 
+  async function handleToggleHighlight(pkg: EsimPackage) {
+    if (!token) return;
+    try {
+      const updated = await adminTogglePackageHighlight(token, pkg.id, !pkg.highlight);
+      setPackages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      toast(updated.highlight ? "Paketa u bë e popullarizuar" : "Paketa nuk është më e popullarizuar", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Error", "error");
+    }
+  }
+
   async function handleDelete(id: number) {
     if (!token) return;
     if (!confirm(t("admin.confirmDeletePkg"))) return;
@@ -157,6 +169,7 @@ export default function AdminPackagesPage() {
               <th className="px-4 py-3 font-semibold">{t("admin.duration")}</th>
               <th className="px-4 py-3 font-semibold">{t("admin.price")}</th>
               <th className="px-4 py-3 font-semibold">Web</th>
+              <th className="px-4 py-3 font-semibold">★</th>
               <th className="px-4 py-3 font-semibold">{t("admin.actions")}</th>
             </tr>
           </thead>
@@ -181,6 +194,18 @@ export default function AdminPackagesPage() {
                     }`}
                   >
                     {p.visible ? t("admin.visibleOnWeb") : t("admin.showOnWeb")}
+                  </button>
+                </td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => handleToggleHighlight(p)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                      p.highlight
+                        ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        : "bg-zinc-100 text-zinc-500 hover:bg-yellow-50 hover:text-yellow-600 dark:bg-zinc-700 dark:text-zinc-400"
+                    }`}
+                  >
+                    {p.highlight ? "★ Popullar" : "☆"}
                   </button>
                 </td>
                 <td className="px-4 py-3 flex gap-2">

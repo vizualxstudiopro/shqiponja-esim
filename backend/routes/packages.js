@@ -37,6 +37,14 @@ router.get('/', async (req, res) => {
   res.json(packages.map((p) => ({ ...p, highlight: !!p.highlight })));
 });
 
+// GET /api/packages/featured - Get highlighted packages for landing page
+router.get('/featured', async (req, res) => {
+  const packages = (await db.query(
+    "SELECT * FROM packages WHERE visible = 1 AND highlight = 1 AND (package_type IS NULL OR package_type = 'sim') ORDER BY region, price LIMIT 12"
+  )).rows;
+  res.json(packages.map((p) => ({ ...p, highlight: !!p.highlight })));
+});
+
 // GET /api/packages/:id - Get a single package
 router.get('/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);

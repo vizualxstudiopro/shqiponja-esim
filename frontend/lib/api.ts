@@ -62,6 +62,18 @@ export async function getPackages(): Promise<EsimPackage[]> {
   }
 }
 
+export async function getFeaturedPackages(): Promise<EsimPackage[]> {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/packages/featured`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function getPackageById(id: number): Promise<EsimPackage | null> {
   try {
     const res = await fetchWithTimeout(`${API_URL}/api/packages/${id}`, {
@@ -311,6 +323,12 @@ export async function adminGetPackages(token: string, page = 1, limit = 50, q = 
 
 export async function adminTogglePackageVisible(token: string, id: number, visible: boolean): Promise<EsimPackage> {
   const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}/visible`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ visible }) });
+  if (!res.ok) throw new Error("Ndryshimi dështoi");
+  return res.json();
+}
+
+export async function adminTogglePackageHighlight(token: string, id: number, highlight: boolean): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}/highlight`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ highlight }) });
   if (!res.ok) throw new Error("Ndryshimi dështoi");
   return res.json();
 }
