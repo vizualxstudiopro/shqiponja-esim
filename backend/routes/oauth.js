@@ -26,22 +26,23 @@ router.get('/providers', (req, res) => {
  * If the email already exists, link the OAuth provider.
  * If not, create a new user (no password needed).
  */
-function findOrCreateOAuthUser(email, name, provider, providerId) {
-  let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+async function findOrCreateOAuthUser(email, name, provider, providerId) {
+  let user = (await db.query('SELECT * FROM users WHERE email = $1', [email])).rows[0];
 
   if (user) {
     // Update OAuth provider info if not set
     if (!user.oauth_provider) {
-      db.prepare('UPDATE users SET oauth_provider = ?, oauth_id = ?, email_verified = 1 WHERE id = ?')
-        .run(provider, providerId, user.id);
+      await db.query('UPDATE users SET oauth_provider = $1, oauth_id = $2, email_verified = 1 WHERE id = $3',
+        [provider, providerId, user.id]);
     }
   } else {
     // Create new user — random password since they use OAuth
     const randomPass = crypto.randomBytes(32).toString('hex');
-    const result = db.prepare(
-      'INSERT INTO users (name, email, password, email_verified, oauth_provider, oauth_id) VALUES (?, ?, ?, 1, ?, ?)'
-    ).run(name, email, randomPass, provider, providerId);
-    user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
+    const result = await db.query(
+      'INSERT INTO users (name, email, password, email_verified, oauth_provider, oauth_id) VALUES ($1, $2, $3, 1, $4, $5) RETURNING id',
+      [name, email, randomPass, provider, providerId]
+    );
+    user = (await db.query('SELECT * FROM users WHERE id = $1', [result.rows[0].id])).rows[0];
   }
 
   const token = jwt.sign(
@@ -77,7 +78,7 @@ router.post('/google', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Token i pavlefshëm nga Google' });
     }
 
-    const result = findOrCreateOAuthUser(
+    const result = await findOrCreateOAuthUser(
       payload.email,
       payload.name || payload.email.split('@')[0],
       'google',
@@ -132,7 +133,7 @@ router.post('/microsoft', authLimiter, async (req, res) => {
     }
 
     const email = profile.mail || profile.userPrincipalName;
-    const result = findOrCreateOAuthUser(
+    const result = await findOrCreateOAuthUser(
       email,
       profile.displayName || email.split('@')[0],
       'microsoft',
@@ -194,7 +195,7 @@ router.post('/apple', authLimiter, async (req, res) => {
       ? `${appleUser.name.firstName || ''} ${appleUser.name.lastName || ''}`.trim()
       : payload.email.split('@')[0];
 
-    const result = findOrCreateOAuthUser(
+    const result = await findOrCreateOAuthUser(
       payload.email,
       name,
       'apple',

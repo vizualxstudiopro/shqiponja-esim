@@ -5,23 +5,27 @@ const { authMiddleware, adminOnly } = require('../middleware/auth');
 const airalo = require('../lib/airaloService');
 
 // GET /api/packages - List all eSIM packages
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const { country, region, type } = req.query;
 
   let sql = 'SELECT * FROM packages WHERE visible = 1';
   const params = [];
+  let paramIdx = 1;
 
   if (country) {
-    sql += ' AND country_code = ?';
+    sql += ` AND country_code = $${paramIdx}`;
     params.push(country.toUpperCase());
+    paramIdx++;
   }
   if (region) {
-    sql += ' AND region = ?';
+    sql += ` AND region = $${paramIdx}`;
     params.push(region);
+    paramIdx++;
   }
   if (type) {
-    sql += " AND package_type = ?";
+    sql += ` AND package_type = $${paramIdx}`;
     params.push(type);
+    paramIdx++;
   } else {
     // By default, only show SIM packages (not topups)
     sql += " AND (package_type IS NULL OR package_type = 'sim')";
@@ -29,14 +33,14 @@ router.get('/', (req, res) => {
 
   sql += ' ORDER BY region, price';
 
-  const packages = db.prepare(sql).all(...params);
+  const packages = (await db.query(sql, params)).rows;
   res.json(packages.map((p) => ({ ...p, highlight: !!p.highlight })));
 });
 
 // GET /api/packages/:id - Get a single package
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const pkg = db.prepare('SELECT * FROM packages WHERE id = ?').get(id);
+  const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
   if (!pkg) return res.status(404).json({ error: 'Package not found' });
   res.json({ ...pkg, highlight: !!pkg.highlight });
 });
@@ -52,25 +56,17 @@ router.post('/sync', authMiddleware, adminOnly, async (req, res) => {
     let synced = 0;
     const limit = 100;
 
-    const upsert = db.prepare(`
-      INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description,
-                            airalo_package_id, country_code, networks, package_type, net_price, sms, voice)
-      VALUES (@name, @region, @flag, @data, @duration, @price, @currency, @highlight, @description,
-              @airalo_package_id, @country_code, @networks, @package_type, @net_price, @sms, @voice)
-      ON CONFLICT(airalo_package_id) DO UPDATE SET
-        price = @price, net_price = @net_price, data = @data, duration = @duration,
-        networks = @networks, sms = @sms, voice = @voice, description = @description
-    `);
-
     // Ensure unique index on airalo_package_id exists
-    db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_packages_airalo_unique ON packages(airalo_package_id)');
+    await db.query('CREATE UNIQUE INDEX IF NOT EXISTS idx_packages_airalo_unique ON packages(airalo_package_id)');
 
     while (true) {
       const result = await airalo.getPackages({ limit, page });
       if (!result || !result.data || result.data.length === 0) break;
 
-      const insertMany = db.transaction((items) => {
-        for (const country of items) {
+      const client = await db.connect();
+      try {
+        await client.query('BEGIN');
+        for (const country of result.data) {
           const countryCode = country.country_code || '';
           const flag = country.flag || countryToFlag(countryCode);
           const region = country.region || 'Other';
@@ -79,31 +75,35 @@ router.post('/sync', authMiddleware, adminOnly, async (req, res) => {
           for (const operator of country.operators) {
             if (!operator.packages) continue;
             for (const pkg of operator.packages) {
-              upsert.run({
-                name: `${country.title} — ${pkg.data || 'Unlimited'}`,
-                region,
-                flag,
-                data: pkg.data || 'Unlimited',
-                duration: pkg.validity || pkg.day + ' ditë',
-                price: pkg.price || pkg.net_price * 1.5,
-                currency: 'USD',
-                highlight: 0,
-                description: `${operator.title} — ${pkg.data || 'Unlimited'} / ${pkg.validity || pkg.day + ' ditë'}`,
-                airalo_package_id: pkg.id,
-                country_code: countryCode,
-                networks: operator.title || '',
-                package_type: pkg.type || 'sim',
-                net_price: pkg.net_price || null,
-                sms: pkg.sms || 0,
-                voice: pkg.voice || 0,
-              });
+              await client.query(`
+                INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description,
+                                      airalo_package_id, country_code, networks, package_type, net_price, sms, voice)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+                ON CONFLICT(airalo_package_id) DO UPDATE SET
+                  price = $6, net_price = $14, data = $4, duration = $5,
+                  networks = $12, sms = $15, voice = $16, description = $9
+              `, [
+                `${country.title} — ${pkg.data || 'Unlimited'}`,
+                region, flag, pkg.data || 'Unlimited',
+                pkg.validity || pkg.day + ' ditë',
+                pkg.price || pkg.net_price * 1.5, 'USD', 0,
+                `${operator.title} — ${pkg.data || 'Unlimited'} / ${pkg.validity || pkg.day + ' ditë'}`,
+                pkg.id, countryCode, operator.title || '',
+                pkg.type || 'sim', pkg.net_price || null,
+                pkg.sms || 0, pkg.voice || 0,
+              ]);
               synced++;
             }
           }
         }
-      });
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
 
-      insertMany(result.data);
       if (result.data.length < limit) break;
       page++;
     }

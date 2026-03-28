@@ -7,21 +7,21 @@ const { validateEmail } = require('../middleware/validate');
 const airalo = require('../lib/airaloService');
 
 // GET /api/orders/my - Get orders for logged-in user (MUST be before /:id)
-router.get('/my', authMiddleware, (req, res) => {
-  const orders = db.prepare(`
+router.get('/my', authMiddleware, async (req, res) => {
+  const orders = (await db.query(`
     SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price AS package_price
     FROM orders o
     JOIN packages p ON p.id = o.package_id
-    WHERE o.user_id = ? OR o.email = (SELECT email FROM users WHERE id = ?)
+    WHERE o.user_id = $1 OR o.email = (SELECT email FROM users WHERE id = $2)
     ORDER BY o.created_at DESC
-  `).all(req.user.id, req.user.id);
+  `, [req.user.id, req.user.id])).rows;
   res.json(orders);
 });
 
 // GET /api/orders/:id/usage - Get eSIM usage from Airalo
 router.get('/:id/usage', authMiddleware, async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+  const order = (await db.query('SELECT * FROM orders WHERE id = $1', [id])).rows[0];
   if (!order) return res.status(404).json({ error: 'Order not found' });
 
   // Check ownership
@@ -47,26 +47,26 @@ router.get('/:id/usage', authMiddleware, async (req, res) => {
 });
 
 // GET /api/orders - List all orders (admin only)
-router.get('/', authMiddleware, adminOnly, (req, res) => {
-  const orders = db.prepare(`
+router.get('/', authMiddleware, adminOnly, async (req, res) => {
+  const orders = (await db.query(`
     SELECT o.*, p.name AS package_name, p.flag AS package_flag
     FROM orders o
     JOIN packages p ON p.id = o.package_id
     ORDER BY o.created_at DESC
-  `).all();
+  `)).rows;
   res.json(orders);
 });
 
 // GET /api/orders/:id - Get a single order
 // Requires auth (owner/admin) OR matching paddle_transaction_id
-router.get('/:id', orderLimiter, (req, res) => {
+router.get('/:id', orderLimiter, async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const order = db.prepare(`
+  const order = (await db.query(`
     SELECT o.*, p.name AS package_name, p.flag AS package_flag
     FROM orders o
     JOIN packages p ON p.id = o.package_id
-    WHERE o.id = ?
-  `).get(id);
+    WHERE o.id = $1
+  `, [id])).rows[0];
   if (!order) return res.status(404).json({ error: 'Order not found' });
 
   // Allow access if paddle_transaction_id matches (post-payment confirmation)
@@ -94,7 +94,7 @@ router.get('/:id', orderLimiter, (req, res) => {
 });
 
 // POST /api/orders - Create a new order
-router.post('/', apiLimiter, (req, res) => {
+router.post('/', apiLimiter, async (req, res) => {
   const { packageId, email } = req.body;
   if (!packageId || !email) {
     return res.status(400).json({ error: 'packageId and email are required' });
@@ -104,21 +104,21 @@ router.post('/', apiLimiter, (req, res) => {
   }
 
   // Verify package exists
-  const pkg = db.prepare('SELECT id FROM packages WHERE id = ?').get(packageId);
+  const pkg = (await db.query('SELECT id FROM packages WHERE id = $1', [packageId])).rows[0];
   if (!pkg) {
     return res.status(404).json({ error: 'Package not found' });
   }
 
-  const result = db.prepare(`
-    INSERT INTO orders (package_id, email) VALUES (?, ?)
-  `).run(packageId, email.trim().toLowerCase());
+  const result = await db.query(`
+    INSERT INTO orders (package_id, email) VALUES ($1, $2) RETURNING id
+  `, [packageId, email.trim().toLowerCase()]);
 
-  const order = db.prepare(`
+  const order = (await db.query(`
     SELECT o.*, p.name AS package_name, p.flag AS package_flag
     FROM orders o
     JOIN packages p ON p.id = o.package_id
-    WHERE o.id = ?
-  `).get(result.lastInsertRowid);
+    WHERE o.id = $1
+  `, [result.rows[0].id])).rows[0];
 
   res.status(201).json(order);
 });

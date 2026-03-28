@@ -27,7 +27,7 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     return res.status(400).json({ error: 'packageId and email are required' });
   }
 
-  const pkg = db.prepare('SELECT * FROM packages WHERE id = ?').get(packageId);
+  const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [packageId])).rows[0];
   if (!pkg) {
     return res.status(404).json({ error: 'Package not found' });
   }
@@ -42,10 +42,11 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     } catch { /* not logged in, that's ok */ }
   }
 
-  const result = db.prepare(
-    'INSERT INTO orders (package_id, email, status, payment_status, user_id) VALUES (?, ?, ?, ?, ?)'
-  ).run(packageId, email, 'pending', 'unpaid', userId);
-  const orderId = result.lastInsertRowid;
+  const result = await db.query(
+    'INSERT INTO orders (package_id, email, status, payment_status, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+    [packageId, email, 'pending', 'unpaid', userId]
+  );
+  const orderId = result.rows[0].id;
 
   // If Paddle is not configured, skip payment (dev mode)
   if (!paddleEnabled) {
@@ -58,35 +59,38 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
         airaloData = await airalo.createOrder(pkg.airalo_package_id, 1, `Order #${orderId}`);
         const esim = airaloData?.data?.sims?.[0];
         if (esim) {
-          db.prepare(`
-            UPDATE orders SET payment_status = ?, status = ?, qr_data = ?,
-              airalo_order_id = ?, iccid = ?, esim_status = ?, qr_code_url = ?, activation_code = ?
-            WHERE id = ?
-          `).run('paid', 'completed', esim.qrcode || qrData,
+          await db.query(`
+            UPDATE orders SET payment_status = $1, status = $2, qr_data = $3,
+              airalo_order_id = $4, iccid = $5, esim_status = $6, qr_code_url = $7, activation_code = $8
+            WHERE id = $9
+          `, ['paid', 'completed', esim.qrcode || qrData,
             String(airaloData.data.id), esim.iccid, 'active',
-            esim.qrcode_url || null, esim.direct_apple_installation_url || null, orderId);
+            esim.qrcode_url || null, esim.direct_apple_installation_url || null, orderId]);
         } else {
-          db.prepare(
-            'UPDATE orders SET payment_status = ?, status = ?, qr_data = ? WHERE id = ?'
-          ).run('paid', 'completed', qrData, orderId);
+          await db.query(
+            'UPDATE orders SET payment_status = $1, status = $2, qr_data = $3 WHERE id = $4',
+            ['paid', 'completed', qrData, orderId]
+          );
         }
       } catch (err) {
         console.error('[AIRALO ORDER ERROR] Dev mode:', err.message);
-        db.prepare(
-          'UPDATE orders SET payment_status = ?, status = ?, qr_data = ? WHERE id = ?'
-        ).run('paid', 'completed', qrData, orderId);
+        await db.query(
+          'UPDATE orders SET payment_status = $1, status = $2, qr_data = $3 WHERE id = $4',
+          ['paid', 'completed', qrData, orderId]
+        );
       }
     } else {
-      db.prepare(
-        'UPDATE orders SET payment_status = ?, status = ?, qr_data = ? WHERE id = ?'
-      ).run('paid', 'completed', qrData, orderId);
+      await db.query(
+        'UPDATE orders SET payment_status = $1, status = $2, qr_data = $3 WHERE id = $4',
+        ['paid', 'completed', qrData, orderId]
+      );
     }
 
-    const order = db.prepare(`
+    const order = (await db.query(`
       SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price
       FROM orders o JOIN packages p ON p.id = o.package_id
-      WHERE o.id = ?
-    `).get(orderId);
+      WHERE o.id = $1
+    `, [orderId])).rows[0];
 
     sendMail(
       email,
@@ -131,12 +135,12 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     });
 
     const txnId = paddleRes.data.id;
-    db.prepare('UPDATE orders SET paddle_transaction_id = ? WHERE id = ?').run(txnId, orderId);
+    await db.query('UPDATE orders SET paddle_transaction_id = $1 WHERE id = $2', [txnId, orderId]);
 
     res.json({ transactionId: txnId, orderId: Number(orderId) });
   } catch (err) {
     console.error('Paddle error:', err.response?.data || err.message);
-    db.prepare('DELETE FROM orders WHERE id = ?').run(orderId);
+    await db.query('DELETE FROM orders WHERE id = $1', [orderId]);
     res.status(500).json({ error: 'Inicializimi i pagesës dështoi' });
   }
 });

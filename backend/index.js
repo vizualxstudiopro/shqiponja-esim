@@ -5,7 +5,7 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 // Run database migrations & seed
-require('./db/migrate');
+const { migrate } = require('./db/migrate');
 
 const { apiLimiter } = require('./middleware/rate-limit');
 
@@ -74,6 +74,12 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Gabim i brendshëm i serverit' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+(async () => {
+  await migrate();
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+})().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });

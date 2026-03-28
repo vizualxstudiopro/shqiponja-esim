@@ -1,22 +1,16 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+const { Pool } = require('pg');
 
-const DB_PATH = process.env.DB_PATH || (
-	process.env.NODE_ENV === 'production'
-		? '/app/data/shqiponja.db'
-		: path.join(__dirname, '..', 'data', 'shqiponja.db')
-);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('railway')
+    ? { rejectUnauthorized: false }
+    : false,
+});
 
-// Ensure data directory exists
-const fs = require('fs');
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+pool.on('error', (err) => {
+  console.error('[DB] Unexpected pool error:', err);
+});
 
-console.log(`[DB] Using SQLite at: ${DB_PATH}`);
+console.log('[DB] Using PostgreSQL');
 
-const db = new Database(DB_PATH);
-
-// Enable WAL mode for better performance
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-module.exports = db;
+module.exports = pool;

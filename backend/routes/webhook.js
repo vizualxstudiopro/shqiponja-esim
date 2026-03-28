@@ -51,7 +51,7 @@ router.post('/', async (req, res) => {
     const orderId = txnData.custom_data?.order_id;
 
     if (orderId) {
-      const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(Number(orderId));
+      const order = (await db.query('SELECT * FROM orders WHERE id = $1', [Number(orderId)])).rows[0];
       if (!order) {
         console.error('Webhook: Order not found:', orderId);
         return res.json({ received: true });
@@ -60,7 +60,7 @@ router.post('/', async (req, res) => {
       const qrData = `SHQIPONJA-ESIM-${orderId}-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
       // Try to order real eSIM from Airalo
-      const pkg = db.prepare('SELECT * FROM packages WHERE id = ?').get(order.package_id);
+      const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [order.package_id])).rows[0];
       let airaloQr = qrData;
       let iccid = null;
       let qrCodeUrl = null;
@@ -85,20 +85,20 @@ router.post('/', async (req, res) => {
         }
       }
 
-      db.prepare(`
-        UPDATE orders SET payment_status = ?, status = ?, qr_data = ?,
-          airalo_order_id = ?, iccid = ?, esim_status = ?, qr_code_url = ?, activation_code = ?
-        WHERE id = ?
-      `).run('paid', 'completed', airaloQr,
+      await db.query(`
+        UPDATE orders SET payment_status = $1, status = $2, qr_data = $3,
+          airalo_order_id = $4, iccid = $5, esim_status = $6, qr_code_url = $7, activation_code = $8
+        WHERE id = $9
+      `, ['paid', 'completed', airaloQr,
         airaloOrderId, iccid, iccid ? 'active' : (esimProvisioningAttempted ? 'provisioning_failed' : null),
-        qrCodeUrl, activationCode, Number(orderId));
+        qrCodeUrl, activationCode, Number(orderId)]);
       console.log(`✔ Webhook: Order #${orderId} marked as paid (event: ${event.event_id})`);
 
       // Send confirmation email — re-fetch the updated order
-      const updatedOrder = db.prepare(`
+      const updatedOrder = (await db.query(`
         SELECT o.*, p.name AS package_name, p.flag AS package_flag
-        FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = ?
-      `).get(Number(orderId));
+        FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1
+      `, [Number(orderId)])).rows[0];
       if (updatedOrder) {
         const customerEmail = txnData.customer?.email || txnData.custom_data?.email || updatedOrder.email;
         const country = updatedOrder.package_name || '';

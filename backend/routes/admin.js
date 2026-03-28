@@ -7,39 +7,39 @@ const { authMiddleware, adminOnly } = require('../middleware/auth');
 router.use(authMiddleware, adminOnly);
 
 /* ─── DASHBOARD STATS ─── */
-router.get('/stats', (req, res) => {
-  const totalOrders = db.prepare('SELECT COUNT(*) AS cnt FROM orders').get().cnt;
-  const paidOrders = db.prepare("SELECT COUNT(*) AS cnt FROM orders WHERE payment_status = 'paid'").get().cnt;
-  const totalRevenue = db.prepare("SELECT COALESCE(SUM(p.price),0) AS total FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.payment_status = 'paid'").get().total;
-  const totalUsers = db.prepare('SELECT COUNT(*) AS cnt FROM users').get().cnt;
-  const totalPackages = db.prepare('SELECT COUNT(*) AS cnt FROM packages').get().cnt;
+router.get('/stats', async (req, res) => {
+  const totalOrders = parseInt((await db.query('SELECT COUNT(*) AS cnt FROM orders')).rows[0].cnt);
+  const paidOrders = parseInt((await db.query("SELECT COUNT(*) AS cnt FROM orders WHERE payment_status = 'paid'")).rows[0].cnt);
+  const totalRevenue = parseFloat((await db.query("SELECT COALESCE(SUM(p.price),0) AS total FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.payment_status = 'paid'")).rows[0].total);
+  const totalUsers = parseInt((await db.query('SELECT COUNT(*) AS cnt FROM users')).rows[0].cnt);
+  const totalPackages = parseInt((await db.query('SELECT COUNT(*) AS cnt FROM packages')).rows[0].cnt);
 
   // Monthly stats for charts (last 6 months)
-  const monthlyRevenue = db.prepare(`
-    SELECT strftime('%Y-%m', o.created_at) AS month,
+  const monthlyRevenue = (await db.query(`
+    SELECT to_char(o.created_at, 'YYYY-MM') AS month,
            COALESCE(SUM(p.price), 0) AS revenue,
            COUNT(*) AS orders
     FROM orders o
     JOIN packages p ON p.id = o.package_id
     WHERE o.payment_status = 'paid'
-      AND o.created_at >= date('now', '-6 months')
-    GROUP BY strftime('%Y-%m', o.created_at)
+      AND o.created_at >= NOW() - INTERVAL '6 months'
+    GROUP BY to_char(o.created_at, 'YYYY-MM')
     ORDER BY month
-  `).all();
+  `)).rows;
 
-  const monthlyUsers = db.prepare(`
-    SELECT strftime('%Y-%m', created_at) AS month, COUNT(*) AS users
+  const monthlyUsers = (await db.query(`
+    SELECT to_char(created_at, 'YYYY-MM') AS month, COUNT(*) AS users
     FROM users
-    WHERE created_at >= date('now', '-6 months')
-    GROUP BY strftime('%Y-%m', created_at)
+    WHERE created_at >= NOW() - INTERVAL '6 months'
+    GROUP BY to_char(created_at, 'YYYY-MM')
     ORDER BY month
-  `).all();
+  `)).rows;
 
   res.json({ totalOrders, paidOrders, totalRevenue, totalUsers, totalPackages, monthlyRevenue, monthlyUsers });
 });
 
 /* ─── USERS ─── */
-router.get('/users', (req, res) => {
+router.get('/users', async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
   const offset = (page - 1) * limit;
@@ -47,37 +47,42 @@ router.get('/users', (req, res) => {
 
   let where = '1=1';
   const params = [];
+  let paramIdx = 1;
   if (searchQuery.trim()) {
-    where += ' AND (name LIKE ? OR email LIKE ?)';
+    where += ` AND (name ILIKE $${paramIdx} OR email ILIKE $${paramIdx + 1})`;
     const like = `%${searchQuery.trim()}%`;
     params.push(like, like);
+    paramIdx += 2;
   }
 
-  const total = db.prepare(`SELECT COUNT(*) AS cnt FROM users WHERE ${where}`).get(...params).cnt;
-  const users = db.prepare(`SELECT id, name, email, role, email_verified, created_at FROM users WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(...params, limit, offset);
+  const total = parseInt((await db.query(`SELECT COUNT(*) AS cnt FROM users WHERE ${where}`, params)).rows[0].cnt);
+  const users = (await db.query(
+    `SELECT id, name, email, role, email_verified, created_at FROM users WHERE ${where} ORDER BY created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+    [...params, limit, offset]
+  )).rows;
   res.json({ users, total, page, totalPages: Math.ceil(total / limit) });
 });
 
-router.patch('/users/:id/role', (req, res) => {
+router.patch('/users/:id/role', async (req, res) => {
   const { role } = req.body;
   if (!['customer', 'admin'].includes(role)) {
     return res.status(400).json({ error: 'Roli duhet të jetë customer ose admin' });
   }
-  db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, req.params.id);
-  const user = db.prepare('SELECT id, name, email, role, created_at FROM users WHERE id = ?').get(req.params.id);
+  await db.query('UPDATE users SET role = $1 WHERE id = $2', [role, req.params.id]);
+  const user = (await db.query('SELECT id, name, email, role, created_at FROM users WHERE id = $1', [req.params.id])).rows[0];
   res.json(user);
 });
 
-router.delete('/users/:id', (req, res) => {
+router.delete('/users/:id', async (req, res) => {
   if (Number(req.params.id) === req.user.id) {
     return res.status(400).json({ error: 'Nuk mund ta fshish veten' });
   }
-  db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
+  await db.query('DELETE FROM users WHERE id = $1', [req.params.id]);
   res.json({ ok: true });
 });
 
 /* ─── ORDERS ─── */
-router.get('/orders', (req, res) => {
+router.get('/orders', async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
   const offset = (page - 1) * limit;
@@ -87,22 +92,26 @@ router.get('/orders', (req, res) => {
 
   let where = '1=1';
   const params = [];
+  let paramIdx = 1;
   if (['pending', 'completed', 'cancelled'].includes(statusFilter)) {
-    where += ' AND o.status = ?';
+    where += ` AND o.status = $${paramIdx}`;
     params.push(statusFilter);
+    paramIdx++;
   }
   if (['unpaid', 'paid', 'refunded'].includes(paymentFilter)) {
-    where += ' AND o.payment_status = ?';
+    where += ` AND o.payment_status = $${paramIdx}`;
     params.push(paymentFilter);
+    paramIdx++;
   }
   if (searchQuery.trim()) {
-    where += ' AND (o.email LIKE ? OR p.name LIKE ? OR CAST(o.id AS TEXT) LIKE ?)';
+    where += ` AND (o.email ILIKE $${paramIdx} OR p.name ILIKE $${paramIdx + 1} OR CAST(o.id AS TEXT) LIKE $${paramIdx + 2})`;
     const like = `%${searchQuery.trim()}%`;
     params.push(like, like, like);
+    paramIdx += 3;
   }
 
-  const total = db.prepare(`SELECT COUNT(*) AS cnt FROM orders o JOIN packages p ON p.id = o.package_id WHERE ${where}`).get(...params).cnt;
-  const orders = db.prepare(`
+  const total = parseInt((await db.query(`SELECT COUNT(*) AS cnt FROM orders o JOIN packages p ON p.id = o.package_id WHERE ${where}`, params)).rows[0].cnt);
+  const orders = (await db.query(`
     SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price AS package_price,
            u.name AS user_name, u.email AS user_email
     FROM orders o
@@ -110,12 +119,12 @@ router.get('/orders', (req, res) => {
     LEFT JOIN users u ON u.id = o.user_id
     WHERE ${where}
     ORDER BY o.created_at DESC
-    LIMIT ? OFFSET ?
-  `).all(...params, limit, offset);
+    LIMIT $${paramIdx} OFFSET $${paramIdx + 1}
+  `, [...params, limit, offset])).rows;
   res.json({ orders, total, page, totalPages: Math.ceil(total / limit) });
 });
 
-router.patch('/orders/:id/status', (req, res) => {
+router.patch('/orders/:id/status', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
   const { status, payment_status } = req.body;
@@ -127,17 +136,17 @@ router.patch('/orders/:id/status', (req, res) => {
   if (payment_status && !validPaymentStatuses.includes(payment_status)) {
     return res.status(400).json({ error: 'Payment status i pavlefshëm' });
   }
-  if (status) db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status, id);
-  if (payment_status) db.prepare('UPDATE orders SET payment_status = ? WHERE id = ?').run(payment_status, id);
-  const order = db.prepare(`
+  if (status) await db.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
+  if (payment_status) await db.query('UPDATE orders SET payment_status = $1 WHERE id = $2', [payment_status, id]);
+  const order = (await db.query(`
     SELECT o.*, p.name AS package_name, p.flag AS package_flag
-    FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = ?
-  `).get(id);
+    FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1
+  `, [id])).rows[0];
   res.json(order);
 });
 
 /* ─── PACKAGES ─── */
-router.get('/packages', (req, res) => {
+router.get('/packages', async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
   const offset = (page - 1) * limit;
@@ -145,14 +154,19 @@ router.get('/packages', (req, res) => {
 
   let where = '1=1';
   const params = [];
+  let paramIdx = 1;
   if (searchQuery.trim()) {
-    where += ' AND (name LIKE ? OR region LIKE ? OR country_code LIKE ?)';
+    where += ` AND (name ILIKE $${paramIdx} OR region ILIKE $${paramIdx + 1} OR country_code ILIKE $${paramIdx + 2})`;
     const like = `%${searchQuery.trim()}%`;
     params.push(like, like, like);
+    paramIdx += 3;
   }
 
-  const total = db.prepare(`SELECT COUNT(*) AS cnt FROM packages WHERE ${where}`).get(...params).cnt;
-  const packages = db.prepare(`SELECT * FROM packages WHERE ${where} ORDER BY visible DESC, region, price LIMIT ? OFFSET ?`).all(...params, limit, offset);
+  const total = parseInt((await db.query(`SELECT COUNT(*) AS cnt FROM packages WHERE ${where}`, params)).rows[0].cnt);
+  const packages = (await db.query(
+    `SELECT * FROM packages WHERE ${where} ORDER BY visible DESC, region, price LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+    [...params, limit, offset]
+  )).rows;
   res.json({
     packages: packages.map((p) => ({ ...p, highlight: !!p.highlight, visible: !!p.visible })),
     total,
@@ -161,17 +175,17 @@ router.get('/packages', (req, res) => {
   });
 });
 
-router.patch('/packages/:id/visible', (req, res) => {
+router.patch('/packages/:id/visible', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
   const { visible } = req.body;
-  db.prepare('UPDATE packages SET visible = ? WHERE id = ?').run(visible ? 1 : 0, id);
-  const pkg = db.prepare('SELECT * FROM packages WHERE id = ?').get(id);
+  await db.query('UPDATE packages SET visible = $1 WHERE id = $2', [visible ? 1 : 0, id]);
+  const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
   if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
   res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
 });
 
-router.post('/packages', (req, res) => {
+router.post('/packages', async (req, res) => {
   const { name, region, flag, data, duration, price, currency, highlight, description } = req.body;
   if (!name || !region || !flag || !data || !duration || price == null) {
     return res.status(400).json({ error: 'Fushat e detyrueshme mungojnë' });
@@ -180,15 +194,15 @@ router.post('/packages', (req, res) => {
   if (!Number.isFinite(numPrice) || numPrice < 0) {
     return res.status(400).json({ error: 'Çmimi duhet të jetë numër pozitiv' });
   }
-  const result = db.prepare(`
+  const result = await db.query(`
     INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500));
-  const pkg = db.prepare('SELECT * FROM packages WHERE id = ?').get(result.lastInsertRowid);
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id
+  `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500)]);
+  const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [result.rows[0].id])).rows[0];
   res.status(201).json({ ...pkg, highlight: !!pkg.highlight });
 });
 
-router.put('/packages/:id', (req, res) => {
+router.put('/packages/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
   const { name, region, flag, data, duration, price, currency, highlight, description } = req.body;
@@ -196,19 +210,19 @@ router.put('/packages/:id', (req, res) => {
   if (!Number.isFinite(numPrice) || numPrice < 0) {
     return res.status(400).json({ error: 'Çmimi duhet të jetë numër pozitiv' });
   }
-  db.prepare(`
-    UPDATE packages SET name=?, region=?, flag=?, data=?, duration=?, price=?, currency=?, highlight=?, description=?
-    WHERE id=?
-  `).run(String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500), id);
-  const pkg = db.prepare('SELECT * FROM packages WHERE id = ?').get(id);
+  await db.query(`
+    UPDATE packages SET name=$1, region=$2, flag=$3, data=$4, duration=$5, price=$6, currency=$7, highlight=$8, description=$9
+    WHERE id=$10
+  `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500), id]);
+  const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
   if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
   res.json({ ...pkg, highlight: !!pkg.highlight });
 });
 
-router.delete('/packages/:id', (req, res) => {
+router.delete('/packages/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
-  db.prepare('DELETE FROM packages WHERE id = ?').run(id);
+  await db.query('DELETE FROM packages WHERE id = $1', [id]);
   res.json({ ok: true });
 });
 

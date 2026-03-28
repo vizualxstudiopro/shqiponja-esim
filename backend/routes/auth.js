@@ -27,19 +27,20 @@ router.post('/register', authLimiter, validateRegister, async (req, res) => {
     return res.status(400).json({ error: 'Fjalëkalimi duhet të ketë së paku 6 karaktere' });
   }
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  const existing = (await db.query('SELECT id FROM users WHERE email = $1', [email])).rows[0];
   if (existing) {
     return res.status(409).json({ error: 'Ky email është i regjistruar tashmë' });
   }
 
   const hash = await bcrypt.hash(password, 12);
   const verifyToken = crypto.randomBytes(32).toString('hex');
-  const result = db.prepare(
-    'INSERT INTO users (name, email, password, verify_token) VALUES (?, ?, ?, ?)'
-  ).run(name, email, hash, verifyToken);
+  const result = await db.query(
+    'INSERT INTO users (name, email, password, verify_token) VALUES ($1, $2, $3, $4) RETURNING id',
+    [name, email, hash, verifyToken]
+  );
 
-  const user = db.prepare('SELECT id, name, email, role, email_verified, created_at FROM users WHERE id = ?')
-    .get(result.lastInsertRowid);
+  const user = (await db.query('SELECT id, name, email, role, email_verified, created_at FROM users WHERE id = $1',
+    [result.rows[0].id])).rows[0];
 
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
@@ -66,7 +67,7 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
     return res.status(400).json({ error: 'Email-i dhe fjalëkalimi janë të detyrueshëm' });
   }
 
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  const user = (await db.query('SELECT * FROM users WHERE email = $1', [email])).rows[0];
   if (!user) {
     return res.status(401).json({ error: 'Email ose fjalëkalim i gabuar' });
   }
@@ -101,33 +102,33 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
 });
 
 // GET /api/auth/me - Get current user
-router.get('/me', authMiddleware, (req, res) => {
-  const user = db.prepare('SELECT id, name, email, role, email_verified, created_at FROM users WHERE id = ?')
-    .get(req.user.id);
+router.get('/me', authMiddleware, async (req, res) => {
+  const user = (await db.query('SELECT id, name, email, role, email_verified, created_at FROM users WHERE id = $1',
+    [req.user.id])).rows[0];
   if (!user) return res.status(404).json({ error: 'Përdoruesi nuk u gjet' });
   res.json(user);
 });
 
 // POST /api/auth/verify - Verify email with token
-router.post('/verify', (req, res) => {
+router.post('/verify', async (req, res) => {
   const { token: verifyToken } = req.body;
   if (!verifyToken) return res.status(400).json({ error: 'Token mungon' });
 
-  const user = db.prepare('SELECT id FROM users WHERE verify_token = ?').get(verifyToken);
+  const user = (await db.query('SELECT id FROM users WHERE verify_token = $1', [verifyToken])).rows[0];
   if (!user) return res.status(400).json({ error: 'Token i pavlefshëm ose i skaduar' });
 
-  db.prepare('UPDATE users SET email_verified = 1, verify_token = NULL WHERE id = ?').run(user.id);
+  await db.query('UPDATE users SET email_verified = 1, verify_token = NULL WHERE id = $1', [user.id]);
   res.json({ ok: true, message: 'Email-i u verifikua me sukses!' });
 });
 
 // POST /api/auth/resend-verify - Resend verification email
-router.post('/resend-verify', authMiddleware, (req, res) => {
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+router.post('/resend-verify', authMiddleware, async (req, res) => {
+  const user = (await db.query('SELECT * FROM users WHERE id = $1', [req.user.id])).rows[0];
   if (!user) return res.status(404).json({ error: 'Përdoruesi nuk u gjet' });
   if (user.email_verified) return res.json({ message: 'Email-i është verifikuar tashmë' });
 
   const verifyToken = crypto.randomBytes(32).toString('hex');
-  db.prepare('UPDATE users SET verify_token = ? WHERE id = ?').run(verifyToken, user.id);
+  await db.query('UPDATE users SET verify_token = $1 WHERE id = $2', [verifyToken, user.id]);
 
   const verifyUrl = `${FRONTEND_URL}/verifiko?token=${verifyToken}`;
   sendMail(
@@ -145,7 +146,7 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
   const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
   if (!email) return res.status(400).json({ error: 'Email-i mungon' });
 
-  const user = db.prepare('SELECT id, name FROM users WHERE lower(email) = lower(?)').get(email);
+  const user = (await db.query('SELECT id, name FROM users WHERE lower(email) = lower($1)', [email])).rows[0];
   console.log(`[FORGOT PASSWORD] Request for ${email} -> userFound=${!!user}`);
   // Always return success to prevent email enumeration
   if (!user) return res.json({ message: 'Nëse ky email ekziston, do të marrësh një link për rivendosjen e fjalëkalimit' });
@@ -160,8 +161,8 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
   // Ruaj token-in në DB si backup (30 min legacy)
   const randomToken = crypto.randomBytes(32).toString('hex');
   const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 orë
-  db.prepare('UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?')
-    .run(randomToken, expires, user.id);
+  await db.query('UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
+    [randomToken, expires, user.id]);
 
   const resetUrl = `${FRONTEND_URL}/rivendos-fjalekalimin?token=${resetToken}`;
 
@@ -197,7 +198,7 @@ router.post('/reset-password', async (req, res) => {
   try {
     const payload = jwt.verify(resetToken, JWT_SECRET);
     if (payload.purpose === 'password-reset') {
-      user = db.prepare('SELECT id FROM users WHERE id = ?').get(payload.id);
+      user = (await db.query('SELECT id FROM users WHERE id = $1', [payload.id])).rows[0];
     }
   } catch {
     // JWT i pavlefshëm — provo token-in legacy nga DB
@@ -205,21 +206,21 @@ router.post('/reset-password', async (req, res) => {
 
   // Fallback: token legacy nga DB
   if (!user) {
-    user = db.prepare('SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > ?')
-      .get(resetToken, new Date().toISOString());
+    user = (await db.query('SELECT id FROM users WHERE reset_token = $1 AND reset_token_expires > $2',
+      [resetToken, new Date().toISOString()])).rows[0];
   }
 
   if (!user) return res.status(400).json({ error: 'Token i pavlefshëm ose i skaduar' });
 
   const hash = await bcrypt.hash(password, 12);
-  db.prepare('UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?')
-    .run(hash, user.id);
+  await db.query('UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
+    [hash, user.id]);
 
   res.json({ ok: true, message: 'Fjalëkalimi u ndryshua me sukses!' });
 });
 
 // PATCH /api/auth/update-profile - Update name
-router.patch('/update-profile', authMiddleware, (req, res) => {
+router.patch('/update-profile', authMiddleware, async (req, res) => {
   const { name } = req.body;
   if (!name || typeof name !== 'string' || name.trim().length < 2) {
     return res.status(400).json({ error: 'Emri duhet të ketë së paku 2 karaktere' });
@@ -228,9 +229,9 @@ router.patch('/update-profile', authMiddleware, (req, res) => {
     return res.status(400).json({ error: 'Emri është shumë i gjatë' });
   }
 
-  db.prepare('UPDATE users SET name = ? WHERE id = ?').run(name.trim(), req.user.id);
-  const user = db.prepare('SELECT id, name, email, role, email_verified, created_at FROM users WHERE id = ?')
-    .get(req.user.id);
+  await db.query('UPDATE users SET name = $1 WHERE id = $2', [name.trim(), req.user.id]);
+  const user = (await db.query('SELECT id, name, email, role, email_verified, created_at FROM users WHERE id = $1',
+    [req.user.id])).rows[0];
   res.json(user);
 });
 
@@ -247,14 +248,14 @@ router.post('/change-password', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'Fjalëkalimi i ri është shumë i gjatë' });
   }
 
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  const user = (await db.query('SELECT * FROM users WHERE id = $1', [req.user.id])).rows[0];
   const valid = await bcrypt.compare(currentPassword, user.password);
   if (!valid) {
     return res.status(401).json({ error: 'Fjalëkalimi aktual është i gabuar' });
   }
 
   const hash = await bcrypt.hash(newPassword, 12);
-  db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hash, req.user.id);
+  await db.query('UPDATE users SET password = $1 WHERE id = $2', [hash, req.user.id]);
   res.json({ ok: true, message: 'Fjalëkalimi u ndryshua me sukses!' });
 });
 
