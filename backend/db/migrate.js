@@ -66,6 +66,13 @@ async function migrate() {
 
   console.log('✔ Database tables ensured');
 
+  // Add highlight column if missing (for tables created before highlight feature)
+  try {
+    await db.query(`ALTER TABLE packages ADD COLUMN IF NOT EXISTS highlight INTEGER NOT NULL DEFAULT 0`);
+  } catch (e) {
+    // Column likely already exists
+  }
+
   // Performance indexes
   await db.query(`
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

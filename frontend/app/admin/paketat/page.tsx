@@ -5,7 +5,6 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import {
   adminGetPackages,
-  adminCreatePackage,
   adminUpdatePackage,
   adminDeletePackage,
   adminTogglePackageVisible,
@@ -14,7 +13,6 @@ import {
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
 
-const emptyPkg = { name: "", region: "", flag: "", data: "", duration: "", price: 0, currency: "EUR", highlight: false, description: "" };
 const PAGE_SIZE = 50;
 
 export default function AdminPackagesPage() {
@@ -23,13 +21,22 @@ export default function AdminPackagesPage() {
   const { toast } = useToast();
   const [packages, setPackages] = useState<EsimPackage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<Partial<EsimPackage> & typeof emptyPkg | null>(null);
-  const [isNew, setIsNew] = useState(false);
+  const [editing, setEditing] = useState<Partial<EsimPackage> | null>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Browse modal state
+  const [browsing, setBrowsing] = useState(false);
+  const [browseSearch, setBrowseSearch] = useState("");
+  const [browseResults, setBrowseResults] = useState<EsimPackage[]>([]);
+  const [browseLoading, setBrowseLoading] = useState(false);
+  const [browsePage, setBrowsePage] = useState(1);
+  const [browseTotalPages, setBrowseTotalPages] = useState(1);
+  const [browseTotal, setBrowseTotal] = useState(0);
+  const browseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const fetchPackages = useCallback(async (p: number, q: string) => {
     if (!token) return;
@@ -59,34 +66,60 @@ export default function AdminPackagesPage() {
     }, 400);
   }
 
-  function openNew() {
-    setEditing({ ...emptyPkg });
-    setIsNew(true);
+  // Browse modal functions
+  const fetchBrowseResults = useCallback(async (p: number, q: string) => {
+    if (!token) return;
+    setBrowseLoading(true);
+    try {
+      const data = await adminGetPackages(token, p, PAGE_SIZE, q, 0); // Only inactive packages
+      setBrowseResults(data.packages);
+      setBrowseTotalPages(data.totalPages);
+      setBrowseTotal(data.total);
+      setBrowsePage(data.page);
+    } catch {
+      toast("Gabim gjatë ngarkimit", "error");
+    } finally {
+      setBrowseLoading(false);
+    }
+  }, [token, toast]);
+
+  function openBrowse() {
+    setBrowsing(true);
+    setBrowseSearch("");
+    fetchBrowseResults(1, "");
+  }
+
+  function handleBrowseSearch(value: string) {
+    setBrowseSearch(value);
+    clearTimeout(browseTimer.current);
+    browseTimer.current = setTimeout(() => {
+      fetchBrowseResults(1, value);
+    }, 400);
+  }
+
+  function activateAndEdit(pkg: EsimPackage) {
+    setBrowsing(false);
+    setEditing({ ...pkg, visible: true });
   }
 
   function openEdit(pkg: EsimPackage) {
     setEditing({ ...pkg });
-    setIsNew(false);
   }
 
   async function handleSave() {
-    if (!token || !editing) return;
-    if (!editing.name.trim() || !editing.region.trim() || !editing.data.trim() || !editing.duration.trim()) {
+    if (!token || !editing || !editing.id) return;
+    if (!editing.name?.trim() || !editing.region?.trim() || !editing.data?.trim() || !editing.duration?.trim()) {
       toast("Plotëso fushat e detyrueshme", "error");
       return;
     }
-    if (!Number.isFinite(editing.price) || editing.price < 0) {
+    if (!Number.isFinite(editing.price) || (editing.price ?? 0) < 0) {
       toast("Çmimi duhet të jetë numër pozitiv", "error");
       return;
     }
     try {
-      if (isNew) {
-        await adminCreatePackage(token, editing as Omit<EsimPackage, "id">);
-      } else {
-        await adminUpdatePackage(token, (editing as EsimPackage).id, editing as Omit<EsimPackage, "id">);
-      }
+      await adminUpdatePackage(token, editing.id, editing as Omit<EsimPackage, "id">);
       setEditing(null);
-      toast(isNew ? "Paketa u shtua" : "Paketa u përditësua", "success");
+      toast("Paketa u përditësua", "success");
       fetchPackages(page, search);
     } catch (err) {
       toast(err instanceof Error ? err.message : "Error", "error");
@@ -135,7 +168,7 @@ export default function AdminPackagesPage() {
           <p className="mt-1 text-sm text-zinc-500">{total} {t("admin.totalSuffix")}</p>
         </div>
         <button
-          onClick={openNew}
+          onClick={openBrowse}
           className="w-full sm:w-auto rounded-lg bg-shqiponja px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
         >
           {t("admin.addPackage")}
@@ -244,21 +277,127 @@ export default function AdminPackagesPage() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Browse Modal - Select from existing packages */}
+      {browsing && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4">
+          <div className="w-full sm:max-w-3xl max-h-[90vh] overflow-hidden rounded-t-2xl sm:rounded-2xl bg-white shadow-xl dark:bg-zinc-800 flex flex-col">
+            <div className="p-5 border-b border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold">Zgjedh Paketë nga Databaza</h2>
+                  <p className="mt-1 text-sm text-zinc-500">{browseTotal} paketa joaktive</p>
+                </div>
+                <button onClick={() => setBrowsing(false)} className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition dark:border-zinc-600 dark:hover:bg-zinc-700">✕</button>
+              </div>
+              <input
+                type="text"
+                placeholder="Kërko sipas emrit, rajonit, vendit..."
+                value={browseSearch}
+                onChange={(e) => handleBrowseSearch(e.target.value)}
+                autoFocus
+                className="mt-3 w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700"
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {browseLoading ? (
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-16 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-700" />
+                  ))}
+                </div>
+              ) : browseResults.length === 0 ? (
+                <p className="text-center text-zinc-500 py-8">Asnjë paketë joaktive nuk u gjet. Provo një kërkim tjetër.</p>
+              ) : (
+                <div className="space-y-2">
+                  {browseResults.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between rounded-xl border border-zinc-200 p-3 hover:border-shqiponja/30 hover:bg-shqiponja/5 transition dark:border-zinc-700 dark:hover:border-shqiponja/30">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-sm truncate">{p.flag} {p.name}</p>
+                        <p className="text-xs text-zinc-500 mt-0.5">{p.region} · {p.data} · {p.duration}</p>
+                      </div>
+                      <div className="flex items-center gap-3 ml-3">
+                        <span className="text-sm font-semibold whitespace-nowrap">{"\u20AC"}{p.price.toFixed(2)}</span>
+                        <button
+                          onClick={() => activateAndEdit(p)}
+                          className="rounded-lg bg-shqiponja px-3 py-1.5 text-xs font-semibold text-white hover:bg-shqiponja-dark transition whitespace-nowrap"
+                        >
+                          Aktivizo & Ndrysho
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {browseTotalPages > 1 && (
+              <div className="p-4 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+                <p className="text-sm text-zinc-500">Faqja {browsePage} / {browseTotalPages}</p>
+                <div className="flex gap-2">
+                  <button
+                    disabled={browsePage <= 1}
+                    onClick={() => fetchBrowseResults(browsePage - 1, browseSearch)}
+                    className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
+                  >
+                    ← Para
+                  </button>
+                  <button
+                    disabled={browsePage >= browseTotalPages}
+                    onClick={() => fetchBrowseResults(browsePage + 1, browseSearch)}
+                    className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
+                  >
+                    Pas →
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
       {editing && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4">
           <div className="w-full sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white p-5 sm:p-6 shadow-xl dark:bg-zinc-800">
-            <h2 className="text-lg font-bold">{isNew ? t("admin.addPackageTitle") : t("admin.editPackage")}</h2>
+            <h2 className="text-lg font-bold">{t("admin.editPackage")}</h2>
+            <p className="text-sm text-zinc-500 mt-1">{editing.flag} {editing.name}</p>
             <div className="mt-4 grid gap-3 grid-cols-1 sm:grid-cols-2">
-              <input required placeholder={t("admin.name")} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
-              <input required placeholder={t("admin.region")} value={editing.region} onChange={(e) => setEditing({ ...editing, region: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
-              <input placeholder="Flag emoji" value={editing.flag} onChange={(e) => setEditing({ ...editing, flag: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
-              <input required placeholder={t("admin.data")} value={editing.data} onChange={(e) => setEditing({ ...editing, data: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
-              <input required placeholder={t("admin.duration")} value={editing.duration} onChange={(e) => setEditing({ ...editing, duration: e.target.value })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
-              <input required min="0" step="0.01" placeholder={t("admin.price")} type="number" value={editing.price} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) || 0 })} className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
-              <input placeholder={t("admin.description")} value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="sm:col-span-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
-              <label className="sm:col-span-2 flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={editing.highlight} onChange={(e) => setEditing({ ...editing, highlight: e.target.checked })} className="rounded border-zinc-300" />
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-medium text-zinc-500 mb-1">Emri</label>
+                <input value={editing.name || ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1">{t("admin.region")}</label>
+                <input value={editing.region || ""} onChange={(e) => setEditing({ ...editing, region: e.target.value })} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1">Flag</label>
+                <input value={editing.flag || ""} onChange={(e) => setEditing({ ...editing, flag: e.target.value })} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1">{t("admin.data")}</label>
+                <input value={editing.data || ""} onChange={(e) => setEditing({ ...editing, data: e.target.value })} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1">{t("admin.duration")}</label>
+                <input value={editing.duration || ""} onChange={(e) => setEditing({ ...editing, duration: e.target.value })} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1">{t("admin.price")} (EUR)</label>
+                <input type="number" min="0" step="0.01" value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
+              </div>
+              {editing.net_price != null && (
+                <div>
+                  <label className="block text-xs font-medium text-zinc-500 mb-1">Çmimi origjinal (Airalo)</label>
+                  <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">{"\u20AC"}{editing.net_price.toFixed(2)}</p>
+                </div>
+              )}
+              <input placeholder={t("admin.description")} value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="sm:col-span-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={!!editing.visible} onChange={(e) => setEditing({ ...editing, visible: e.target.checked })} className="rounded border-zinc-300" />
+                Aktiv në Web
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={!!editing.highlight} onChange={(e) => setEditing({ ...editing, highlight: e.target.checked })} className="rounded border-zinc-300" />
                 {t("admin.popular")}
               </label>
             </div>

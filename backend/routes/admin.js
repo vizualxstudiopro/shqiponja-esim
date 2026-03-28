@@ -161,6 +161,12 @@ router.get('/packages', async (req, res) => {
     params.push(like, like, like);
     paramIdx += 3;
   }
+  // Filter by visible status if specified
+  if (req.query.visible === '0' || req.query.visible === '1') {
+    where += ` AND visible = $${paramIdx}`;
+    params.push(parseInt(req.query.visible));
+    paramIdx++;
+  }
 
   const total = parseInt((await db.query(`SELECT COUNT(*) AS cnt FROM packages WHERE ${where}`, params)).rows[0].cnt);
   const packages = (await db.query(
@@ -186,13 +192,18 @@ router.patch('/packages/:id/visible', async (req, res) => {
 });
 
 router.patch('/packages/:id/highlight', async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
-  const { highlight } = req.body;
-  await db.query('UPDATE packages SET highlight = $1 WHERE id = $2', [highlight ? 1 : 0, id]);
-  const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
-  if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
-  res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const { highlight } = req.body;
+    await db.query('UPDATE packages SET highlight = $1 WHERE id = $2', [highlight ? 1 : 0, id]);
+    const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
+    if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
+    res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+  } catch (err) {
+    console.error('Highlight toggle error:', err);
+    res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
+  }
 });
 
 router.post('/packages', async (req, res) => {
@@ -215,18 +226,18 @@ router.post('/packages', async (req, res) => {
 router.put('/packages/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
-  const { name, region, flag, data, duration, price, currency, highlight, description } = req.body;
+  const { name, region, flag, data, duration, price, currency, highlight, description, visible } = req.body;
   const numPrice = Number(price);
   if (!Number.isFinite(numPrice) || numPrice < 0) {
     return res.status(400).json({ error: 'Çmimi duhet të jetë numër pozitiv' });
   }
   await db.query(`
-    UPDATE packages SET name=$1, region=$2, flag=$3, data=$4, duration=$5, price=$6, currency=$7, highlight=$8, description=$9
-    WHERE id=$10
-  `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500), id]);
+    UPDATE packages SET name=$1, region=$2, flag=$3, data=$4, duration=$5, price=$6, currency=$7, highlight=$8, description=$9, visible=$10
+    WHERE id=$11
+  `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500), visible ? 1 : 0, id]);
   const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
   if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
-  res.json({ ...pkg, highlight: !!pkg.highlight });
+  res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
 });
 
 router.delete('/packages/:id', async (req, res) => {

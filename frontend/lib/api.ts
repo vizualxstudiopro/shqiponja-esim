@@ -313,9 +313,10 @@ export interface PaginatedPackages {
   totalPages: number;
 }
 
-export async function adminGetPackages(token: string, page = 1, limit = 50, q = ""): Promise<PaginatedPackages> {
+export async function adminGetPackages(token: string, page = 1, limit = 50, q = "", visible?: 0 | 1): Promise<PaginatedPackages> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (q.trim()) params.set("q", q.trim());
+  if (visible !== undefined) params.set("visible", String(visible));
   const res = await fetchWithTimeout(`${API_URL}/api/admin/packages?${params}`, { headers: authHeaders(token), cache: "no-store" });
   if (!res.ok) throw new Error("Nuk ke qasje");
   return res.json();
@@ -329,7 +330,7 @@ export async function adminTogglePackageVisible(token: string, id: number, visib
 
 export async function adminTogglePackageHighlight(token: string, id: number, highlight: boolean): Promise<EsimPackage> {
   const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}/highlight`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ highlight }) });
-  if (!res.ok) throw new Error("Ndryshimi dështoi");
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Ndryshimi dështoi" })); throw new Error(e.error || "Ndryshimi dështoi"); }
   return res.json();
 }
 
