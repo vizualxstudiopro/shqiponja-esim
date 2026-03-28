@@ -45,6 +45,47 @@ router.get('/featured', async (req, res) => {
   res.json(packages.map((p) => ({ ...p, highlight: !!p.highlight })));
 });
 
+// GET /api/packages/destinations - Unique destinations grouped by country with min price
+router.get('/destinations', async (req, res) => {
+  try {
+    const rows = (await db.query(`
+      SELECT
+        COALESCE(country_code, region) AS destination_id,
+        MIN(flag) AS flag,
+        MIN(region) AS region,
+        MIN(country_code) AS country_code,
+        MIN(price)::float AS min_price,
+        COUNT(*)::int AS package_count,
+        BOOL_OR(highlight = 1) AS popular
+      FROM packages
+      WHERE visible = 1 AND (package_type IS NULL OR package_type = 'sim')
+      GROUP BY COALESCE(country_code, region)
+      ORDER BY BOOL_OR(highlight = 1) DESC, MIN(price)
+    `)).rows;
+
+    // Derive country name from first package's name (split on " — ")
+    const names = (await db.query(`
+      SELECT DISTINCT ON (COALESCE(country_code, region))
+        COALESCE(country_code, region) AS destination_id,
+        SPLIT_PART(name, ' — ', 1) AS destination_name
+      FROM packages
+      WHERE visible = 1 AND (package_type IS NULL OR package_type = 'sim')
+      ORDER BY COALESCE(country_code, region), id
+    `)).rows;
+
+    const nameMap = {};
+    for (const n of names) nameMap[n.destination_id] = n.destination_name;
+
+    res.json(rows.map(r => ({
+      ...r,
+      name: nameMap[r.destination_id] || r.region || r.destination_id
+    })));
+  } catch (err) {
+    console.error('Destinations error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
 // GET /api/packages/:id - Get a single package
 router.get('/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);

@@ -74,6 +74,29 @@ export async function getFeaturedPackages(): Promise<EsimPackage[]> {
   }
 }
 
+export interface Destination {
+  destination_id: string;
+  flag: string;
+  region: string;
+  country_code: string | null;
+  min_price: number;
+  package_count: number;
+  popular: boolean;
+  name: string;
+}
+
+export async function getDestinations(): Promise<Destination[]> {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/packages/destinations`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function getPackageById(id: number): Promise<EsimPackage | null> {
   try {
     const res = await fetchWithTimeout(`${API_URL}/api/packages/${id}`, {
