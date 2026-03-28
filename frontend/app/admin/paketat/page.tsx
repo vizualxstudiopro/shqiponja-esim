@@ -551,6 +551,25 @@ export default function AdminPackagesPage() {
                 </div>
               )}
               <input placeholder={t("admin.description")} value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="sm:col-span-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kategoria</label>
+                <div className="flex gap-2">
+                  {(() => {
+                    const cc = (editing.country_code || "").toUpperCase();
+                    const isLocal = !REGIONAL_CODES.has(cc) && !GLOBAL_CODES.has(cc);
+                    const isRegional = REGIONAL_CODES.has(cc);
+                    const isGlobal = GLOBAL_CODES.has(cc);
+                    return (
+                      <>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isLocal ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-700 dark:text-zinc-500"}`}>📍 Lokale</span>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isRegional ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-700 dark:text-zinc-500"}`}>🗺️ Rajonale</span>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isGlobal ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-700 dark:text-zinc-500"}`}>🌍 Globale</span>
+                      </>
+                    );
+                  })()}
+                </div>
+                <p className="mt-1 text-[11px] text-zinc-400">Kodi: {editing.country_code || "—"}</p>
+              </div>
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={!!editing.visible} onChange={(e) => setEditing({ ...editing, visible: e.target.checked })} className="rounded border-zinc-300" />
                 Aktiv në Web
