@@ -41,6 +41,14 @@ const translations = {
     "packages.sortPriceAsc": "Çmimi: Ulët → Lartë",
     "packages.sortPriceDesc": "Çmimi: Lartë → Ulët",
     "packages.noResults": "Asnjë paketë nuk u gjet. Provo një kërkim tjetër.",
+    "packages.local": "Lokale",
+    "packages.regional": "Rajonale",
+    "packages.global": "Globale",
+    "packages.viewAll": "Shiko të gjitha",
+    "packages.popularDesc": "Destinacionet më të kërkuara — çmimet fillojnë nga çmimi i treguar.",
+    "packages.localDesc": "Paketa eSIM për një vend të vetëm.",
+    "packages.regionalDesc": "Paketa eSIM që mbulojnë një rajon të tërë.",
+    "packages.globalDesc": "Paketa eSIM që mbulojnë botën.",
 
     // How it works
     "how.badge": "3 Hapa",
@@ -356,6 +364,14 @@ const translations = {
     "packages.sortPriceAsc": "Price: Low → High",
     "packages.sortPriceDesc": "Price: High → Low",
     "packages.noResults": "No packages found. Try a different search.",
+    "packages.local": "Local",
+    "packages.regional": "Regional",
+    "packages.global": "Global",
+    "packages.viewAll": "View all locations",
+    "packages.popularDesc": "Most popular destinations — prices start from the shown price.",
+    "packages.localDesc": "eSIM packages for a single country.",
+    "packages.regionalDesc": "eSIM packages covering an entire region.",
+    "packages.globalDesc": "eSIM packages with worldwide coverage.",
 
     // How it works
     "how.badge": "3 Steps",
