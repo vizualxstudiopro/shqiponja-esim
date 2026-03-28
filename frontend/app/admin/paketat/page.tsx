@@ -284,7 +284,6 @@ export default function AdminPackagesPage() {
               <th className="px-4 py-3 font-semibold">{t("admin.duration")}</th>
               <th className="px-4 py-3 font-semibold">{t("admin.price")}</th>
               <th className="px-4 py-3 font-semibold">Web</th>
-              <th className="px-4 py-3 font-semibold">★</th>
               <th className="px-4 py-3 font-semibold">{t("admin.actions")}</th>
             </tr>
           </thead>
@@ -313,18 +312,6 @@ export default function AdminPackagesPage() {
                     }`}
                   >
                     {p.visible ? t("admin.visibleOnWeb") : t("admin.showOnWeb")}
-                  </button>
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => handleToggleHighlight(p)}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                      p.highlight
-                        ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400"
-                        : "bg-zinc-100 text-zinc-500 hover:bg-yellow-50 hover:text-yellow-600 dark:bg-zinc-700 dark:text-zinc-400"
-                    }`}
-                  >
-                    {p.highlight ? "★ Popullar" : "☆"}
                   </button>
                 </td>
                 <td className="px-4 py-3 flex gap-2">
@@ -404,6 +391,7 @@ export default function AdminPackagesPage() {
                       <th className="px-3 py-2 font-semibold">{t("admin.duration")}</th>
                       <th className="px-3 py-2 font-semibold">{t("admin.price")}</th>
                       <th className="px-3 py-2 font-semibold">Web</th>
+                      <th className="px-3 py-2 font-semibold">★</th>
                       <th className="px-3 py-2 font-semibold"></th>
                     </tr>
                   </thead>
@@ -441,6 +429,27 @@ export default function AdminPackagesPage() {
                           >
                             <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
                               p.visible ? "translate-x-5" : "translate-x-0"
+                            }`} />
+                          </button>
+                        </td>
+                        <td className="px-3 py-2">
+                          <button
+                            onClick={async () => {
+                              if (!token) return;
+                              try {
+                                const updated = await adminTogglePackageHighlight(token, p.id, !p.highlight);
+                                setBrowseResults((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+                                toast(updated.highlight ? "Paketa u shtu te Popularet" : "Paketa u hoq nga Popularet", "success");
+                              } catch {
+                                toast("Gabim gjatë ndryshimit", "error");
+                              }
+                            }}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
+                              p.highlight ? "bg-amber-500" : "bg-zinc-300 dark:bg-zinc-600"
+                            }`}
+                          >
+                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                              p.highlight ? "translate-x-5" : "translate-x-0"
                             }`} />
                           </button>
                         </td>
