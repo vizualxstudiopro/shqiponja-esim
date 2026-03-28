@@ -14,6 +14,22 @@ import {
 import { useToast } from "@/lib/toast-context";
 
 const PAGE_SIZE = 50;
+const REGIONAL_CODES = new Set(["EU", "AS", "ME", "OC", "CB", "AF"]);
+const GLOBAL_CODES = new Set(["GL"]);
+
+function AdminFlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: string }) {
+  const cc = (countryCode || "").toLowerCase();
+  const upper = cc.toUpperCase();
+  if (upper === "EU") {
+    return <span className="fi fi-eu fis" style={{ fontSize: "1.25rem", borderRadius: "3px", display: "inline-block", verticalAlign: "middle" }} />;
+  }
+  if (cc && cc.length === 2 && !REGIONAL_CODES.has(upper) && !GLOBAL_CODES.has(upper)) {
+    return <span className={`fi fi-${cc} fis`} style={{ fontSize: "1.25rem", borderRadius: "3px", display: "inline-block", verticalAlign: "middle" }} />;
+  }
+  return <span className="text-lg leading-none">{emoji || "🌍"}</span>;
+}
+
+type QuickFilter = "all" | "visible" | "hidden" | "highlighted";
 
 export default function AdminPackagesPage() {
   const { token } = useAuth();
@@ -26,7 +42,14 @@ export default function AdminPackagesPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const stats = {
+    total,
+    visible: packages.filter((p) => p.visible).length,
+    highlighted: packages.filter((p) => p.highlight).length,
+  };
 
   // Browse modal state
   const [browsing, setBrowsing] = useState(false);
@@ -65,6 +88,17 @@ export default function AdminPackagesPage() {
       fetchPackages(1, value);
     }, 400);
   }
+
+  function handleQuickFilter(f: QuickFilter) {
+    setQuickFilter(f);
+  }
+
+  const filteredPackages = packages.filter((p) => {
+    if (quickFilter === "visible") return p.visible;
+    if (quickFilter === "hidden") return !p.visible;
+    if (quickFilter === "highlighted") return p.highlight;
+    return true;
+  });
 
   // Browse modal functions
   const fetchBrowseResults = useCallback(async (p: number, q: string) => {
@@ -175,13 +209,52 @@ export default function AdminPackagesPage() {
         </button>
       </div>
 
-      <input
-        type="text"
-        placeholder={t("admin.search")}
-        value={search}
-        onChange={(e) => handleSearch(e.target.value)}
-        className="mt-4 w-full sm:max-w-xs rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
-      />
+      {/* Stats cards */}
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+          <p className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">{stats.total}</p>
+          <p className="text-xs text-zinc-500 mt-1">Gjithsej</p>
+        </div>
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-900/20">
+          <p className="text-2xl font-extrabold text-green-700 dark:text-green-400">{stats.visible}</p>
+          <p className="text-xs text-green-600 dark:text-green-500 mt-1">Aktive në Web</p>
+        </div>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-900/20">
+          <p className="text-2xl font-extrabold text-amber-700 dark:text-amber-400">{stats.highlighted}</p>
+          <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">★ Populare</p>
+        </div>
+      </div>
+
+      {/* Search + Quick filters */}
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <input
+          type="text"
+          placeholder={t("admin.search")}
+          value={search}
+          onChange={(e) => handleSearch(e.target.value)}
+          className="w-full sm:max-w-xs rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
+        />
+        <div className="flex gap-1.5 flex-wrap">
+          {([
+            { key: "all" as QuickFilter, label: "Të gjitha" },
+            { key: "visible" as QuickFilter, label: "🟢 Aktive" },
+            { key: "hidden" as QuickFilter, label: "⚪ Jo aktive" },
+            { key: "highlighted" as QuickFilter, label: "★ Populare" },
+          ]).map((f) => (
+            <button
+              key={f.key}
+              onClick={() => handleQuickFilter(f.key)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                quickFilter === f.key
+                  ? "bg-shqiponja text-white"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-600"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Table */}
       <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
@@ -207,11 +280,15 @@ export default function AdminPackagesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-700">
-            {packages.map((p) => (
+            {filteredPackages.map((p) => (
               <tr key={p.id} className="hover:bg-zinc-50 transition dark:hover:bg-zinc-800">
                 <td className="px-4 py-3 font-medium">{p.id}</td>
                 <td className="px-4 py-3">
-                  {p.flag} {p.name} {p.highlight && <span className="ml-1 rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                  <div className="flex items-center gap-2">
+                    <AdminFlagIcon countryCode={p.country_code} emoji={p.flag} />
+                    <span>{p.name}</span>
+                    {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                  </div>
                 </td>
                 <td className="px-4 py-3">{p.region}</td>
                 <td className="px-4 py-3">{p.data}</td>
@@ -326,9 +403,12 @@ export default function AdminPackagesPage() {
                       <tr key={p.id} className="hover:bg-shqiponja/5 transition">
                         <td className="px-3 py-2 font-medium text-zinc-400">{p.id}</td>
                         <td className="px-3 py-2">
-                          {p.flag} {p.name}
-                          {p.visible && <span className="ml-1 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">Web</span>}
-                          {p.highlight && <span className="ml-1 rounded-full bg-shqiponja/10 px-1.5 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                          <div className="flex items-center gap-2">
+                            <AdminFlagIcon countryCode={p.country_code} emoji={p.flag} />
+                            <span>{p.name}</span>
+                            {p.visible && <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">Web</span>}
+                            {p.highlight && <span className="rounded-full bg-shqiponja/10 px-1.5 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                          </div>
                         </td>
                         <td className="px-3 py-2 text-zinc-500">{p.region}</td>
                         <td className="px-3 py-2">{p.data}</td>
@@ -399,7 +479,10 @@ export default function AdminPackagesPage() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4">
           <div className="w-full sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white p-5 sm:p-6 shadow-xl dark:bg-zinc-800">
             <h2 className="text-lg font-bold">{t("admin.editPackage")}</h2>
-            <p className="text-sm text-zinc-500 mt-1">{editing.flag} {editing.name}</p>
+            <p className="text-sm text-zinc-500 mt-1 flex items-center gap-2">
+              <AdminFlagIcon countryCode={editing.country_code} emoji={editing.flag} />
+              {editing.name}
+            </p>
             <div className="mt-4 grid gap-3 grid-cols-1 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-zinc-500 mb-1">Emri</label>

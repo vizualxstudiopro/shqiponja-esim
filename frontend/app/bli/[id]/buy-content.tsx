@@ -5,6 +5,21 @@ import type { EsimPackage } from "@/lib/api";
 import Navbar from "@/components/navbar";
 import OrderForm from "./order-form";
 
+const REGIONAL_CODES = new Set(["EU", "AS", "ME", "OC", "CB", "AF"]);
+const GLOBAL_CODES = new Set(["GL"]);
+
+function BuyFlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: string }) {
+  const cc = (countryCode || "").toLowerCase();
+  const upper = cc.toUpperCase();
+  if (upper === "EU") {
+    return <span className="fi fi-eu fis" style={{ fontSize: "3rem", borderRadius: "6px", display: "inline-block" }} />;
+  }
+  if (cc && cc.length === 2 && !REGIONAL_CODES.has(upper) && !GLOBAL_CODES.has(upper)) {
+    return <span className={`fi fi-${cc} fis`} style={{ fontSize: "3rem", borderRadius: "6px", display: "inline-block" }} />;
+  }
+  return <span className="text-5xl leading-none">{emoji || "🌍"}</span>;
+}
+
 export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
   const { t } = useI18n();
 
@@ -15,7 +30,7 @@ export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
       <div className="mx-auto max-w-2xl px-6 py-16">
         <div className="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-700 dark:bg-zinc-800">
           <div className="flex items-center gap-4">
-            <span className="text-5xl" role="img" aria-label={pkg.region}>{pkg.flag}</span>
+            <BuyFlagIcon countryCode={pkg.country_code} emoji={pkg.flag} />
             <div>
               <h1 className="text-2xl font-extrabold">{pkg.name}</h1>
               <p className="text-sm text-zinc-500">{pkg.description}</p>
