@@ -182,13 +182,18 @@ router.get('/packages', async (req, res) => {
 });
 
 router.patch('/packages/:id/visible', async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
-  const { visible } = req.body;
-  await db.query('UPDATE packages SET visible = $1 WHERE id = $2', [visible ? 1 : 0, id]);
-  const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
-  if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
-  res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const { visible } = req.body;
+    await db.query('UPDATE packages SET visible = $1 WHERE id = $2', [visible ? 1 : 0, id]);
+    const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
+    if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
+    res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+  } catch (err) {
+    console.error('Visible toggle error:', err);
+    res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
+  }
 });
 
 router.patch('/packages/:id/highlight', async (req, res) => {

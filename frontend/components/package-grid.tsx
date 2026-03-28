@@ -2,31 +2,35 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
-import { getPackages, getDestinations, type EsimPackage, type Destination } from "@/lib/api";
+import { getPackages, getFeaturedPackages, type EsimPackage } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
+
+const SUGGESTIONS = ["Europa", "USA", "Turqi", "Itali", "Gjermani", "Greqi", "Global"];
 
 export default function PackageGrid() {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
+  const [region, setRegion] = useState("all");
+  const [sort, setSort] = useState<"default" | "price-asc" | "price-desc">("default");
   const [packages, setPackages] = useState<EsimPackage[]>([]);
-  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [featured, setFeatured] = useState<EsimPackage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [destLoading, setDestLoading] = useState(true);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
   const [error, setError] = useState(false);
   const fetchedRef = useRef(false);
 
-  const hasSearch = search.trim() !== "";
+  const hasFilter = search.trim() !== "" || region !== "all";
 
-  // Fetch destination cards on mount
+  // Fetch featured packages on mount
   useEffect(() => {
-    getDestinations()
-      .then((data) => setDestinations(data))
-      .finally(() => setDestLoading(false));
+    getFeaturedPackages()
+      .then((data) => setFeatured(data))
+      .finally(() => setFeaturedLoading(false));
   }, []);
 
-  // Fetch all visible packages once — only when user starts searching
+  // Fetch all packages once — only when user first starts filtering
   useEffect(() => {
-    if (!hasSearch || fetchedRef.current) return;
+    if (!hasFilter || fetchedRef.current) return;
     fetchedRef.current = true;
     setLoading(true);
     setError(false);
@@ -34,36 +38,44 @@ export default function PackageGrid() {
       .then((data) => setPackages(data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [hasSearch]);
+  }, [hasFilter]);
+
+  const regions = useMemo(
+    () => ["all", ...Array.from(new Set(packages.map((p) => p.region)))],
+    [packages]
+  );
 
   const filtered = useMemo(() => {
-    if (!hasSearch) return [];
-    const q = search.toLowerCase();
-    return packages
-      .filter(
+    if (!hasFilter) return [];
+    let result = packages;
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.region.toLowerCase().includes(q) ||
-          (p.country_code || "").toLowerCase().includes(q) ||
           (p.description || "").toLowerCase().includes(q)
-      )
-      .sort((a, b) => a.price - b.price);
-  }, [packages, search, hasSearch]);
+      );
+    }
 
-  function handleDestinationClick(dest: Destination) {
-    setSearch(dest.name);
-  }
+    if (region !== "all") {
+      result = result.filter((p) => p.region === region);
+    }
 
-  const popularDests = destinations.filter(d => d.popular);
-  const otherDests = destinations.filter(d => !d.popular);
+    if (sort === "price-asc") result = [...result].sort((a, b) => a.price - b.price);
+    if (sort === "price-desc") result = [...result].sort((a, b) => b.price - a.price);
+
+    return result;
+  }, [packages, search, region, sort, hasFilter]);
 
   return (
     <>
-      {/* Search bar */}
-      <div className="mt-8">
-        <div className="relative mx-auto max-w-xl">
+      {/* Filter bar */}
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
           <svg
-            className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -76,91 +88,84 @@ export default function PackageGrid() {
             placeholder={t("packages.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 bg-white py-3.5 pl-12 pr-4 text-base outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+            className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
           />
-          {hasSearch && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 hover:text-zinc-600 transition"
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
         </div>
+        <select
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+          className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+        >
+          {regions.map((r) => (
+            <option key={r} value={r}>
+              {r === "all" ? t("packages.allRegions") : r}
+            </option>
+          ))}
+        </select>
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as typeof sort)}
+          className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+        >
+          <option value="default">{t("packages.sortDefault")}</option>
+          <option value="price-asc">{t("packages.sortPriceAsc")}</option>
+          <option value="price-desc">{t("packages.sortPriceDesc")}</option>
+        </select>
       </div>
 
-      {/* ═══ Destination cards (VIA-style) — shown when not searching ═══ */}
-      {!hasSearch && (
+      {/* Featured packages — shown before search */}
+      {!hasFilter && (
         <>
-          {destLoading ? (
+          {featuredLoading ? (
             <div className="mt-12 flex justify-center py-10">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-shqiponja" />
             </div>
-          ) : destinations.length > 0 ? (
+          ) : featured.length > 0 ? (
             <>
-              {/* Popular destinations */}
-              {popularDests.length > 0 && (
-                <div className="mt-10">
-                  <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                    {t("packages.popular")}
-                  </h3>
-                  <p className="mt-1 text-sm text-zinc-500">
-                    {t("packages.emptySubtitle")}
-                  </p>
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {popularDests.map((dest) => (
-                      <button
-                        key={dest.destination_id}
-                        onClick={() => handleDestinationClick(dest)}
-                        className="flex items-center justify-between rounded-xl border border-shqiponja/20 bg-shqiponja/[0.03] px-4 py-3.5 text-left transition hover:border-shqiponja/40 hover:bg-shqiponja/[0.06] hover:shadow-md group"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="text-2xl flex-shrink-0">{dest.flag}</span>
-                          <span className="font-semibold text-zinc-900 truncate dark:text-zinc-100">{dest.name}</span>
-                        </div>
-                        <span className="text-sm font-bold text-shqiponja whitespace-nowrap ml-3">
-                          {dest.min_price.toFixed(2)} €
-                        </span>
-                      </button>
-                    ))}
+              <p className="mt-8 text-center text-sm font-semibold uppercase tracking-widest text-shqiponja">
+                {t("packages.popular")}
+              </p>
+              <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {featured.map((pkg) => (
+                  <div
+                    key={pkg.id}
+                    className="card-shine group relative flex flex-col rounded-2xl border border-shqiponja bg-shqiponja/[0.03] p-6 shadow-lg shadow-shqiponja/10 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                  >
+                    <span className="absolute -top-3 right-6 rounded-full bg-shqiponja px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                      {t("packages.popular")}
+                    </span>
+                    <span className="text-4xl" role="img" aria-label={pkg.region}>{pkg.flag}</span>
+                    <h3 className="mt-4 text-lg font-bold">{pkg.name}</h3>
+                    <div className="mt-4 flex items-end gap-1">
+                      <span className="text-3xl font-extrabold tracking-tight">€{pkg.price.toFixed(2)}</span>
+                    </div>
+                    <div className="mt-4 space-y-2 text-sm text-zinc-500">
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4 text-shqiponja" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                        {pkg.data} {t("packages.data")}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4 text-shqiponja" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                        {t("packages.validity")}: {pkg.duration}
+                      </div>
+                    </div>
+                    <Link
+                      href={`/bli/${pkg.id}`}
+                      className="mt-6 block rounded-xl bg-shqiponja py-3 text-center text-sm font-semibold text-white shadow-md shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
+                    >
+                      {t("packages.buy")}
+                    </Link>
                   </div>
+                ))}
+              </div>
+              <div className="mt-8 flex flex-col items-center gap-3">
+                <p className="text-sm text-zinc-400">{t("packages.emptySubtitle")}</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {SUGGESTIONS.map((s) => (
+                    <button key={s} onClick={() => setSearch(s)} className="rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-medium text-zinc-600 transition hover:border-shqiponja hover:text-shqiponja dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-shqiponja dark:hover:text-shqiponja">{s}</button>
+                  ))}
                 </div>
-              )}
-
-              {/* Other destinations */}
-              {otherDests.length > 0 && (
-                <div className="mt-8">
-                  {popularDests.length === 0 && (
-                    <>
-                      <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                        {t("packages.emptyTitle")}
-                      </h3>
-                      <p className="mt-1 text-sm text-zinc-500">
-                        {t("packages.emptySubtitle")}
-                      </p>
-                    </>
-                  )}
-                  <div className={`${popularDests.length > 0 ? 'mt-4' : 'mt-4'} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3`}>
-                    {otherDests.map((dest) => (
-                      <button
-                        key={dest.destination_id}
-                        onClick={() => handleDestinationClick(dest)}
-                        className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3.5 text-left transition hover:border-shqiponja/30 hover:shadow-md group dark:border-zinc-700 dark:bg-zinc-800"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="text-2xl flex-shrink-0">{dest.flag}</span>
-                          <span className="font-semibold text-zinc-900 truncate dark:text-zinc-100">{dest.name}</span>
-                        </div>
-                        <span className="text-sm font-bold text-zinc-600 whitespace-nowrap ml-3 dark:text-zinc-300">
-                          {dest.min_price.toFixed(2)} €
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              </div>
             </>
           ) : (
             <div className="mt-12 flex flex-col items-center gap-5 py-10 text-center">
@@ -173,47 +178,57 @@ export default function PackageGrid() {
                 <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t("packages.emptyTitle")}</p>
                 <p className="mt-1 text-sm text-zinc-400">{t("packages.emptySubtitle")}</p>
               </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {SUGGESTIONS.map((s) => (
+                  <button key={s} onClick={() => setSearch(s)} className="rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-medium text-zinc-600 transition hover:border-shqiponja hover:text-shqiponja dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-shqiponja dark:hover:text-shqiponja">{s}</button>
+                ))}
+              </div>
             </div>
           )}
         </>
       )}
 
-      {/* ═══ Search results — individual package cards ═══ */}
-      {hasSearch && loading && (
+      {/* Loading state */}
+      {hasFilter && loading && (
         <div className="mt-12 flex justify-center py-10">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-shqiponja" />
         </div>
       )}
 
-      {hasSearch && error && (
+      {/* Error state */}
+      {hasFilter && error && (
         <p className="mt-8 text-center text-sm text-red-400">
           {t("packages.fetchError")}
         </p>
       )}
 
-      {hasSearch && !loading && !error && (
+      {/* Results grid */}
+      {hasFilter && !loading && !error && (
         <>
-          {filtered.length > 0 && (
-            <p className="mt-6 text-sm text-zinc-500">
-              {filtered.length} {filtered.length === 1 ? "paketë" : "paketa"} u gjetën
-            </p>
-          )}
-          <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {filtered.map((pkg) => (
               <div
                 key={pkg.id}
-                className="card-shine group relative flex flex-col rounded-2xl border border-zinc-200 bg-white p-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 dark:border-zinc-700 dark:bg-zinc-800"
+                className={`card-shine group relative flex flex-col rounded-2xl border p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                  pkg.highlight
+                    ? "border-shqiponja bg-shqiponja/[0.03] shadow-lg shadow-shqiponja/10"
+                    : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"
+                }`}
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-3xl">{pkg.flag}</span>
-                    <h3 className="mt-2 text-base font-bold">{pkg.name}</h3>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-2xl font-extrabold tracking-tight text-shqiponja">
-                      €{pkg.price.toFixed(2)}
-                    </span>
-                  </div>
+                {pkg.highlight && (
+                  <span className="absolute -top-3 right-6 rounded-full bg-shqiponja px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                    {t("packages.popular")}
+                  </span>
+                )}
+
+                <span className="text-4xl" role="img" aria-label={pkg.region}>{pkg.flag}</span>
+
+                <h3 className="mt-4 text-lg font-bold">{pkg.name}</h3>
+
+                <div className="mt-4 flex items-end gap-1">
+                  <span className="text-3xl font-extrabold tracking-tight">
+                    €{pkg.price.toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="mt-4 space-y-2 text-sm text-zinc-500">
@@ -233,7 +248,11 @@ export default function PackageGrid() {
 
                 <Link
                   href={`/bli/${pkg.id}`}
-                  className="mt-5 block rounded-xl bg-shqiponja py-3 text-center text-sm font-semibold text-white shadow-md shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
+                  className={`mt-6 block rounded-xl py-3 text-center text-sm font-semibold transition ${
+                    pkg.highlight
+                      ? "bg-shqiponja text-white shadow-md shadow-shqiponja/25 hover:bg-shqiponja-dark"
+                      : "bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600"
+                  }`}
                 >
                   {t("packages.buy")}
                 </Link>
