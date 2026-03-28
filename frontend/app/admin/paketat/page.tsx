@@ -449,27 +449,45 @@ export default function AdminPackagesPage() {
                 </table>
               )}
             </div>
-            {browseTotalPages > 1 && (
-              <div className="p-4 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
-                <p className="text-sm text-zinc-500">Faqja {browsePage} / {browseTotalPages}</p>
-                <div className="flex gap-2">
+            <div className="p-4 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+              {browseTotalPages > 1 ? (
+                <>
+                  <p className="text-sm text-zinc-500">Faqja {browsePage} / {browseTotalPages}</p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      disabled={browsePage <= 1}
+                      onClick={() => fetchBrowseResults(browsePage - 1, browseSearch)}
+                      className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
+                    >
+                      ← Para
+                    </button>
+                    <button
+                      disabled={browsePage >= browseTotalPages}
+                      onClick={() => fetchBrowseResults(browsePage + 1, browseSearch)}
+                      className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
+                    >
+                      Pas →
+                    </button>
+                    <button
+                      onClick={() => { setBrowsing(false); fetchPackages(page, search); }}
+                      className="rounded-lg bg-shqiponja px-5 py-1.5 text-sm font-semibold text-white hover:bg-shqiponja-dark transition shadow-md shadow-shqiponja/25"
+                    >
+                      OK — Ruaj & Mbyll
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span />
                   <button
-                    disabled={browsePage <= 1}
-                    onClick={() => fetchBrowseResults(browsePage - 1, browseSearch)}
-                    className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
+                    onClick={() => { setBrowsing(false); fetchPackages(page, search); }}
+                    className="rounded-lg bg-shqiponja px-5 py-2 text-sm font-semibold text-white hover:bg-shqiponja-dark transition shadow-md shadow-shqiponja/25"
                   >
-                    ← Para
+                    OK — Ruaj & Mbyll
                   </button>
-                  <button
-                    disabled={browsePage >= browseTotalPages}
-                    onClick={() => fetchBrowseResults(browsePage + 1, browseSearch)}
-                    className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
-                  >
-                    Pas →
-                  </button>
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
