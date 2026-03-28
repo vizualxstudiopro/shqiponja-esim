@@ -5,17 +5,10 @@ import Link from "next/link";
 import { getPackages, type EsimPackage } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
 
-const REGIONAL_CODES = new Set(["EU", "AS", "ME", "OC", "CB", "AF"]);
-const GLOBAL_CODES = new Set(["GL"]);
+const REGIONAL_FLAG_CODES = new Set(["EU", "AS", "ME", "OC", "CB", "AF"]);
+const GLOBAL_FLAG_CODES = new Set(["GL"]);
 
 type Tab = "popular" | "local" | "regional" | "global";
-
-function classifyPackage(pkg: EsimPackage): "local" | "regional" | "global" {
-  const cc = (pkg.country_code || "").toUpperCase();
-  if (GLOBAL_CODES.has(cc)) return "global";
-  if (REGIONAL_CODES.has(cc)) return "regional";
-  return "local";
-}
 
 function FlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: string }) {
   const cc = (countryCode || "").toLowerCase();
@@ -25,7 +18,7 @@ function FlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: string
     return <span className="fi fi-eu fis" style={{ fontSize: "2.5rem", borderRadius: "6px", display: "inline-block" }} />;
   }
 
-  if (cc && cc.length === 2 && !REGIONAL_CODES.has(upper) && !GLOBAL_CODES.has(upper)) {
+  if (cc && cc.length === 2 && !REGIONAL_FLAG_CODES.has(upper) && !GLOBAL_FLAG_CODES.has(upper)) {
     return <span className={`fi fi-${cc} fis`} style={{ fontSize: "2.5rem", borderRadius: "6px", display: "inline-block" }} />;
   }
 
@@ -55,7 +48,7 @@ export default function PackageGrid() {
 
     for (const pkg of packages) {
       if (pkg.highlight) pop.push(pkg);
-      const cat = classifyPackage(pkg);
+      const cat = pkg.category || "local";
       if (cat === "global") glo.push(pkg);
       else if (cat === "regional") reg.push(pkg);
       else loc.push(pkg);

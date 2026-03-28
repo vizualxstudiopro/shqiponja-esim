@@ -31,6 +31,12 @@ router.get('/', async (req, res) => {
     sql += " AND (package_type IS NULL OR package_type = 'sim')";
   }
 
+  if (req.query.category && ['local', 'regional', 'global'].includes(req.query.category)) {
+    sql += ` AND category = $${paramIdx}`;
+    params.push(req.query.category);
+    paramIdx++;
+  }
+
   sql += ' ORDER BY region, price';
 
   const packages = (await db.query(sql, params)).rows;

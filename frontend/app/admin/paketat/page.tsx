@@ -14,16 +14,16 @@ import {
 import { useToast } from "@/lib/toast-context";
 
 const PAGE_SIZE = 50;
-const REGIONAL_CODES = new Set(["EU", "AS", "ME", "OC", "CB", "AF"]);
-const GLOBAL_CODES = new Set(["GL"]);
 
 function AdminFlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: string }) {
   const cc = (countryCode || "").toLowerCase();
   const upper = cc.toUpperCase();
+  const REGIONAL = new Set(["EU", "AS", "ME", "OC", "CB", "AF"]);
+  const GLOBAL = new Set(["GL"]);
   if (upper === "EU") {
     return <span className="fi fi-eu fis" style={{ fontSize: "1.25rem", borderRadius: "3px", display: "inline-block", verticalAlign: "middle" }} />;
   }
-  if (cc && cc.length === 2 && !REGIONAL_CODES.has(upper) && !GLOBAL_CODES.has(upper)) {
+  if (cc && cc.length === 2 && !REGIONAL.has(upper) && !GLOBAL.has(upper)) {
     return <span className={`fi fi-${cc} fis`} style={{ fontSize: "1.25rem", borderRadius: "3px", display: "inline-block", verticalAlign: "middle" }} />;
   }
   return <span className="text-lg leading-none">{emoji || "🌍"}</span>;
@@ -97,12 +97,9 @@ export default function AdminPackagesPage() {
     if (quickFilter === "visible") return p.visible;
     if (quickFilter === "hidden") return !p.visible;
     if (quickFilter === "highlighted") return p.highlight;
-    if (quickFilter === "local") {
-      const cc = (p.country_code || "").toUpperCase();
-      return !REGIONAL_CODES.has(cc) && !GLOBAL_CODES.has(cc);
-    }
-    if (quickFilter === "regional") return REGIONAL_CODES.has((p.country_code || "").toUpperCase());
-    if (quickFilter === "global") return GLOBAL_CODES.has((p.country_code || "").toUpperCase());
+    if (quickFilter === "local") return p.category === "local" || !p.category;
+    if (quickFilter === "regional") return p.category === "regional";
+    if (quickFilter === "global") return p.category === "global";
     return true;
   });
 
@@ -554,22 +551,15 @@ export default function AdminPackagesPage() {
               <input placeholder={t("admin.description")} value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="sm:col-span-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kategoria</label>
-                <div className="flex gap-2">
-                  {(() => {
-                    const cc = (editing.country_code || "").toUpperCase();
-                    const isLocal = !REGIONAL_CODES.has(cc) && !GLOBAL_CODES.has(cc);
-                    const isRegional = REGIONAL_CODES.has(cc);
-                    const isGlobal = GLOBAL_CODES.has(cc);
-                    return (
-                      <>
-                        <span className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${isLocal ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-700 dark:text-zinc-500"}`}><svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg> Lokale</span>
-                        <span className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${isRegional ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-700 dark:text-zinc-500"}`}><svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" /></svg> Rajonale</span>
-                        <span className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${isGlobal ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-700 dark:text-zinc-500"}`}><svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg> Globale</span>
-                      </>
-                    );
-                  })()}
-                </div>
-                <p className="mt-1 text-[11px] text-zinc-400">Kodi: {editing.country_code || "—"}</p>
+                <select
+                  value={editing.category || "local"}
+                  onChange={(e) => setEditing({ ...editing, category: e.target.value })}
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700"
+                >
+                  <option value="local">Lokale</option>
+                  <option value="regional">Rajonale</option>
+                  <option value="global">Globale</option>
+                </select>
               </div>
               <div className="sm:col-span-2 flex flex-wrap gap-4 mt-1">
                 <label className="flex items-center gap-3 text-sm cursor-pointer" onClick={() => setEditing({ ...editing, visible: !editing.visible })}>

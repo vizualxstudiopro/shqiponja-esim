@@ -17,6 +17,7 @@ export interface EsimPackage {
   sms?: number;
   voice?: number;
   visible?: boolean;
+  category?: string;
 }
 
 export interface Order {

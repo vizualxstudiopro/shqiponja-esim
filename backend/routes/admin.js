@@ -167,6 +167,12 @@ router.get('/packages', async (req, res) => {
     params.push(parseInt(req.query.visible));
     paramIdx++;
   }
+  // Filter by category
+  if (['local', 'regional', 'global'].includes(req.query.category)) {
+    where += ` AND category = $${paramIdx}`;
+    params.push(req.query.category);
+    paramIdx++;
+  }
 
   const total = parseInt((await db.query(`SELECT COUNT(*) AS cnt FROM packages WHERE ${where}`, params)).rows[0].cnt);
   const packages = (await db.query(
@@ -212,7 +218,7 @@ router.patch('/packages/:id/highlight', async (req, res) => {
 });
 
 router.post('/packages', async (req, res) => {
-  const { name, region, flag, data, duration, price, currency, highlight, description } = req.body;
+  const { name, region, flag, data, duration, price, currency, highlight, description, category } = req.body;
   if (!name || !region || !flag || !data || !duration || price == null) {
     return res.status(400).json({ error: 'Fushat e detyrueshme mungojnë' });
   }
@@ -220,10 +226,12 @@ router.post('/packages', async (req, res) => {
   if (!Number.isFinite(numPrice) || numPrice < 0) {
     return res.status(400).json({ error: 'Çmimi duhet të jetë numër pozitiv' });
   }
+  const validCategories = ['local', 'regional', 'global'];
+  const safeCategory = validCategories.includes(category) ? category : 'local';
   const result = await db.query(`
-    INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id
-  `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500)]);
+    INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description, category)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
+  `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500), safeCategory]);
   const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [result.rows[0].id])).rows[0];
   res.status(201).json({ ...pkg, highlight: !!pkg.highlight });
 });
@@ -231,15 +239,17 @@ router.post('/packages', async (req, res) => {
 router.put('/packages/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
-  const { name, region, flag, data, duration, price, currency, highlight, description, visible } = req.body;
+  const { name, region, flag, data, duration, price, currency, highlight, description, visible, category } = req.body;
   const numPrice = Number(price);
   if (!Number.isFinite(numPrice) || numPrice < 0) {
     return res.status(400).json({ error: 'Çmimi duhet të jetë numër pozitiv' });
   }
+  const validCategories = ['local', 'regional', 'global'];
+  const safeCategory = validCategories.includes(category) ? category : 'local';
   await db.query(`
-    UPDATE packages SET name=$1, region=$2, flag=$3, data=$4, duration=$5, price=$6, currency=$7, highlight=$8, description=$9, visible=$10
-    WHERE id=$11
-  `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500), visible ? 1 : 0, id]);
+    UPDATE packages SET name=$1, region=$2, flag=$3, data=$4, duration=$5, price=$6, currency=$7, highlight=$8, description=$9, visible=$10, category=$11
+    WHERE id=$12
+  `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500), visible ? 1 : 0, safeCategory, id]);
   const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
   if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
   res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });

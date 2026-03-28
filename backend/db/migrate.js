@@ -41,6 +41,7 @@ async function migrate() {
       visible         INTEGER NOT NULL DEFAULT 0,
       sms             INTEGER DEFAULT 0,
       voice           INTEGER DEFAULT 0,
+      category        TEXT    DEFAULT 'local',
       created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
@@ -69,6 +70,16 @@ async function migrate() {
   // Add highlight column if missing (for tables created before highlight feature)
   try {
     await db.query(`ALTER TABLE packages ADD COLUMN IF NOT EXISTS highlight INTEGER NOT NULL DEFAULT 0`);
+  } catch (e) {
+    // Column likely already exists
+  }
+
+  // Add category column if missing
+  try {
+    await db.query(`ALTER TABLE packages ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'local'`);
+    // Auto-populate category for existing packages based on country_code
+    await db.query(`UPDATE packages SET category = 'regional' WHERE category IS NULL OR category = 'local' AND country_code IN ('EU','AS','ME','OC','CB','AF')`);
+    await db.query(`UPDATE packages SET category = 'global' WHERE category IS NULL OR category = 'local' AND country_code IN ('GL')`);
   } catch (e) {
     // Column likely already exists
   }
