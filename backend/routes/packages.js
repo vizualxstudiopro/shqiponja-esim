@@ -92,9 +92,10 @@ router.get('/destinations', async (req, res) => {
   }
 });
 
-// GET /api/packages/:id - Get a single package
-router.get('/:id', async (req, res) => {
+// GET /api/packages/:id - Get a single package (only matches numeric IDs)
+router.get('/:id(\\d+)', async (req, res) => {
   const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid package ID' });
   const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
   if (!pkg) return res.status(404).json({ error: 'Package not found' });
   res.json({ ...pkg, highlight: !!pkg.highlight });
