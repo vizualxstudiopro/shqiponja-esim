@@ -253,34 +253,33 @@ export default function AdminPackagesPage() {
           onChange={(e) => handleSearch(e.target.value)}
           className="w-full sm:max-w-xs rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
         />
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 -mb-1 no-scrollbar">
           {([
-            { key: "all" as QuickFilter, label: "Të gjitha", icon: <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg> },
-            { key: "visible" as QuickFilter, label: "Aktive", icon: <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
-            { key: "hidden" as QuickFilter, label: "Jo aktive", icon: <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg> },
-            { key: "highlighted" as QuickFilter, label: "Populare", icon: <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" /></svg> },
-            { key: "local" as QuickFilter, label: "Lokale", icon: <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg> },
-            { key: "regional" as QuickFilter, label: "Rajonale", icon: <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" /></svg> },
-            { key: "global" as QuickFilter, label: "Globale", icon: <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg> },
+            { key: "all" as QuickFilter, label: "Të gjitha" },
+            { key: "visible" as QuickFilter, label: "Aktive" },
+            { key: "hidden" as QuickFilter, label: "Jo aktive" },
+            { key: "highlighted" as QuickFilter, label: "★" },
+            { key: "local" as QuickFilter, label: "Lok" },
+            { key: "regional" as QuickFilter, label: "Raj" },
+            { key: "global" as QuickFilter, label: "Glo" },
           ]).map((f) => (
             <button
               key={f.key}
               onClick={() => handleQuickFilter(f.key)}
-              className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                 quickFilter === f.key
                   ? "bg-shqiponja text-white"
                   : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-600"
               }`}
             >
-              {f.icon}
               {f.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Table */}
-      <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+      {/* Package list */}
+      <div className="mt-4 rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
         {loading ? (
           <div className="space-y-3 p-4">
             {[...Array(5)].map((_, i) => (
@@ -288,78 +287,131 @@ export default function AdminPackagesPage() {
             ))}
           </div>
         ) : (
-        <table className="w-full text-sm">
-          <thead className="border-b border-zinc-100 bg-zinc-50 text-left dark:border-zinc-700 dark:bg-zinc-800">
-            <tr>
-              <th className="px-4 py-3 font-semibold">#</th>
-              <th className="px-4 py-3 font-semibold">{t("admin.name")}</th>
-              <th className="px-4 py-3 font-semibold">{t("admin.region")}</th>
-              <th className="px-4 py-3 font-semibold">Kat.</th>
-              <th className="px-4 py-3 font-semibold">{t("admin.data")}</th>
-              <th className="px-4 py-3 font-semibold">{t("admin.duration")}</th>
-              <th className="px-4 py-3 font-semibold">{t("admin.price")}</th>
-              <th className="px-4 py-3 font-semibold">Web</th>
-              <th className="px-4 py-3 font-semibold">{t("admin.actions")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-700">
-            {filteredPackages.map((p) => (
-              <tr key={p.id} className="hover:bg-zinc-50 transition dark:hover:bg-zinc-800">
-                <td className="px-4 py-3 font-medium">{p.id}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <AdminFlagIcon countryCode={p.country_code} emoji={p.flag} />
-                    <span>{p.name}</span>
-                    {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+          <>
+            {/* Desktop table */}
+            <table className="hidden md:table w-full text-sm">
+              <thead className="border-b border-zinc-100 bg-zinc-50 text-left dark:border-zinc-700 dark:bg-zinc-800">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">#</th>
+                  <th className="px-4 py-3 font-semibold">{t("admin.name")}</th>
+                  <th className="px-4 py-3 font-semibold">{t("admin.region")}</th>
+                  <th className="px-4 py-3 font-semibold">Kat.</th>
+                  <th className="px-4 py-3 font-semibold">{t("admin.data")}</th>
+                  <th className="px-4 py-3 font-semibold">{t("admin.duration")}</th>
+                  <th className="px-4 py-3 font-semibold">{t("admin.price")}</th>
+                  <th className="px-4 py-3 font-semibold">Web</th>
+                  <th className="px-4 py-3 font-semibold">{t("admin.actions")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-700">
+                {filteredPackages.map((p) => (
+                  <tr key={p.id} className="hover:bg-zinc-50 transition dark:hover:bg-zinc-800">
+                    <td className="px-4 py-3 font-medium">{p.id}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <AdminFlagIcon countryCode={p.country_code} emoji={p.flag} />
+                        <span>{p.name}</span>
+                        {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{p.region}</td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={p.category || "local"}
+                        onChange={(e) => handleSetCategory(p, e.target.value, "main")}
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
+                          p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                          : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                          : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                        }`}
+                      >
+                        <option value="local">Lok</option>
+                        <option value="regional">Raj</option>
+                        <option value="global">Glo</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">{p.data}</td>
+                    <td className="px-4 py-3">{p.duration}</td>
+                    <td className="px-4 py-3 font-semibold">{"\u20AC"}{p.price.toFixed(2)}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => handleToggleVisible(p, "main")}
+                        className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                          p.visible
+                            ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-zinc-100 text-zinc-500 hover:bg-shqiponja/10 hover:text-shqiponja dark:bg-zinc-700 dark:text-zinc-400"
+                        }`}
+                      >
+                        {p.visible ? t("admin.visibleOnWeb") : t("admin.showOnWeb")}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 flex gap-2">
+                      <button onClick={() => openEdit(p)} className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition dark:border-zinc-600 dark:hover:bg-zinc-700">{t("admin.edit")}</button>
+                      <button onClick={() => handleDelete(p.id)} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition dark:border-red-800 dark:hover:bg-red-900/30">{t("admin.delete")}</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Mobile cards */}
+            <div className="md:hidden divide-y divide-zinc-100 dark:divide-zinc-700">
+              {filteredPackages.map((p) => (
+                <div key={p.id} className="p-3 space-y-2">
+                  {/* Row 1: Flag + Name + Price */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <AdminFlagIcon countryCode={p.country_code} emoji={p.flag} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{p.name}</p>
+                        <p className="text-[11px] text-zinc-400">{p.data} · {p.duration} · {p.region}</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-bold shrink-0">{"\u20AC"}{p.price.toFixed(2)}</span>
                   </div>
-                </td>
-                <td className="px-4 py-3">{p.region}</td>
-                <td className="px-4 py-3">
-                  <select
-                    value={p.category || "local"}
-                    onChange={(e) => handleSetCategory(p, e.target.value, "main")}
-                    className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
-                      p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                      : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                      : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                    }`}
-                  >
-                    <option value="local">Lok</option>
-                    <option value="regional">Raj</option>
-                    <option value="global">Glo</option>
-                  </select>
-                </td>
-                <td className="px-4 py-3">{p.data}</td>
-                <td className="px-4 py-3">{p.duration}</td>
-                <td className="px-4 py-3 font-semibold">{"\u20AC"}{p.price.toFixed(2)}</td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => handleToggleVisible(p, "main")}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                      p.visible
-                        ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400"
-                        : "bg-zinc-100 text-zinc-500 hover:bg-shqiponja/10 hover:text-shqiponja dark:bg-zinc-700 dark:text-zinc-400"
-                    }`}
-                  >
-                    {p.visible ? t("admin.visibleOnWeb") : t("admin.showOnWeb")}
-                  </button>
-                </td>
-                <td className="px-4 py-3 flex gap-2">
-                  <button onClick={() => openEdit(p)} className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition dark:border-zinc-600 dark:hover:bg-zinc-700">{t("admin.edit")}</button>
-                  <button onClick={() => handleDelete(p.id)} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition dark:border-red-800 dark:hover:bg-red-900/30">{t("admin.delete")}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  {/* Row 2: Badges + toggles + actions */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                    <select
+                      value={p.category || "local"}
+                      onChange={(e) => handleSetCategory(p, e.target.value, "main")}
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
+                        p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                        : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                      }`}
+                    >
+                      <option value="local">Lok</option>
+                      <option value="regional">Raj</option>
+                      <option value="global">Glo</option>
+                    </select>
+                    <button
+                      onClick={() => handleToggleVisible(p, "main")}
+                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition ${
+                        p.visible
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : "bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400"
+                      }`}
+                    >
+                      {p.visible ? "Web ✓" : "Web ✕"}
+                    </button>
+                    <div className="ml-auto flex gap-1.5">
+                      <button onClick={() => openEdit(p)} className="rounded-lg border border-zinc-200 px-2.5 py-1 text-[11px] font-medium dark:border-zinc-600">{t("admin.edit")}</button>
+                      <button onClick={() => handleDelete(p.id)} className="rounded-lg border border-red-200 px-2.5 py-1 text-[11px] font-medium text-red-600 dark:border-red-800">{t("admin.delete")}</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-zinc-500">
-            Faqja {page} / {totalPages} ({total} pako)
+          <p className="text-xs sm:text-sm text-zinc-500">
+            {page} / {totalPages} ({total})
           </p>
           <div className="flex gap-2">
             <button
@@ -367,14 +419,14 @@ export default function AdminPackagesPage() {
               onClick={() => fetchPackages(page - 1, search)}
               className="rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
             >
-              ← Para
+              ←
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => fetchPackages(page + 1, search)}
               className="rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
             >
-              Pas →
+              →
             </button>
           </div>
         </div>
@@ -411,34 +463,94 @@ export default function AdminPackagesPage() {
               ) : browseResults.length === 0 ? (
                 <p className="text-center text-zinc-500 py-8">Asnjë paketë nuk u gjet. Provo një kërkim tjetër.</p>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="border-b border-zinc-100 bg-zinc-50 text-left dark:border-zinc-700 dark:bg-zinc-800 sticky top-0">
-                    <tr>
-                      <th className="px-3 py-2 font-semibold">#</th>
-                      <th className="px-3 py-2 font-semibold">{t("admin.name")}</th>
-                      <th className="px-3 py-2 font-semibold">{t("admin.data")}</th>
-                      <th className="px-3 py-2 font-semibold">{t("admin.price")}</th>
-                      <th className="px-3 py-2 font-semibold">Kat.</th>
-                      <th className="px-3 py-2 font-semibold">Web</th>
-                      <th className="px-3 py-2 font-semibold">★</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-700">
+                <>
+                  {/* Desktop browse table */}
+                  <table className="hidden md:table w-full text-sm">
+                    <thead className="border-b border-zinc-100 bg-zinc-50 text-left dark:border-zinc-700 dark:bg-zinc-800 sticky top-0">
+                      <tr>
+                        <th className="px-3 py-2 font-semibold">{t("admin.name")}</th>
+                        <th className="px-3 py-2 font-semibold">{t("admin.data")}</th>
+                        <th className="px-3 py-2 font-semibold">{t("admin.price")}</th>
+                        <th className="px-3 py-2 font-semibold">Kat.</th>
+                        <th className="px-3 py-2 font-semibold">Web</th>
+                        <th className="px-3 py-2 font-semibold">★</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-700">
+                      {browseResults.map((p) => (
+                        <tr key={p.id} className="hover:bg-shqiponja/5 transition">
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <AdminFlagIcon countryCode={p.country_code} emoji={p.flag} />
+                              <div className="min-w-0">
+                                <span className="block truncate max-w-[200px]">{p.name}</span>
+                                <span className="text-[10px] text-zinc-400">{p.region} · {p.duration}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2">{p.data}</td>
+                          <td className="px-3 py-2 font-semibold">{"\u20AC"}{p.price.toFixed(2)}</td>
+                          <td className="px-3 py-2">
+                            <select
+                              value={p.category || "local"}
+                              onChange={(e) => handleSetCategory(p, e.target.value, "browse")}
+                              className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
+                                p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                                : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                              }`}
+                            >
+                              <option value="local">Lok</option>
+                              <option value="regional">Raj</option>
+                              <option value="global">Glo</option>
+                            </select>
+                          </td>
+                          <td className="px-3 py-2">
+                            <button
+                              onClick={() => handleToggleVisible(p, "browse")}
+                              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
+                                p.visible ? "bg-green-500" : "bg-zinc-300 dark:bg-zinc-600"
+                              }`}
+                            >
+                              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                                p.visible ? "translate-x-5" : "translate-x-0"
+                              }`} />
+                            </button>
+                          </td>
+                          <td className="px-3 py-2">
+                            <button
+                              onClick={() => handleToggleHighlight(p, "browse")}
+                              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
+                                p.highlight ? "bg-amber-500" : "bg-zinc-300 dark:bg-zinc-600"
+                              }`}
+                            >
+                              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                                p.highlight ? "translate-x-5" : "translate-x-0"
+                              }`} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Mobile browse cards */}
+                  <div className="md:hidden divide-y divide-zinc-100 dark:divide-zinc-700">
                     {browseResults.map((p) => (
-                      <tr key={p.id} className="hover:bg-shqiponja/5 transition">
-                        <td className="px-3 py-2 font-medium text-zinc-400">{p.id}</td>
-                        <td className="px-3 py-2">
-                          <div className="flex items-center gap-2">
+                      <div key={p.id} className="px-4 py-3 space-y-2">
+                        {/* Row 1: flag + name + price */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
                             <AdminFlagIcon countryCode={p.country_code} emoji={p.flag} />
                             <div className="min-w-0">
-                              <span className="block truncate max-w-[200px]">{p.name}</span>
-                              <span className="text-[10px] text-zinc-400">{p.region} · {p.duration}</span>
+                              <p className="text-sm font-medium truncate">{p.name}</p>
+                              <p className="text-[11px] text-zinc-400">{p.data} · {p.duration} · {p.region}</p>
                             </div>
                           </div>
-                        </td>
-                        <td className="px-3 py-2">{p.data}</td>
-                        <td className="px-3 py-2 font-semibold">{"\u20AC"}{p.price.toFixed(2)}</td>
-                        <td className="px-3 py-2">
+                          <span className="text-sm font-bold shrink-0">{"\u20AC"}{p.price.toFixed(2)}</span>
+                        </div>
+                        {/* Row 2: category + toggles */}
+                        <div className="flex items-center gap-3">
                           <select
                             value={p.category || "local"}
                             onChange={(e) => handleSetCategory(p, e.target.value, "browse")}
@@ -452,74 +564,73 @@ export default function AdminPackagesPage() {
                             <option value="regional">Raj</option>
                             <option value="global">Glo</option>
                           </select>
-                        </td>
-                        <td className="px-3 py-2">
-                          <button
-                            onClick={() => handleToggleVisible(p, "browse")}
-                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
-                              p.visible ? "bg-green-500" : "bg-zinc-300 dark:bg-zinc-600"
-                            }`}
-                          >
-                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
-                              p.visible ? "translate-x-5" : "translate-x-0"
-                            }`} />
-                          </button>
-                        </td>
-                        <td className="px-3 py-2">
-                          <button
-                            onClick={() => handleToggleHighlight(p, "browse")}
-                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
-                              p.highlight ? "bg-amber-500" : "bg-zinc-300 dark:bg-zinc-600"
-                            }`}
-                          >
-                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
-                              p.highlight ? "translate-x-5" : "translate-x-0"
-                            }`} />
-                          </button>
-                        </td>
-                      </tr>
+                          <div className="flex items-center gap-1.5 ml-auto">
+                            <span className="text-[11px] text-zinc-400">Web</span>
+                            <button
+                              onClick={() => handleToggleVisible(p, "browse")}
+                              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
+                                p.visible ? "bg-green-500" : "bg-zinc-300 dark:bg-zinc-600"
+                              }`}
+                            >
+                              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                                p.visible ? "translate-x-5" : "translate-x-0"
+                              }`} />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] text-zinc-400">★</span>
+                            <button
+                              onClick={() => handleToggleHighlight(p, "browse")}
+                              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
+                                p.highlight ? "bg-amber-500" : "bg-zinc-300 dark:bg-zinc-600"
+                              }`}
+                            >
+                              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                                p.highlight ? "translate-x-5" : "translate-x-0"
+                              }`} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </>
               )}
             </div>
-            <div className="p-4 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+            <div className="p-4 border-t border-zinc-200 dark:border-zinc-700 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {browseTotalPages > 1 ? (
                 <>
-                  <p className="text-sm text-zinc-500">Faqja {browsePage} / {browseTotalPages}</p>
-                  <div className="flex items-center gap-2">
+                  <p className="text-sm text-zinc-500 text-center sm:text-left">Faqja {browsePage} / {browseTotalPages}</p>
+                  <div className="flex items-center gap-2 justify-center sm:justify-end">
                     <button
                       disabled={browsePage <= 1}
                       onClick={() => fetchBrowseResults(browsePage - 1, browseSearch)}
                       className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
                     >
-                      ← Para
+                      ←
                     </button>
                     <button
                       disabled={browsePage >= browseTotalPages}
                       onClick={() => fetchBrowseResults(browsePage + 1, browseSearch)}
                       className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
                     >
-                      Pas →
+                      →
                     </button>
                     <button
                       onClick={() => { setBrowsing(false); fetchPackages(page, search); }}
                       className="rounded-lg bg-shqiponja px-5 py-1.5 text-sm font-semibold text-white hover:bg-shqiponja-dark transition shadow-md shadow-shqiponja/25"
                     >
-                      OK — Ruaj & Mbyll
+                      OK
                     </button>
                   </div>
                 </>
               ) : (
-                <>
-                  <span />
-                  <button
-                    onClick={() => { setBrowsing(false); fetchPackages(page, search); }}
-                    className="rounded-lg bg-shqiponja px-5 py-2 text-sm font-semibold text-white hover:bg-shqiponja-dark transition shadow-md shadow-shqiponja/25"
-                  >
-                    OK — Ruaj & Mbyll
-                  </button>
-                </>
+                <button
+                  onClick={() => { setBrowsing(false); fetchPackages(page, search); }}
+                  className="w-full sm:w-auto sm:ml-auto rounded-lg bg-shqiponja px-5 py-2 text-sm font-semibold text-white hover:bg-shqiponja-dark transition shadow-md shadow-shqiponja/25"
+                >
+                  OK — Ruaj & Mbyll
+                </button>
               )}
             </div>
           </div>
