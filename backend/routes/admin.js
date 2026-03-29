@@ -217,6 +217,23 @@ router.patch('/packages/:id/highlight', async (req, res) => {
   }
 });
 
+router.patch('/packages/:id/category', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const { category } = req.body;
+    const validCategories = ['local', 'regional', 'global'];
+    if (!validCategories.includes(category)) return res.status(400).json({ error: 'Kategori e pavlefshme' });
+    await db.query('UPDATE packages SET category = $1 WHERE id = $2', [category, id]);
+    const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
+    if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
+    res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+  } catch (err) {
+    console.error('Category update error:', err);
+    res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
+  }
+});
+
 router.post('/packages', async (req, res) => {
   const { name, region, flag, data, duration, price, currency, highlight, description, category } = req.body;
   if (!name || !region || !flag || !data || !duration || price == null) {

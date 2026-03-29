@@ -9,6 +9,7 @@ import {
   adminDeletePackage,
   adminTogglePackageVisible,
   adminTogglePackageHighlight,
+  adminSetCategory,
   type EsimPackage,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
@@ -134,13 +135,22 @@ export default function AdminPackagesPage() {
     }, 400);
   }
 
-  function activateAndEdit(pkg: EsimPackage) {
-    setBrowsing(false);
-    setEditing({ ...pkg, visible: true });
-  }
-
   function openEdit(pkg: EsimPackage) {
     setEditing({ ...pkg });
+  }
+
+  async function handleSetCategory(pkg: EsimPackage, category: string, source: "main" | "browse") {
+    if (!token) return;
+    try {
+      const updated = await adminSetCategory(token, pkg.id, category);
+      if (source === "browse") {
+        setBrowseResults((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+      }
+      setPackages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      toast(`Kategoria u ndryshua: ${category === "local" ? "Lokale" : category === "regional" ? "Rajonale" : "Globale"}`, "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gabim", "error");
+    }
   }
 
   async function handleSave() {
@@ -163,10 +173,13 @@ export default function AdminPackagesPage() {
     }
   }
 
-  async function handleToggleVisible(pkg: EsimPackage) {
+  async function handleToggleVisible(pkg: EsimPackage, source: "main" | "browse" = "main") {
     if (!token) return;
     try {
       const updated = await adminTogglePackageVisible(token, pkg.id, !pkg.visible);
+      if (source === "browse") {
+        setBrowseResults((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+      }
       setPackages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       toast(updated.visible ? "Paketa u shtua në Web" : "Paketa u hoq nga Web", "success");
     } catch (err) {
@@ -174,10 +187,13 @@ export default function AdminPackagesPage() {
     }
   }
 
-  async function handleToggleHighlight(pkg: EsimPackage) {
+  async function handleToggleHighlight(pkg: EsimPackage, source: "main" | "browse" = "main") {
     if (!token) return;
     try {
       const updated = await adminTogglePackageHighlight(token, pkg.id, !pkg.highlight);
+      if (source === "browse") {
+        setBrowseResults((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+      }
       setPackages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       toast(updated.highlight ? "Paketa u bë e popullarizuar" : "Paketa nuk është më e popullarizuar", "success");
     } catch (err) {
@@ -278,6 +294,7 @@ export default function AdminPackagesPage() {
               <th className="px-4 py-3 font-semibold">#</th>
               <th className="px-4 py-3 font-semibold">{t("admin.name")}</th>
               <th className="px-4 py-3 font-semibold">{t("admin.region")}</th>
+              <th className="px-4 py-3 font-semibold">Kat.</th>
               <th className="px-4 py-3 font-semibold">{t("admin.data")}</th>
               <th className="px-4 py-3 font-semibold">{t("admin.duration")}</th>
               <th className="px-4 py-3 font-semibold">{t("admin.price")}</th>
@@ -297,12 +314,27 @@ export default function AdminPackagesPage() {
                   </div>
                 </td>
                 <td className="px-4 py-3">{p.region}</td>
+                <td className="px-4 py-3">
+                  <select
+                    value={p.category || "local"}
+                    onChange={(e) => handleSetCategory(p, e.target.value, "main")}
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
+                      p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                      : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                    }`}
+                  >
+                    <option value="local">Lok</option>
+                    <option value="regional">Raj</option>
+                    <option value="global">Glo</option>
+                  </select>
+                </td>
                 <td className="px-4 py-3">{p.data}</td>
                 <td className="px-4 py-3">{p.duration}</td>
                 <td className="px-4 py-3 font-semibold">{"\u20AC"}{p.price.toFixed(2)}</td>
                 <td className="px-4 py-3">
                   <button
-                    onClick={() => handleToggleVisible(p)}
+                    onClick={() => handleToggleVisible(p, "main")}
                     className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                       p.visible
                         ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400"
@@ -384,13 +416,11 @@ export default function AdminPackagesPage() {
                     <tr>
                       <th className="px-3 py-2 font-semibold">#</th>
                       <th className="px-3 py-2 font-semibold">{t("admin.name")}</th>
-                      <th className="px-3 py-2 font-semibold">{t("admin.region")}</th>
                       <th className="px-3 py-2 font-semibold">{t("admin.data")}</th>
-                      <th className="px-3 py-2 font-semibold">{t("admin.duration")}</th>
                       <th className="px-3 py-2 font-semibold">{t("admin.price")}</th>
+                      <th className="px-3 py-2 font-semibold">Kat.</th>
                       <th className="px-3 py-2 font-semibold">Web</th>
                       <th className="px-3 py-2 font-semibold">★</th>
-                      <th className="px-3 py-2 font-semibold"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100 dark:divide-zinc-700">
@@ -400,27 +430,32 @@ export default function AdminPackagesPage() {
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2">
                             <AdminFlagIcon countryCode={p.country_code} emoji={p.flag} />
-                            <span>{p.name}</span>
-                            {p.visible && <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">Web</span>}
-                            {p.highlight && <span className="rounded-full bg-shqiponja/10 px-1.5 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                            <div className="min-w-0">
+                              <span className="block truncate max-w-[200px]">{p.name}</span>
+                              <span className="text-[10px] text-zinc-400">{p.region} · {p.duration}</span>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-3 py-2 text-zinc-500">{p.region}</td>
                         <td className="px-3 py-2">{p.data}</td>
-                        <td className="px-3 py-2">{p.duration}</td>
                         <td className="px-3 py-2 font-semibold">{"\u20AC"}{p.price.toFixed(2)}</td>
                         <td className="px-3 py-2">
+                          <select
+                            value={p.category || "local"}
+                            onChange={(e) => handleSetCategory(p, e.target.value, "browse")}
+                            className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
+                              p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                              : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                              : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                            }`}
+                          >
+                            <option value="local">Lok</option>
+                            <option value="regional">Raj</option>
+                            <option value="global">Glo</option>
+                          </select>
+                        </td>
+                        <td className="px-3 py-2">
                           <button
-                            onClick={async () => {
-                              if (!token) return;
-                              try {
-                                const updated = await adminTogglePackageVisible(token, p.id, !p.visible);
-                                setBrowseResults((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
-                                toast(updated.visible ? "Paketa u shtua në Web" : "Paketa u hoq nga Web", "success");
-                              } catch {
-                                toast("Gabim gjatë ndryshimit", "error");
-                              }
-                            }}
+                            onClick={() => handleToggleVisible(p, "browse")}
                             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
                               p.visible ? "bg-green-500" : "bg-zinc-300 dark:bg-zinc-600"
                             }`}
@@ -432,16 +467,7 @@ export default function AdminPackagesPage() {
                         </td>
                         <td className="px-3 py-2">
                           <button
-                            onClick={async () => {
-                              if (!token) return;
-                              try {
-                                const updated = await adminTogglePackageHighlight(token, p.id, !p.highlight);
-                                setBrowseResults((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
-                                toast(updated.highlight ? "Paketa u shtu te Popularet" : "Paketa u hoq nga Popularet", "success");
-                              } catch {
-                                toast("Gabim gjatë ndryshimit", "error");
-                              }
-                            }}
+                            onClick={() => handleToggleHighlight(p, "browse")}
                             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
                               p.highlight ? "bg-amber-500" : "bg-zinc-300 dark:bg-zinc-600"
                             }`}
@@ -449,14 +475,6 @@ export default function AdminPackagesPage() {
                             <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
                               p.highlight ? "translate-x-5" : "translate-x-0"
                             }`} />
-                          </button>
-                        </td>
-                        <td className="px-3 py-2">
-                          <button
-                            onClick={() => activateAndEdit(p)}
-                            className="rounded-lg bg-shqiponja px-3 py-1.5 text-xs font-semibold text-white hover:bg-shqiponja-dark transition whitespace-nowrap"
-                          >
-                            Zgjidh & Ndrysho
                           </button>
                         </td>
                       </tr>

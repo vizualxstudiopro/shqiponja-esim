@@ -358,6 +358,12 @@ export async function adminTogglePackageHighlight(token: string, id: number, hig
   return res.json();
 }
 
+export async function adminSetCategory(token: string, id: number, category: string): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}/category`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ category }) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Ndryshimi dështoi" })); throw new Error(e.error || "Ndryshimi dështoi"); }
+  return res.json();
+}
+
 export async function adminCreatePackage(token: string, data: Omit<EsimPackage, "id">): Promise<EsimPackage> {
   const res = await fetchWithTimeout(`${API_URL}/api/admin/packages`, { method: "POST", headers: authHeaders(token), body: JSON.stringify(data) });
   if (!res.ok) throw new Error("Krijimi dështoi");
