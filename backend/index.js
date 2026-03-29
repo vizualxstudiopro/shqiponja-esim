@@ -65,7 +65,7 @@ app.use('/api/checkout', require('./routes/checkout'));
 app.use('/api/contact', require('./routes/contact'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Shqiponja eSIM API', version: '0abee7c-pagination' });
+  res.json({ message: 'Shqiponja eSIM API', version: '99e75ca-route-fix' });
 });
 
 // Global error handler — catch unhandled errors
