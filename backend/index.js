@@ -65,13 +65,16 @@ app.use('/api/checkout', require('./routes/checkout'));
 app.use('/api/contact', require('./routes/contact'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Shqiponja eSIM API', version: 'v2-email-debug', build: new Date().toISOString().slice(0,16) });
+  const hasBrevo = !!process.env.BREVO_API_KEY;
+  const hasSmtp = !!(process.env.SMTP_HOST && process.env.SMTP_USER);
+  res.json({ message: 'Shqiponja eSIM API', version: 'v3-email-diag', brevo: hasBrevo, smtp: hasSmtp });
 });
 
 // Temporary email diagnostic endpoint
-app.get('/api/test-email/:email', async (req, res) => {
+app.get('/api/test-email', async (req, res) => {
+  const to = req.query.to;
+  if (!to) return res.status(400).json({ error: 'Missing ?to=email' });
   const { sendTransactionalEmail } = require('./lib/emailService');
-  const to = req.params.email;
   try {
     const result = await sendTransactionalEmail({
       toEmail: to,
