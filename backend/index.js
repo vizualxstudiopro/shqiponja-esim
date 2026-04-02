@@ -65,7 +65,24 @@ app.use('/api/checkout', require('./routes/checkout'));
 app.use('/api/contact', require('./routes/contact'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Shqiponja eSIM API', version: 'a6477c0-brevo-api-primary', build: new Date().toISOString().slice(0,16) });
+  res.json({ message: 'Shqiponja eSIM API', version: 'v2-email-debug', build: new Date().toISOString().slice(0,16) });
+});
+
+// Temporary email diagnostic endpoint
+app.get('/api/test-email/:email', async (req, res) => {
+  const { sendTransactionalEmail } = require('./lib/emailService');
+  const to = req.params.email;
+  try {
+    const result = await sendTransactionalEmail({
+      toEmail: to,
+      subject: 'Shqiponja eSIM - Email Test',
+      html: '<h2>Test i suksesshem!</h2><p>Email sistemi funksionon.</p>',
+      logLabel: 'EMAIL TEST',
+    });
+    res.json({ ok: true, provider: result.provider, messageId: result.info?.messageId });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 // Global error handler — catch unhandled errors
