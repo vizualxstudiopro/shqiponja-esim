@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../db');
 const { authMiddleware } = require('../middleware/auth');
-const { sendMail, escapeHtml } = require('../lib/email');
+const { escapeHtml } = require('../lib/email');
 const { sendTransactionalEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { validateRegister, validateLogin } = require('../middleware/validate');
@@ -50,11 +50,12 @@ router.post('/register', authLimiter, validateRegister, async (req, res) => {
 
   // Send verification email
   const verifyUrl = `${FRONTEND_URL}/verifiko?token=${verifyToken}`;
-  sendMail(
-    email,
-    'Verifiko email-in tënd — Shqiponja eSIM',
-    `<h2>Mirë se vjen, ${escapeHtml(name)}!</h2><p>Kliko linkun për ta verifikuar email-in:</p><a href="${verifyUrl}">${verifyUrl}</a>`
-  ).catch(err => console.error('Email error:', err));
+  sendTransactionalEmail({
+    toEmail: email,
+    subject: 'Verifiko email-in tënd — Shqiponja eSIM',
+    html: `<h2>Mirë se vjen, ${escapeHtml(name)}!</h2><p>Kliko linkun për ta verifikuar email-in:</p><a href="${verifyUrl}">${verifyUrl}</a>`,
+    logLabel: 'VERIFY EMAIL',
+  }).catch(err => console.error('Verification email error:', err));
 
   res.status(201).json({ user, token });
 });
@@ -131,11 +132,12 @@ router.post('/resend-verify', authMiddleware, async (req, res) => {
   await db.query('UPDATE users SET verify_token = $1 WHERE id = $2', [verifyToken, user.id]);
 
   const verifyUrl = `${FRONTEND_URL}/verifiko?token=${verifyToken}`;
-  sendMail(
-    user.email,
-    'Verifiko email-in tënd — Shqiponja eSIM',
-    `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për ta verifikuar email-in:</p><a href="${verifyUrl}">${verifyUrl}</a>`
-  ).catch(err => console.error('Email error:', err));
+  sendTransactionalEmail({
+    toEmail: user.email,
+    subject: 'Verifiko email-in tënd — Shqiponja eSIM',
+    html: `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për ta verifikuar email-in:</p><a href="${verifyUrl}">${verifyUrl}</a>`,
+    logLabel: 'RESEND VERIFY EMAIL',
+  }).catch(err => console.error('Resend verification email error:', err));
 
   res.json({ message: 'Email-i i verifikimit u dërgua' });
 });

@@ -39,6 +39,24 @@ async function sendTemplateEmail(toEmail, templateId, params = {}) {
   }
 }
 
+async function sendBrevoRawEmail(toEmail, subject, html) {
+  if (!client) return null;
+  const senderEmail = process.env.SMTP_FROM || 'suport@shqiponjaesim.com';
+  const senderName = 'Shqiponja eSIM';
+  const fromMatch = senderEmail.match(/^(.+?)\s*<(.+)>$/);
+  const sender = fromMatch
+    ? { name: fromMatch[1], email: fromMatch[2] }
+    : { name: senderName, email: senderEmail };
+
+  const response = await client.transactionalEmails.sendTransacEmail({
+    sender,
+    to: [{ email: toEmail }],
+    subject,
+    htmlContent: html,
+  });
+  return response;
+}
+
 async function sendTransactionalEmail({
   toEmail,
   subject,
@@ -47,6 +65,7 @@ async function sendTransactionalEmail({
   params = {},
   logLabel = "EMAIL",
 }) {
+  // 1. Try SMTP first
   try {
     const smtpInfo = await sendMail(toEmail, subject, html);
     console.log(`[${logLabel}] Sent via SMTP to ${toEmail}`);
@@ -61,18 +80,30 @@ async function sendTransactionalEmail({
     console.error(`[${logLabel}] SMTP error:`, smtpErr && smtpErr.message ? smtpErr.message : smtpErr);
   }
 
-  if (templateId) {
+  // 2. Fallback: Brevo template
+  if (templateId && client) {
     try {
       const response = await sendTemplateEmail(toEmail, templateId, params);
       console.log(`[${logLabel}] Sent via Brevo template #${templateId} to ${toEmail}`);
       return { provider: "brevo-template", info: response };
     } catch (templateErr) {
       console.error(`[${logLabel}] Brevo template error:`, templateErr && templateErr.message ? templateErr.message : templateErr);
-      throw templateErr;
     }
   }
 
-  throw new Error(`[${logLabel}] Email delivery failed and no fallback template was configured`);
+  // 3. Fallback: Brevo raw HTML via API
+  if (client) {
+    try {
+      const response = await sendBrevoRawEmail(toEmail, subject, html);
+      console.log(`[${logLabel}] Sent via Brevo API (raw HTML) to ${toEmail}`);
+      return { provider: "brevo-api", info: response };
+    } catch (brevoErr) {
+      console.error(`[${logLabel}] Brevo API error:`, brevoErr && brevoErr.message ? brevoErr.message : brevoErr);
+      throw brevoErr;
+    }
+  }
+
+  throw new Error(`[${logLabel}] All email delivery methods failed`);
 }
 
 module.exports = { sendTemplateEmail, sendTransactionalEmail };
