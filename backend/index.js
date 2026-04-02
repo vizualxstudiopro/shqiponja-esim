@@ -65,7 +65,7 @@ app.use('/api/checkout', require('./routes/checkout'));
 app.use('/api/contact', require('./routes/contact'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Shqiponja eSIM API', version: '99e75ca-route-fix' });
+  res.json({ message: 'Shqiponja eSIM API', version: 'a6477c0-brevo-api-primary', build: new Date().toISOString().slice(0,16) });
 });
 
 // Global error handler — catch unhandled errors
@@ -77,7 +77,7 @@ app.use((err, req, res, _next) => {
 (async () => {
   await migrate();
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT} (build: ${new Date().toISOString().slice(0,16)})`);
   });
 })().catch(err => {
   console.error('Failed to start server:', err);
