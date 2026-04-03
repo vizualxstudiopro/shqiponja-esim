@@ -142,8 +142,9 @@ router.post('/microsoft', authLimiter, async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('Microsoft OAuth error:', err);
-    res.status(401).json({ error: 'Autentifikimi me Microsoft dështoi' });
+    const msError = err.response?.data?.error_description || err.response?.data?.error || err.message || 'Unknown';
+    console.error('Microsoft OAuth error:', msError);
+    res.status(401).json({ error: 'Autentifikimi me Microsoft dështoi: ' + msError });
   }
 });
 
