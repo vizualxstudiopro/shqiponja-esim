@@ -1,19 +1,64 @@
-const { BrevoClient } = require("@getbrevo/brevo");
+const https = require("https");
 const { sendMail } = require("./email");
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
-let client;
-if (BREVO_API_KEY) {
-  client = new BrevoClient({ apiKey: BREVO_API_KEY });
-} else {
+if (!BREVO_API_KEY) {
   console.warn(
-    "[EMAIL SERVICE] BREVO_API_KEY mungon — email-et template nuk do dërgohen."
+    "[EMAIL SERVICE] BREVO_API_KEY mungon — email-et nuk do dërgohen."
   );
 }
 
+function parseSender() {
+  const raw = process.env.SMTP_FROM || "suport@shqiponjaesim.com";
+  const m = raw.match(/^(.+?)\s*<(.+)>$/);
+  return m
+    ? { name: m[1].trim(), email: m[2].trim() }
+    : { name: "Shqiponja eSIM", email: raw.trim() };
+}
+
+function brevoPost(path, body) {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(body);
+    const req = https.request(
+      {
+        hostname: "api.brevo.com",
+        path,
+        method: "POST",
+        headers: {
+          "api-key": BREVO_API_KEY,
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(data),
+        },
+      },
+      (res) => {
+        let chunks = "";
+        res.on("data", (c) => (chunks += c));
+        res.on("end", () => {
+          try {
+            const json = JSON.parse(chunks);
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              resolve(json);
+            } else {
+              const err = new Error(json.message || `Brevo API ${res.statusCode}`);
+              err.statusCode = res.statusCode;
+              err.body = json;
+              reject(err);
+            }
+          } catch (e) {
+            reject(new Error(`Brevo API parse error: ${chunks}`));
+          }
+        });
+      }
+    );
+    req.on("error", reject);
+    req.write(data);
+    req.end();
+  });
+}
+
 async function sendTemplateEmail(toEmail, templateId, params = {}) {
-  if (!client) {
+  if (!BREVO_API_KEY) {
     console.log(
       `[DEV EMAIL] Template #${templateId} → ${toEmail}`,
       JSON.stringify(params)
@@ -21,34 +66,23 @@ async function sendTemplateEmail(toEmail, templateId, params = {}) {
     return null;
   }
 
-  try {
-    const response = await client.transactionalEmails.sendTransacEmail({
-      to: [{ email: toEmail }],
-      templateId,
-      params,
-    });
-    console.log(
-      `[EMAIL] Template #${templateId} → ${toEmail} — dërguar me sukses (messageId: ${response.messageId})`
-    );
-    return response;
-  } catch (err) {
-    console.error(
-      `[EMAIL ERROR] Template #${templateId} → ${toEmail} — ${err.message}`
-    );
-    throw err;
-  }
+  const sender = parseSender();
+  const response = await brevoPost("/v3/smtp/email", {
+    sender,
+    to: [{ email: toEmail }],
+    templateId,
+    params,
+  });
+  console.log(
+    `[EMAIL] Template #${templateId} → ${toEmail} — dërguar me sukses (messageId: ${response.messageId})`
+  );
+  return response;
 }
 
 async function sendBrevoRawEmail(toEmail, subject, html) {
-  if (!client) return null;
-  const senderEmail = process.env.SMTP_FROM || 'suport@shqiponjaesim.com';
-  const senderName = 'Shqiponja eSIM';
-  const fromMatch = senderEmail.match(/^(.+?)\s*<(.+)>$/);
-  const sender = fromMatch
-    ? { name: fromMatch[1], email: fromMatch[2] }
-    : { name: senderName, email: senderEmail };
-
-  const response = await client.transactionalEmails.sendTransacEmail({
+  if (!BREVO_API_KEY) return null;
+  const sender = parseSender();
+  const response = await brevoPost("/v3/smtp/email", {
     sender,
     to: [{ email: toEmail }],
     subject,
@@ -65,8 +99,8 @@ async function sendTransactionalEmail({
   params = {},
   logLabel = "EMAIL",
 }) {
-  // 1. Try Brevo API first (most reliable in production)
-  if (client) {
+  // 1. Try Brevo REST API first
+  if (BREVO_API_KEY) {
     try {
       const response = await sendBrevoRawEmail(toEmail, subject, html);
       console.log(`[${logLabel}] Sent via Brevo API to ${toEmail} (messageId: ${response?.messageId})`);
