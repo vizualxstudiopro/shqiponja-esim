@@ -382,6 +382,28 @@ export async function adminDeletePackage(token: string, id: number) {
   return res.json();
 }
 
+export interface CountryGroup {
+  country_code: string;
+  region: string;
+  flag: string;
+  country_name: string;
+  total: number;
+  visible_count: number;
+  category: string;
+}
+
+export async function adminGetCountries(token: string): Promise<CountryGroup[]> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages-countries`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminBulkUpdate(token: string, body: { action: string; ids?: number[]; country_code?: string; category?: string }): Promise<{ updated: number }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages-bulk`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify(body) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Veprimi dështoi" })); throw new Error(e.error || "Veprimi dështoi"); }
+  return res.json();
+}
+
 /* ─── 2FA ─── */
 
 export async function twoFactorSetup(token: string): Promise<{ secret: string; qrCode: string }> {

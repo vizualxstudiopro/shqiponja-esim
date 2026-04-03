@@ -279,4 +279,79 @@ router.delete('/packages/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
+/* ─── BULK PACKAGE OPERATIONS ─── */
+
+// Get distinct countries/regions for grouping
+router.get('/packages-countries', async (req, res) => {
+  try {
+    const rows = (await db.query(`
+      SELECT
+        COALESCE(country_code, '') AS country_code,
+        MIN(region) AS region,
+        MIN(flag) AS flag,
+        MIN(SPLIT_PART(name, ' — ', 1)) AS country_name,
+        COUNT(*)::int AS total,
+        SUM(CASE WHEN visible = 1 THEN 1 ELSE 0 END)::int AS visible_count,
+        MIN(category) AS category
+      FROM packages
+      WHERE package_type IS NULL OR package_type = 'sim'
+      GROUP BY COALESCE(country_code, '')
+      ORDER BY MIN(region), country_name
+    `)).rows;
+    res.json(rows);
+  } catch (err) {
+    console.error('Countries list error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+// Bulk update visibility by IDs or country_code
+router.patch('/packages-bulk', async (req, res) => {
+  try {
+    const { action, ids, country_code, category } = req.body;
+
+    if (action === 'visible' || action === 'hidden') {
+      const val = action === 'visible' ? 1 : 0;
+      if (Array.isArray(ids) && ids.length > 0) {
+        const safeIds = ids.filter(id => Number.isFinite(Number(id))).map(Number);
+        if (safeIds.length === 0) return res.status(400).json({ error: 'Asnjë ID e vlefshme' });
+        const placeholders = safeIds.map((_, i) => `$${i + 2}`).join(',');
+        const result = await db.query(`UPDATE packages SET visible = $1 WHERE id IN (${placeholders})`, [val, ...safeIds]);
+        return res.json({ updated: result.rowCount });
+      }
+      if (country_code !== undefined) {
+        const result = country_code === ''
+          ? await db.query("UPDATE packages SET visible = $1 WHERE (country_code IS NULL OR country_code = '')", [val])
+          : await db.query('UPDATE packages SET visible = $1 WHERE country_code = $2', [val, String(country_code).slice(0, 10)]);
+        return res.json({ updated: result.rowCount });
+      }
+      return res.status(400).json({ error: 'Duhet ids ose country_code' });
+    }
+
+    if (action === 'category') {
+      const validCategories = ['local', 'regional', 'global'];
+      if (!validCategories.includes(category)) return res.status(400).json({ error: 'Kategori e pavlefshme' });
+      if (Array.isArray(ids) && ids.length > 0) {
+        const safeIds = ids.filter(id => Number.isFinite(Number(id))).map(Number);
+        if (safeIds.length === 0) return res.status(400).json({ error: 'Asnjë ID e vlefshme' });
+        const placeholders = safeIds.map((_, i) => `$${i + 2}`).join(',');
+        const result = await db.query(`UPDATE packages SET category = $1 WHERE id IN (${placeholders})`, [category, ...safeIds]);
+        return res.json({ updated: result.rowCount });
+      }
+      if (country_code !== undefined) {
+        const result = country_code === ''
+          ? await db.query("UPDATE packages SET category = $1 WHERE (country_code IS NULL OR country_code = '')", [category])
+          : await db.query('UPDATE packages SET category = $1 WHERE country_code = $2', [category, String(country_code).slice(0, 10)]);
+        return res.json({ updated: result.rowCount });
+      }
+      return res.status(400).json({ error: 'Duhet ids ose country_code' });
+    }
+
+    res.status(400).json({ error: 'Veprim i pavlefshëm. Përdor: visible, hidden, category' });
+  } catch (err) {
+    console.error('Bulk update error:', err);
+    res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
+  }
+});
+
 module.exports = router;

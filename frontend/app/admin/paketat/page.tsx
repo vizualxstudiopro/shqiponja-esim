@@ -10,11 +10,16 @@ import {
   adminTogglePackageVisible,
   adminTogglePackageHighlight,
   adminSetCategory,
+  adminGetCountries,
+  adminBulkUpdate,
   type EsimPackage,
+  type CountryGroup,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
 
 const PAGE_SIZE = 50;
+
+type ViewMode = "countries" | "list";
 
 function AdminFlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: string }) {
   const cc = (countryCode || "").toLowerCase();
@@ -36,6 +41,7 @@ export default function AdminPackagesPage() {
   const { token } = useAuth();
   const { t } = useI18n();
   const { toast } = useToast();
+  const [viewMode, setViewMode] = useState<ViewMode>("countries");
   const [packages, setPackages] = useState<EsimPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<EsimPackage> | null>(null);
@@ -45,6 +51,19 @@ export default function AdminPackagesPage() {
   const [total, setTotal] = useState(0);
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Countries view state
+  const [countries, setCountries] = useState<CountryGroup[]>([]);
+  const [countriesLoading, setCountriesLoading] = useState(true);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [countryFilter, setCountryFilter] = useState<"all" | "active" | "inactive">("all");
+  const [selectedCountries, setSelectedCountries] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Expanded country to show its packages
+  const [expandedCountry, setExpandedCountry] = useState<string | null>(null);
+  const [expandedPackages, setExpandedPackages] = useState<EsimPackage[]>([]);
+  const [expandedLoading, setExpandedLoading] = useState(false);
 
   const stats = {
     total,
@@ -81,6 +100,114 @@ export default function AdminPackagesPage() {
   useEffect(() => {
     fetchPackages(1, "");
   }, [fetchPackages]);
+
+  // Fetch countries for country view
+  const fetchCountries = useCallback(async () => {
+    if (!token) return;
+    setCountriesLoading(true);
+    try {
+      const data = await adminGetCountries(token);
+      setCountries(data);
+    } catch {
+      toast("Gabim gjatë ngarkimit të vendeve", "error");
+    } finally {
+      setCountriesLoading(false);
+    }
+  }, [token, toast]);
+
+  useEffect(() => {
+    fetchCountries();
+  }, [fetchCountries]);
+
+  // Countries filtering
+  const filteredCountries = countries.filter((c) => {
+    if (countryFilter === "active" && c.visible_count === 0) return false;
+    if (countryFilter === "inactive" && c.visible_count > 0) return false;
+    if (countrySearch.trim()) {
+      const q = countrySearch.toLowerCase();
+      return (
+        c.country_name.toLowerCase().includes(q) ||
+        c.region.toLowerCase().includes(q) ||
+        c.country_code.toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
+
+  const countryStats = {
+    total: countries.length,
+    active: countries.filter((c) => c.visible_count > 0).length,
+    inactive: countries.filter((c) => c.visible_count === 0).length,
+    totalPackages: countries.reduce((sum, c) => sum + c.total, 0),
+    visiblePackages: countries.reduce((sum, c) => sum + c.visible_count, 0),
+  };
+
+  // Expand a country to see its packages
+  async function expandCountry(cc: string) {
+    if (expandedCountry === cc) { setExpandedCountry(null); return; }
+    setExpandedCountry(cc);
+    setExpandedLoading(true);
+    try {
+      const data = await adminGetPackages(token!, 1, 100, cc || "");
+      setExpandedPackages(data.packages.filter((p) => cc === "" ? (!p.country_code || p.country_code === "") : p.country_code === cc));
+    } catch {
+      toast("Gabim", "error");
+    } finally {
+      setExpandedLoading(false);
+    }
+  }
+
+  // Bulk toggle country visibility
+  async function bulkToggleCountry(cc: string, visible: boolean) {
+    if (!token) return;
+    setBulkLoading(true);
+    try {
+      const result = await adminBulkUpdate(token, { action: visible ? "visible" : "hidden", country_code: cc });
+      toast(`${result.updated} paketa u ${visible ? "aktivizuan" : "çaktivizuan"}`, "success");
+      fetchCountries();
+      if (expandedCountry === cc) expandCountry(cc);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gabim", "error");
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
+  // Bulk toggle selected countries
+  async function bulkToggleSelected(visible: boolean) {
+    if (!token || selectedCountries.size === 0) return;
+    setBulkLoading(true);
+    try {
+      let totalUpdated = 0;
+      for (const cc of selectedCountries) {
+        const result = await adminBulkUpdate(token, { action: visible ? "visible" : "hidden", country_code: cc });
+        totalUpdated += result.updated;
+      }
+      toast(`${totalUpdated} paketa u ${visible ? "aktivizuan" : "çaktivizuan"}`, "success");
+      setSelectedCountries(new Set());
+      fetchCountries();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gabim", "error");
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
+  function toggleSelectCountry(cc: string) {
+    setSelectedCountries((prev) => {
+      const next = new Set(prev);
+      if (next.has(cc)) next.delete(cc); else next.add(cc);
+      return next;
+    });
+  }
+
+  function selectAllFiltered() {
+    setSelectedCountries(new Set(filteredCountries.map((c) => c.country_code)));
+  }
+
+  function deselectAll() {
+    setSelectedCountries(new Set());
+  }
 
   function handleSearch(value: string) {
     setSearch(value);
@@ -218,17 +345,243 @@ export default function AdminPackagesPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold">{t("admin.packages")}</h1>
-          <p className="mt-1 text-sm text-zinc-500">{total} {t("admin.totalSuffix")}</p>
+          <p className="mt-1 text-sm text-zinc-500">{countryStats.visiblePackages} aktive / {countryStats.totalPackages} gjithsej</p>
         </div>
-        <button
-          onClick={openBrowse}
-          className="w-full sm:w-auto rounded-lg bg-shqiponja px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
-        >
-          {t("admin.addPackage")}
-        </button>
+        <div className="flex gap-2">
+          {/* View mode toggle */}
+          <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+            <button
+              onClick={() => setViewMode("countries")}
+              className={`px-3 py-2 text-sm font-medium transition ${viewMode === "countries" ? "bg-shqiponja text-white" : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"}`}
+            >
+              🌍 Vendet
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`px-3 py-2 text-sm font-medium transition ${viewMode === "list" ? "bg-shqiponja text-white" : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"}`}
+            >
+              📋 Lista
+            </button>
+          </div>
+          <button
+            onClick={openBrowse}
+            className="rounded-lg bg-shqiponja px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
+          >
+            {t("admin.addPackage")}
+          </button>
+        </div>
       </div>
 
-      {/* Stats cards */}
+      {/* === COUNTRIES VIEW === */}
+      {viewMode === "countries" && (
+        <>
+          {/* Stats cards */}
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+              <p className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">{countryStats.total}</p>
+              <p className="text-xs text-zinc-500 mt-1">Destinacione</p>
+            </div>
+            <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-900/20">
+              <p className="text-2xl font-extrabold text-green-700 dark:text-green-400">{countryStats.active}</p>
+              <p className="text-xs text-green-600 dark:text-green-500 mt-1">Aktive në Web</p>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+              <p className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">{countryStats.inactive}</p>
+              <p className="text-xs text-zinc-500 mt-1">Jo aktive</p>
+            </div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-900/20">
+              <p className="text-2xl font-extrabold text-amber-700 dark:text-amber-400">{countryStats.visiblePackages}</p>
+              <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">Paketa aktive</p>
+            </div>
+          </div>
+
+          {/* Search + filter + bulk actions */}
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              placeholder="Kërko vendin..."
+              value={countrySearch}
+              onChange={(e) => setCountrySearch(e.target.value)}
+              className="w-full sm:max-w-xs rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
+            />
+            <div className="flex gap-1.5">
+              {([
+                { key: "all" as const, label: `Të gjitha (${countryStats.total})` },
+                { key: "active" as const, label: `Aktive (${countryStats.active})` },
+                { key: "inactive" as const, label: `Jo aktive (${countryStats.inactive})` },
+              ]).map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setCountryFilter(f.key)}
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    countryFilter === f.key
+                      ? "bg-shqiponja text-white"
+                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-400"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bulk actions bar */}
+          {selectedCountries.size > 0 && (
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-shqiponja/30 bg-shqiponja/5 p-3">
+              <span className="text-sm font-semibold text-shqiponja">{selectedCountries.size} vende të zgjedhura</span>
+              <button
+                onClick={() => bulkToggleSelected(true)}
+                disabled={bulkLoading}
+                className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition disabled:opacity-50"
+              >
+                ✓ Aktivizo të gjitha
+              </button>
+              <button
+                onClick={() => bulkToggleSelected(false)}
+                disabled={bulkLoading}
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition disabled:opacity-50"
+              >
+                ✕ Çaktivizo të gjitha
+              </button>
+              <button
+                onClick={deselectAll}
+                className="ml-auto text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+              >
+                Hiq zgjedhjen
+              </button>
+            </div>
+          )}
+
+          {/* Select all link */}
+          <div className="mt-2 flex gap-3">
+            <button onClick={selectAllFiltered} className="text-xs text-shqiponja hover:underline">
+              Zgjedh të gjitha ({filteredCountries.length})
+            </button>
+            {selectedCountries.size > 0 && (
+              <button onClick={deselectAll} className="text-xs text-zinc-400 hover:underline">
+                Pastro zgjedhjen
+              </button>
+            )}
+          </div>
+
+          {/* Countries list */}
+          <div className="mt-3 rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+            {countriesLoading ? (
+              <div className="space-y-3 p-4">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="h-12 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-700" />
+                ))}
+              </div>
+            ) : (
+              <div className="divide-y divide-zinc-100 dark:divide-zinc-700">
+                {filteredCountries.map((c) => (
+                  <div key={c.country_code}>
+                    <div className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+                      {/* Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={selectedCountries.has(c.country_code)}
+                        onChange={() => toggleSelectCountry(c.country_code)}
+                        className="h-4 w-4 rounded border-zinc-300 text-shqiponja focus:ring-shqiponja accent-shqiponja"
+                      />
+                      {/* Flag + Name */}
+                      <button
+                        onClick={() => expandCountry(c.country_code)}
+                        className="flex items-center gap-2 min-w-0 flex-1 text-left"
+                      >
+                        <AdminFlagIcon countryCode={c.country_code} emoji={c.flag} />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{c.country_name}</p>
+                          <p className="text-[11px] text-zinc-400">{c.region} · {c.total} paketa</p>
+                        </div>
+                      </button>
+                      {/* Status badge */}
+                      <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                        c.visible_count > 0
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : "bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400"
+                      }`}>
+                        {c.visible_count > 0 ? `${c.visible_count}/${c.total} aktive` : "Jo aktive"}
+                      </span>
+                      {/* Toggle all button */}
+                      <button
+                        onClick={() => bulkToggleCountry(c.country_code, c.visible_count === 0)}
+                        disabled={bulkLoading}
+                        className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
+                          c.visible_count > 0
+                            ? "border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/30"
+                            : "bg-green-600 text-white hover:bg-green-700"
+                        }`}
+                      >
+                        {c.visible_count > 0 ? "Çaktivizo" : "Aktivizo"}
+                      </button>
+                      {/* Expand arrow */}
+                      <button
+                        onClick={() => expandCountry(c.country_code)}
+                        className="shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                      >
+                        <svg className={`h-4 w-4 transition ${expandedCountry === c.country_code ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                    </div>
+                    {/* Expanded packages */}
+                    {expandedCountry === c.country_code && (
+                      <div className="bg-zinc-50 px-4 py-3 border-t border-zinc-100 dark:bg-zinc-800/50 dark:border-zinc-700">
+                        {expandedLoading ? (
+                          <div className="flex justify-center py-4"><div className="h-6 w-6 animate-spin rounded-full border-2 border-shqiponja border-t-transparent" /></div>
+                        ) : expandedPackages.length === 0 ? (
+                          <p className="text-sm text-zinc-500 py-2">Asnjë paketë.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {expandedPackages.map((p) => (
+                              <div key={p.id} className="flex items-center justify-between gap-3 rounded-lg bg-white p-2.5 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-700">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-medium truncate">{p.name}</p>
+                                  <p className="text-[11px] text-zinc-400">{p.data} · {p.duration} · €{p.price.toFixed(2)}</p>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                                  <button
+                                    onClick={() => handleToggleVisible(p, "main")}
+                                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition ${
+                                      p.visible
+                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                        : "bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400"
+                                    }`}
+                                  >
+                                    {p.visible ? "Web ✓" : "Web ✕"}
+                                  </button>
+                                  <button
+                                    onClick={() => handleToggleHighlight(p, "main")}
+                                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold transition ${
+                                      p.highlight
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                        : "bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400"
+                                    }`}
+                                  >
+                                    ★
+                                  </button>
+                                  <button onClick={() => openEdit(p)} className="rounded-lg border border-zinc-200 px-2 py-1 text-[11px] font-medium dark:border-zinc-600">{t("admin.edit")}</button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {filteredCountries.length === 0 && (
+                  <p className="text-center text-zinc-500 py-8">Asnjë vend nuk u gjet.</p>
+                )}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* === LIST VIEW (original) === */}
+      {viewMode === "list" && (
+        <>
       <div className="mt-4 grid grid-cols-3 gap-3">
         <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
           <p className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">{stats.total}</p>
@@ -430,6 +783,8 @@ export default function AdminPackagesPage() {
             </button>
           </div>
         </div>
+      )}
+      </>
       )}
 
       {/* Browse Modal - Select from existing packages */}
