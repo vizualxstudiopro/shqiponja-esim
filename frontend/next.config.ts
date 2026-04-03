@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      {
+        source: "/.well-known/:path*",
+        headers: [
+          { key: "Content-Type", value: "application/json" },
+        ],
+      },
     ];
   },
 };
