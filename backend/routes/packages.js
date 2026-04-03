@@ -4,6 +4,10 @@ const db = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const airalo = require('../lib/airaloService');
 
+function normalizePackage(p) {
+  return { ...p, price: parseFloat(p.price) || 0, net_price: p.net_price != null ? parseFloat(p.net_price) || 0 : null, highlight: !!p.highlight, visible: !!p.visible };
+}
+
 // GET /api/packages - List all eSIM packages
 router.get('/', async (req, res) => {
   const { country, region, type } = req.query;
@@ -40,7 +44,7 @@ router.get('/', async (req, res) => {
   sql += ' ORDER BY region, price';
 
   const packages = (await db.query(sql, params)).rows;
-  res.json(packages.map((p) => ({ ...p, highlight: !!p.highlight })));
+  res.json(packages.map(normalizePackage));
 });
 
 // GET /api/packages/featured - Get highlighted packages for landing page
@@ -48,7 +52,7 @@ router.get('/featured', async (req, res) => {
   const packages = (await db.query(
     "SELECT * FROM packages WHERE visible = 1 AND highlight = 1 AND (package_type IS NULL OR package_type = 'sim') ORDER BY region, price LIMIT 12"
   )).rows;
-  res.json(packages.map((p) => ({ ...p, highlight: !!p.highlight })));
+  res.json(packages.map(normalizePackage));
 });
 
 // GET /api/packages/destinations - Unique destinations grouped by country with min price
@@ -98,7 +102,7 @@ router.get('/:id', async (req, res) => {
   if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid package ID' });
   const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
   if (!pkg) return res.status(404).json({ error: 'Package not found' });
-  res.json({ ...pkg, highlight: !!pkg.highlight });
+  res.json(normalizePackage({ ...pkg }));
 });
 
 // POST /api/packages/sync - Sync packages from Airalo API (admin only)

@@ -212,7 +212,7 @@ export default function PackageGrid() {
                     {pkg.name}
                   </h3>
                   <span className="mt-2 text-2xl font-extrabold tracking-tight text-shqiponja">
-                    €{pkg.price.toFixed(2)}
+                    €{Number(pkg.price).toFixed(2)}
                   </span>
                 </div>
 

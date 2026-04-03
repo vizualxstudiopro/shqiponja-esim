@@ -106,7 +106,7 @@ export default function OrderForm({ packageId, price }: Props) {
         disabled={loading}
         className="w-full rounded-xl bg-shqiponja py-3.5 text-base font-semibold text-white shadow-lg shadow-shqiponja/25 transition hover:bg-shqiponja-dark disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? t("buy.processing") : `${t("buy.pay")} €${price.toFixed(2)}`}
+        {loading ? t("buy.processing") : `${t("buy.pay")} €${Number(price).toFixed(2)}`}
       </button>
 
       <p className="text-center text-xs text-zinc-400">

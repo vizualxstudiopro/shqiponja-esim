@@ -536,7 +536,7 @@ export default function AdminPackagesPage() {
                               <div key={p.id} className="flex items-center justify-between gap-3 rounded-lg bg-white p-2.5 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-700">
                                 <div className="min-w-0 flex-1">
                                   <p className="text-sm font-medium truncate">{p.name}</p>
-                                  <p className="text-[11px] text-zinc-400">{p.data} · {p.duration} · €{p.price.toFixed(2)}</p>
+                                  <p className="text-[11px] text-zinc-400">{p.data} · {p.duration} · €{Number(p.price).toFixed(2)}</p>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
                                   {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
@@ -685,7 +685,7 @@ export default function AdminPackagesPage() {
                     </td>
                     <td className="px-4 py-3">{p.data}</td>
                     <td className="px-4 py-3">{p.duration}</td>
-                    <td className="px-4 py-3 font-semibold">{"\u20AC"}{p.price.toFixed(2)}</td>
+                    <td className="px-4 py-3 font-semibold">{"\u20AC"}{Number(p.price).toFixed(2)}</td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => handleToggleVisible(p, "main")}
@@ -720,7 +720,7 @@ export default function AdminPackagesPage() {
                         <p className="text-[11px] text-zinc-400">{p.data} · {p.duration} · {p.region}</p>
                       </div>
                     </div>
-                    <span className="text-sm font-bold shrink-0">{"\u20AC"}{p.price.toFixed(2)}</span>
+                    <span className="text-sm font-bold shrink-0">{"\u20AC"}{Number(p.price).toFixed(2)}</span>
                   </div>
                   {/* Row 2: Badges + toggles + actions */}
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -844,7 +844,7 @@ export default function AdminPackagesPage() {
                             </div>
                           </td>
                           <td className="px-3 py-2">{p.data}</td>
-                          <td className="px-3 py-2 font-semibold">{"\u20AC"}{p.price.toFixed(2)}</td>
+                          <td className="px-3 py-2 font-semibold">{"\u20AC"}{Number(p.price).toFixed(2)}</td>
                           <td className="px-3 py-2">
                             <select
                               value={p.category || "local"}
@@ -902,7 +902,7 @@ export default function AdminPackagesPage() {
                               <p className="text-[11px] text-zinc-400">{p.data} · {p.duration} · {p.region}</p>
                             </div>
                           </div>
-                          <span className="text-sm font-bold shrink-0">{"\u20AC"}{p.price.toFixed(2)}</span>
+                          <span className="text-sm font-bold shrink-0">{"\u20AC"}{Number(p.price).toFixed(2)}</span>
                         </div>
                         {/* Row 2: category + toggles */}
                         <div className="flex items-center gap-3">
@@ -1029,7 +1029,7 @@ export default function AdminPackagesPage() {
               {editing.net_price != null && (
                 <div>
                   <label className="block text-xs font-medium text-zinc-500 mb-1">Çmimi origjinal (Airalo)</label>
-                  <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">{"\u20AC"}{editing.net_price.toFixed(2)}</p>
+                  <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">{"\u20AC"}{Number(editing.net_price).toFixed(2)}</p>
                 </div>
               )}
               <input placeholder={t("admin.description")} value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="sm:col-span-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-700" />

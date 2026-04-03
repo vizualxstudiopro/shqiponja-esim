@@ -6,6 +6,11 @@ const { authMiddleware, adminOnly } = require('../middleware/auth');
 // All admin routes require auth + admin role
 router.use(authMiddleware, adminOnly);
 
+// Normalize package fields from DB (REAL comes as string sometimes)
+function normalizePackage(p) {
+  return { ...p, price: parseFloat(p.price) || 0, net_price: p.net_price != null ? parseFloat(p.net_price) || 0 : null, highlight: !!p.highlight, visible: !!p.visible };
+}
+
 /* ─── DASHBOARD STATS ─── */
 router.get('/stats', async (req, res) => {
   const totalOrders = parseInt((await db.query('SELECT COUNT(*) AS cnt FROM orders')).rows[0].cnt);
@@ -180,7 +185,7 @@ router.get('/packages', async (req, res) => {
     [...params, limit, offset]
   )).rows;
   res.json({
-    packages: packages.map((p) => ({ ...p, highlight: !!p.highlight, visible: !!p.visible })),
+    packages: packages.map(normalizePackage),
     total,
     page,
     totalPages: Math.ceil(total / limit),
@@ -195,7 +200,7 @@ router.patch('/packages/:id/visible', async (req, res) => {
     await db.query('UPDATE packages SET visible = $1 WHERE id = $2', [visible ? 1 : 0, id]);
     const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
     if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
-    res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+    res.json(normalizePackage(pkg));
   } catch (err) {
     console.error('Visible toggle error:', err);
     res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
@@ -210,7 +215,7 @@ router.patch('/packages/:id/highlight', async (req, res) => {
     await db.query('UPDATE packages SET highlight = $1 WHERE id = $2', [highlight ? 1 : 0, id]);
     const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
     if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
-    res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+    res.json(normalizePackage(pkg));
   } catch (err) {
     console.error('Highlight toggle error:', err);
     res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
@@ -227,7 +232,7 @@ router.patch('/packages/:id/category', async (req, res) => {
     await db.query('UPDATE packages SET category = $1 WHERE id = $2', [category, id]);
     const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
     if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
-    res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+    res.json(normalizePackage(pkg));
   } catch (err) {
     console.error('Category update error:', err);
     res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
@@ -250,7 +255,7 @@ router.post('/packages', async (req, res) => {
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
   `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500), safeCategory]);
   const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [result.rows[0].id])).rows[0];
-  res.status(201).json({ ...pkg, highlight: !!pkg.highlight });
+  res.status(201).json(normalizePackage(pkg));
 });
 
 router.put('/packages/:id', async (req, res) => {
@@ -269,7 +274,7 @@ router.put('/packages/:id', async (req, res) => {
   `, [String(name).slice(0, 200), String(region).slice(0, 100), String(flag).slice(0, 10), String(data).slice(0, 50), String(duration).slice(0, 50), numPrice, currency || 'EUR', highlight ? 1 : 0, String(description || '').slice(0, 500), visible ? 1 : 0, safeCategory, id]);
   const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
   if (!pkg) return res.status(404).json({ error: 'Paketa nuk u gjet' });
-  res.json({ ...pkg, highlight: !!pkg.highlight, visible: !!pkg.visible });
+  res.json(normalizePackage(pkg));
 });
 
 router.delete('/packages/:id', async (req, res) => {

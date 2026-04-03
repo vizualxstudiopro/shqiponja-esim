@@ -55,7 +55,7 @@ export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
                 {t("buy.price")}
               </p>
               <p className="mt-1 text-lg font-bold text-shqiponja">
-                €{pkg.price.toFixed(2)}
+                €{Number(pkg.price).toFixed(2)}
               </p>
             </div>
           </div>
