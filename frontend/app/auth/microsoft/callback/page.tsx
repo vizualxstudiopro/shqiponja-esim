@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
@@ -9,8 +9,12 @@ function MicrosoftCallbackInner() {
   const router = useRouter();
   const { loginWithMicrosoft } = useAuth();
   const [error, setError] = useState("");
+  const attempted = useRef(false);
 
   useEffect(() => {
+    if (attempted.current) return;
+    attempted.current = true;
+
     const code = searchParams.get("code");
     if (!code) {
       setError("Authorization code mungon");
