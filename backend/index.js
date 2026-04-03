@@ -67,7 +67,7 @@ app.use('/api/contact', require('./routes/contact'));
 app.get('/', (req, res) => {
   const hasBrevo = !!process.env.BREVO_API_KEY;
   const hasSmtp = !!(process.env.SMTP_HOST && process.env.SMTP_USER);
-  res.json({ message: 'Shqiponja eSIM API', version: 'v3-email-diag', brevo: hasBrevo, smtp: hasSmtp });
+  res.json({ message: 'Shqiponja eSIM API', version: 'v4-smtp-throw-fix', brevo: hasBrevo, smtp: hasSmtp });
 });
 
 // Temporary email diagnostic endpoint
