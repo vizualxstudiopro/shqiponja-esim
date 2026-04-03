@@ -148,18 +148,26 @@ router.post('/microsoft', authLimiter, async (req, res) => {
 });
 
 // ─── Apple OAuth ───
-// Frontend sends the authorization code + user info from Apple Sign-In
-router.post('/apple', authLimiter, async (req, res) => {
-  try {
-    const { code, idToken, user: appleUser } = req.body;
-    if (!idToken && !code) return res.status(400).json({ error: 'Token ose code mungon' });
+// Apple uses form_post: it POSTs id_token + code directly to our callback URL
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
+router.post('/apple/callback', async (req, res) => {
+  try {
+    const { id_token: idToken, code, user: userStr } = req.body;
     if (!idToken) {
-      return res.status(400).json({ error: 'ID token kërkohet nga Apple' });
+      return res.redirect(`${FRONTEND_URL}/auth/apple/callback?error=${encodeURIComponent('Token mungon nga Apple')}`);
     }
 
     const clientId = process.env.APPLE_CLIENT_ID;
-    if (!clientId) return res.status(500).json({ error: 'Apple OAuth nuk është konfiguruar' });
+    if (!clientId) {
+      return res.redirect(`${FRONTEND_URL}/auth/apple/callback?error=${encodeURIComponent('Apple OAuth nuk është konfiguruar')}`);
+    }
+
+    // Parse user info (Apple sends it as JSON string, only on first login)
+    let appleUser;
+    if (userStr) {
+      try { appleUser = typeof userStr === 'string' ? JSON.parse(userStr) : userStr; } catch { /* ignore */ }
+    }
 
     // Fetch Apple's public keys
     const axios = require('axios');
@@ -170,16 +178,18 @@ router.post('/apple', authLimiter, async (req, res) => {
 
     // Decode JWT header to find the right key
     const headerPart = idToken.split('.')[0];
-    if (!headerPart) return res.status(400).json({ error: 'Token i pavlefshëm nga Apple' });
+    if (!headerPart) {
+      return res.redirect(`${FRONTEND_URL}/auth/apple/callback?error=${encodeURIComponent('Token i pavlefshëm')}`);
+    }
     const header = JSON.parse(Buffer.from(headerPart, 'base64url').toString());
 
     const appleKey = appleKeys.find(k => k.kid === header.kid);
-    if (!appleKey) return res.status(400).json({ error: 'Çelësi publik i Apple nuk u gjet' });
+    if (!appleKey) {
+      return res.redirect(`${FRONTEND_URL}/auth/apple/callback?error=${encodeURIComponent('Çelësi publik nuk u gjet')}`);
+    }
 
-    // Convert JWK to PEM using Node.js built-in crypto
     const publicKey = createPublicKey({ key: appleKey, format: 'jwk' });
 
-    // Verify JWT signature and claims
     const payload = jwt.verify(idToken, publicKey, {
       algorithms: ['RS256'],
       issuer: 'https://appleid.apple.com',
@@ -187,10 +197,9 @@ router.post('/apple', authLimiter, async (req, res) => {
     });
 
     if (!payload.email) {
-      return res.status(400).json({ error: 'Nuk u mor email-i nga Apple' });
+      return res.redirect(`${FRONTEND_URL}/auth/apple/callback?error=${encodeURIComponent('Nuk u mor email-i nga Apple')}`);
     }
 
-    // Apple only sends user name on first login
     const name = appleUser?.name
       ? `${appleUser.name.firstName || ''} ${appleUser.name.lastName || ''}`.trim()
       : payload.email.split('@')[0];
@@ -202,10 +211,11 @@ router.post('/apple', authLimiter, async (req, res) => {
       payload.sub
     );
 
-    res.json(result);
+    // Redirect to frontend with token in URL fragment (not exposed to server logs)
+    res.redirect(`${FRONTEND_URL}/auth/apple/callback?token=${result.token}`);
   } catch (err) {
     console.error('Apple OAuth error:', err);
-    res.status(401).json({ error: 'Autentifikimi me Apple dështoi' });
+    res.redirect(`${FRONTEND_URL}/auth/apple/callback?error=${encodeURIComponent('Autentifikimi me Apple dështoi')}`);
   }
 });
 

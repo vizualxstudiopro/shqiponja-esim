@@ -109,7 +109,9 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
   function handleApple() {
     if (!providers?.appleClientId) return;
     setError("");
-    const redirectUri = `${window.location.origin}/auth/apple/callback`;
+    // Apple form_post goes to backend, which validates and redirects back
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const redirectUri = `${apiUrl}/api/auth/oauth/apple/callback`;
     const url =
       `https://appleid.apple.com/auth/authorize?` +
       `client_id=${encodeURIComponent(providers.appleClientId)}` +
