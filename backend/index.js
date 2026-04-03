@@ -65,45 +65,7 @@ app.use('/api/checkout', require('./routes/checkout'));
 app.use('/api/contact', require('./routes/contact'));
 
 app.get('/', (req, res) => {
-  const hasBrevo = !!process.env.BREVO_API_KEY;
-  const hasSmtp = !!(process.env.SMTP_HOST && process.env.SMTP_USER);
-  res.json({ message: 'Shqiponja eSIM API', version: 'v4-smtp-throw-fix', brevo: hasBrevo, smtp: hasSmtp });
-});
-
-// Temporary email diagnostic endpoint
-app.get('/api/test-email', async (req, res) => {
-  const to = req.query.to;
-  if (!to) return res.status(400).json({ error: 'Missing ?to=email' });
-
-  // Direct Brevo API test (bypass emailService to see raw error)
-  try {
-    const { BrevoClient } = require('@getbrevo/brevo');
-    const apiKey = process.env.BREVO_API_KEY;
-    if (!apiKey) return res.status(500).json({ ok: false, error: 'BREVO_API_KEY not set' });
-
-    const client = new BrevoClient({ apiKey });
-    const senderEmail = process.env.SMTP_FROM || 'suport@shqiponjaesim.com';
-    const fromMatch = senderEmail.match(/^(.+?)\s*<(.+)>$/);
-    const sender = fromMatch
-      ? { name: fromMatch[1], email: fromMatch[2] }
-      : { name: 'Shqiponja eSIM', email: senderEmail };
-
-    const response = await client.transactionalEmails.sendTransacEmail({
-      sender,
-      to: [{ email: to }],
-      subject: 'Shqiponja eSIM - Email Test',
-      htmlContent: '<h2>Test i suksesshem!</h2><p>Email sistemi funksionon.</p>',
-    });
-    res.json({ ok: true, provider: 'brevo-api-direct', messageId: response?.messageId, sender });
-  } catch (err) {
-    res.status(500).json({
-      ok: false,
-      error: err.message,
-      name: err.name,
-      statusCode: err.statusCode || err.status,
-      body: err.body || err.response?.body,
-    });
-  }
+  res.json({ message: 'Shqiponja eSIM API' });
 });
 
 // Global error handler — catch unhandled errors
