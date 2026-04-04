@@ -31,9 +31,10 @@ function MicrosoftCallbackInner() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center">
-          <p className="text-red-600">{error}</p>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="max-w-md w-full rounded-xl border border-red-200 bg-red-50 p-8 text-center dark:bg-red-900/20 dark:border-red-800">
+          <p className="text-red-600 dark:text-red-400 font-medium">Autentifikimi me Microsoft dështoi</p>
+          <p className="mt-2 text-sm text-red-500 dark:text-red-400/80 break-words">{error}</p>
           <a href="/hyr" className="mt-4 inline-block text-shqiponja hover:underline">
             Kthehu te hyrja
           </a>

@@ -105,29 +105,64 @@ router.post('/microsoft', authLimiter, async (req, res) => {
       return res.status(500).json({ error: 'Microsoft OAuth nuk është konfiguruar' });
     }
 
-    // Exchange code for token
-    const axios = require('axios');
-    const tokenRes = await axios.post(
-      'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-      new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        code,
-        redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
-        scope: 'openid email profile',
-      }).toString(),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
+    console.log('Microsoft OAuth: exchanging code, redirectUri =', redirectUri);
 
-    const accessToken = tokenRes.data.access_token;
+    // Exchange code for token using native https
+    const https = require('https');
+    const tokenBody = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code',
+      scope: 'openid email profile',
+    }).toString();
 
-    // Get user info
-    const userRes = await axios.get('https://graph.microsoft.com/v1.0/me', {
-      headers: { Authorization: `Bearer ${accessToken}` },
+    const tokenData = await new Promise((resolve, reject) => {
+      const req = https.request('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(tokenBody) },
+      }, (resp) => {
+        let body = '';
+        resp.on('data', (c) => body += c);
+        resp.on('end', () => {
+          try { resolve({ status: resp.statusCode, data: JSON.parse(body) }); }
+          catch { reject(new Error('Invalid JSON from Microsoft token endpoint: ' + body.slice(0, 200))); }
+        });
+      });
+      req.on('error', reject);
+      req.write(tokenBody);
+      req.end();
     });
 
-    const profile = userRes.data;
+    if (tokenData.status !== 200 || !tokenData.data.access_token) {
+      const desc = tokenData.data.error_description || tokenData.data.error || 'Token exchange failed';
+      console.error('Microsoft token error:', desc);
+      return res.status(401).json({ error: desc });
+    }
+
+    const accessToken = tokenData.data.access_token;
+
+    // Get user info from Microsoft Graph
+    const profileData = await new Promise((resolve, reject) => {
+      https.get('https://graph.microsoft.com/v1.0/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }, (resp) => {
+        let body = '';
+        resp.on('data', (c) => body += c);
+        resp.on('end', () => {
+          try { resolve({ status: resp.statusCode, data: JSON.parse(body) }); }
+          catch { reject(new Error('Invalid JSON from MS Graph: ' + body.slice(0, 200))); }
+        });
+      }).on('error', reject);
+    });
+
+    if (profileData.status !== 200) {
+      console.error('MS Graph error:', profileData.data);
+      return res.status(401).json({ error: 'Nuk u mor profili nga Microsoft: ' + (profileData.data.error?.message || 'Unknown') });
+    }
+
+    const profile = profileData.data;
     if (!profile.mail && !profile.userPrincipalName) {
       return res.status(400).json({ error: 'Nuk u mor email-i nga Microsoft' });
     }
@@ -142,9 +177,8 @@ router.post('/microsoft', authLimiter, async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    const msError = err.response?.data?.error_description || err.response?.data?.error || err.message || 'Unknown';
-    console.error('Microsoft OAuth error:', msError);
-    res.status(401).json({ error: 'Autentifikimi me Microsoft dështoi: ' + msError });
+    console.error('Microsoft OAuth error:', err.message || err);
+    res.status(401).json({ error: 'Autentifikimi me Microsoft dështoi: ' + (err.message || 'Unknown') });
   }
 });
 
