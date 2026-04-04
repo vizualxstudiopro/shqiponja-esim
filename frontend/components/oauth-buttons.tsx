@@ -94,7 +94,7 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
     if (!providers?.microsoftClientId) return;
     setError("");
     const redirectUri = `${window.location.origin}/auth/microsoft/callback`;
-    const scope = "openid email profile User.Read";
+    const scope = "openid email profile";
     const url =
       `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?` +
       `client_id=${encodeURIComponent(providers.microsoftClientId)}` +

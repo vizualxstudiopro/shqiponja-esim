@@ -115,7 +115,7 @@ router.post('/microsoft', authLimiter, async (req, res) => {
       code,
       redirect_uri: redirectUri,
       grant_type: 'authorization_code',
-      scope: 'openid email profile User.Read',
+      scope: 'openid email profile',
     }).toString();
 
     const tokenData = await new Promise((resolve, reject) => {
@@ -135,44 +135,31 @@ router.post('/microsoft', authLimiter, async (req, res) => {
       httpReq.end();
     });
 
-    if (tokenData.status !== 200 || !tokenData.data.access_token) {
+    if (tokenData.status !== 200 || !tokenData.data.id_token) {
       const desc = tokenData.data.error_description || tokenData.data.error || 'Token exchange failed';
       console.error('Microsoft token error:', desc);
       return res.status(401).json({ error: desc });
     }
 
-    const accessToken = tokenData.data.access_token;
-
-    // Get user info from Microsoft Graph
-    const profileData = await new Promise((resolve, reject) => {
-      https.get('https://graph.microsoft.com/v1.0/me', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }, (resp) => {
-        let body = '';
-        resp.on('data', (c) => body += c);
-        resp.on('end', () => {
-          try { resolve({ status: resp.statusCode, data: JSON.parse(body) }); }
-          catch { reject(new Error('Invalid JSON from MS Graph: ' + body.slice(0, 200))); }
-        });
-      }).on('error', reject);
-    });
-
-    if (profileData.status !== 200) {
-      console.error('MS Graph error:', profileData.data);
-      return res.status(401).json({ error: 'Nuk u mor profili nga Microsoft: ' + (profileData.data.error?.message || 'Unknown') });
+    // Decode the id_token JWT to get user info (no MS Graph call needed)
+    const idToken = tokenData.data.id_token;
+    const parts = idToken.split('.');
+    if (parts.length !== 3) {
+      return res.status(401).json({ error: 'id_token i pavlefshëm nga Microsoft' });
     }
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
 
-    const profile = profileData.data;
-    if (!profile.mail && !profile.userPrincipalName) {
+    const email = payload.email || payload.preferred_username;
+    if (!email) {
+      console.error('Microsoft id_token payload (no email):', JSON.stringify(payload));
       return res.status(400).json({ error: 'Nuk u mor email-i nga Microsoft' });
     }
 
-    const email = profile.mail || profile.userPrincipalName;
     const result = await findOrCreateOAuthUser(
       email,
-      profile.displayName || email.split('@')[0],
+      payload.name || email.split('@')[0],
       'microsoft',
-      profile.id
+      payload.oid || payload.sub
     );
 
     res.json(result);
