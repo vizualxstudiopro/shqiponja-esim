@@ -115,11 +115,11 @@ router.post('/microsoft', authLimiter, async (req, res) => {
       code,
       redirect_uri: redirectUri,
       grant_type: 'authorization_code',
-      scope: 'openid email profile',
+      scope: 'openid email profile User.Read',
     }).toString();
 
     const tokenData = await new Promise((resolve, reject) => {
-      const req = https.request('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+      const httpReq = https.request('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(tokenBody) },
       }, (resp) => {
@@ -130,9 +130,9 @@ router.post('/microsoft', authLimiter, async (req, res) => {
           catch { reject(new Error('Invalid JSON from Microsoft token endpoint: ' + body.slice(0, 200))); }
         });
       });
-      req.on('error', reject);
-      req.write(tokenBody);
-      req.end();
+      httpReq.on('error', reject);
+      httpReq.write(tokenBody);
+      httpReq.end();
     });
 
     if (tokenData.status !== 200 || !tokenData.data.access_token) {
