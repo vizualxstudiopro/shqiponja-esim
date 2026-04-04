@@ -13,6 +13,7 @@ import {
   register as apiRegister,
   oauthGoogle as apiOauthGoogle,
   oauthMicrosoft as apiOauthMicrosoft,
+  oauthFacebook as apiOauthFacebook,
   getMe,
   type User,
 } from "@/lib/api";
@@ -25,6 +26,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   loginWithMicrosoft: (code: string, redirectUri: string) => Promise<void>;
+  loginWithFacebook: (code: string, redirectUri: string) => Promise<void>;
   loginWithApple: (token: string) => Promise<void>;
   logout: () => void;
   setUser: (u: User) => void;
@@ -105,6 +107,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user);
   }
 
+  async function loginWithFacebook(code: string, redirectUri: string) {
+    const res = await apiOauthFacebook(code, redirectUri);
+    localStorage.setItem("token", res.token);
+    setToken(res.token);
+    setUser(res.user);
+  }
+
   async function loginWithApple(jwtToken: string) {
     // Backend already validated with Apple — we just receive the JWT
     const u = await getMe(jwtToken);
@@ -114,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext value={{ user, token, loading, login, register, loginWithGoogle, loginWithMicrosoft, loginWithApple, logout, setUser }}>
+    <AuthContext value={{ user, token, loading, login, register, loginWithGoogle, loginWithMicrosoft, loginWithFacebook, loginWithApple, logout, setUser }}>
       {children}
     </AuthContext>
   );

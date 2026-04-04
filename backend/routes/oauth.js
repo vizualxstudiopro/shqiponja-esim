@@ -14,10 +14,12 @@ router.get('/providers', (req, res) => {
     google: !!process.env.GOOGLE_CLIENT_ID,
     microsoft: !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET),
     apple: !!process.env.APPLE_CLIENT_ID,
-    // Send Google Client ID so frontend can initialise Google Sign-In
+    facebook: !!(process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET),
+    // Send Client IDs so frontend can build auth URLs
     googleClientId: process.env.GOOGLE_CLIENT_ID || null,
     microsoftClientId: process.env.MICROSOFT_CLIENT_ID || null,
     appleClientId: process.env.APPLE_CLIENT_ID || null,
+    facebookAppId: process.env.FACEBOOK_APP_ID || null,
   });
 });
 
@@ -238,6 +240,83 @@ router.post('/apple/callback', async (req, res) => {
   } catch (err) {
     console.error('Apple OAuth error:', err);
     res.redirect(`${FRONTEND_URL}/auth/apple/callback?error=${encodeURIComponent('Autentifikimi me Apple dështoi')}`);
+  }
+});
+
+// ─── Facebook OAuth ───
+// Frontend redirects to Facebook, gets code back, sends it here
+router.post('/facebook', authLimiter, async (req, res) => {
+  try {
+    const { code, redirectUri } = req.body;
+    if (!code) return res.status(400).json({ error: 'Authorization code mungon' });
+
+    const appId = process.env.FACEBOOK_APP_ID;
+    const appSecret = process.env.FACEBOOK_APP_SECRET;
+    if (!appId || !appSecret) {
+      return res.status(500).json({ error: 'Facebook OAuth nuk është konfiguruar' });
+    }
+
+    // Exchange code for access token
+    const https = require('https');
+    const tokenUrl = `https://graph.facebook.com/v19.0/oauth/access_token?` +
+      `client_id=${encodeURIComponent(appId)}` +
+      `&client_secret=${encodeURIComponent(appSecret)}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&code=${encodeURIComponent(code)}`;
+
+    const tokenData = await new Promise((resolve, reject) => {
+      https.get(tokenUrl, (resp) => {
+        let body = '';
+        resp.on('data', (c) => body += c);
+        resp.on('end', () => {
+          try { resolve({ status: resp.statusCode, data: JSON.parse(body) }); }
+          catch { reject(new Error('Invalid JSON from Facebook token endpoint')); }
+        });
+      }).on('error', reject);
+    });
+
+    if (tokenData.status !== 200 || !tokenData.data.access_token) {
+      const desc = tokenData.data.error?.message || 'Token exchange failed';
+      console.error('Facebook token error:', desc);
+      return res.status(401).json({ error: desc });
+    }
+
+    const accessToken = tokenData.data.access_token;
+
+    // Get user profile from Facebook Graph API
+    const profileUrl = `https://graph.facebook.com/v19.0/me?fields=id,name,email&access_token=${encodeURIComponent(accessToken)}`;
+    const profileData = await new Promise((resolve, reject) => {
+      https.get(profileUrl, (resp) => {
+        let body = '';
+        resp.on('data', (c) => body += c);
+        resp.on('end', () => {
+          try { resolve({ status: resp.statusCode, data: JSON.parse(body) }); }
+          catch { reject(new Error('Invalid JSON from Facebook Graph API')); }
+        });
+      }).on('error', reject);
+    });
+
+    if (profileData.status !== 200 || !profileData.data.id) {
+      console.error('Facebook Graph error:', profileData.data);
+      return res.status(401).json({ error: 'Nuk u mor profili nga Facebook: ' + (profileData.data.error?.message || 'Unknown') });
+    }
+
+    const profile = profileData.data;
+    if (!profile.email) {
+      return res.status(400).json({ error: 'Nuk u mor email-i nga Facebook. Sigurohu që llogaria ka email të verifikuar.' });
+    }
+
+    const result = await findOrCreateOAuthUser(
+      profile.email,
+      profile.name || profile.email.split('@')[0],
+      'facebook',
+      profile.id
+    );
+
+    res.json(result);
+  } catch (err) {
+    console.error('Facebook OAuth error:', err.message || err);
+    res.status(401).json({ error: 'Autentifikimi me Facebook dështoi: ' + (err.message || 'Unknown') });
   }
 });
 

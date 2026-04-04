@@ -230,14 +230,16 @@ export interface OAuthProviders {
   google: boolean;
   microsoft: boolean;
   apple: boolean;
+  facebook: boolean;
   googleClientId: string | null;
   microsoftClientId: string | null;
   appleClientId: string | null;
+  facebookAppId: string | null;
 }
 
 export async function getOAuthProviders(): Promise<OAuthProviders> {
   const res = await fetchWithTimeout(`${API_URL}/api/auth/oauth/providers`);
-  if (!res.ok) return { google: false, microsoft: false, apple: false, googleClientId: null, microsoftClientId: null, appleClientId: null };
+  if (!res.ok) return { google: false, microsoft: false, apple: false, facebook: false, googleClientId: null, microsoftClientId: null, appleClientId: null, facebookAppId: null };
   return res.json();
 }
 
@@ -262,6 +264,19 @@ export async function oauthMicrosoft(code: string, redirectUri: string): Promise
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Microsoft login dështoi" }));
+    throw new Error(err.error);
+  }
+  return res.json();
+}
+
+export async function oauthFacebook(code: string, redirectUri: string): Promise<AuthResponse> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/oauth/facebook`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, redirectUri }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Facebook login dështoi" }));
     throw new Error(err.error);
   }
   return res.json();
