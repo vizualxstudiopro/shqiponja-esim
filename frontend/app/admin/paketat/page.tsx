@@ -12,6 +12,7 @@ import {
   adminSetCategory,
   adminGetCountries,
   adminBulkUpdate,
+  adminAutoCategorize,
   type EsimPackage,
   type CountryGroup,
 } from "@/lib/api";
@@ -35,7 +36,29 @@ function AdminFlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: s
   return <span className="text-lg leading-none">{emoji || "🌍"}</span>;
 }
 
-type QuickFilter = "all" | "visible" | "hidden" | "highlighted" | "local" | "regional" | "global";
+type QuickFilter = "all" | "visible" | "hidden" | "highlighted" | "balkans" | "europe" | "asia" | "middle_east" | "africa" | "americas" | "oceania" | "global";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  balkans: "Ballkani",
+  europe: "Evropa",
+  asia: "Azia",
+  middle_east: "Lindja e Mesme",
+  africa: "Afrika",
+  americas: "Amerika",
+  oceania: "Oqeania",
+  global: "Globale",
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  balkans: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  europe: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  asia: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  middle_east: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  africa: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  americas: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
+  oceania: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
+  global: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+};
 
 export default function AdminPackagesPage() {
   const { token } = useAuth();
@@ -225,9 +248,9 @@ export default function AdminPackagesPage() {
     if (quickFilter === "visible") return p.visible;
     if (quickFilter === "hidden") return !p.visible;
     if (quickFilter === "highlighted") return p.highlight;
-    if (quickFilter === "local") return p.category === "local" || !p.category;
-    if (quickFilter === "regional") return p.category === "regional";
-    if (quickFilter === "global") return p.category === "global";
+    if (["balkans", "europe", "asia", "middle_east", "africa", "americas", "oceania", "global"].includes(quickFilter)) {
+      return p.category === quickFilter;
+    }
     return true;
   });
 
@@ -274,7 +297,7 @@ export default function AdminPackagesPage() {
         setBrowseResults((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
       }
       setPackages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-      toast(`Kategoria u ndryshua: ${category === "local" ? "Lokale" : category === "regional" ? "Rajonale" : "Globale"}`, "success");
+      toast(`Kategoria u ndryshua: ${CATEGORY_LABELS[category] || category}`, "success");
     } catch (err) {
       toast(err instanceof Error ? err.message : "Gabim", "error");
     }
@@ -347,7 +370,29 @@ export default function AdminPackagesPage() {
           <h1 className="text-xl sm:text-2xl font-extrabold">{t("admin.packages")}</h1>
           <p className="mt-1 text-sm text-zinc-500">{countryStats.visiblePackages} aktive / {countryStats.totalPackages} gjithsej</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* Auto-categorize button */}
+          <button
+            onClick={async () => {
+              if (!token) return;
+              if (!confirm("Kategorizoji automatikisht të gjitha paketat sipas rajonit?")) return;
+              setBulkLoading(true);
+              try {
+                const result = await adminAutoCategorize(token);
+                toast(result.message, "success");
+                fetchPackages(page, search);
+                fetchCountries();
+              } catch (err) {
+                toast(err instanceof Error ? err.message : "Gabim", "error");
+              } finally {
+                setBulkLoading(false);
+              }
+            }}
+            disabled={bulkLoading}
+            className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm font-semibold text-amber-700 hover:bg-amber-100 transition disabled:opacity-50 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
+          >
+            🔄 Auto-Kategorizim
+          </button>
           {/* View mode toggle */}
           <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
             <button
@@ -612,9 +657,13 @@ export default function AdminPackagesPage() {
             { key: "visible" as QuickFilter, label: "Aktive" },
             { key: "hidden" as QuickFilter, label: "Jo aktive" },
             { key: "highlighted" as QuickFilter, label: "★" },
-            { key: "local" as QuickFilter, label: "Lok" },
-            { key: "regional" as QuickFilter, label: "Raj" },
-            { key: "global" as QuickFilter, label: "Glo" },
+            { key: "balkans" as QuickFilter, label: "Ballkani" },
+            { key: "europe" as QuickFilter, label: "Evropa" },
+            { key: "asia" as QuickFilter, label: "Azia" },
+            { key: "africa" as QuickFilter, label: "Afrika" },
+            { key: "americas" as QuickFilter, label: "Amerika" },
+            { key: "oceania" as QuickFilter, label: "Oqeania" },
+            { key: "global" as QuickFilter, label: "Globale" },
           ]).map((f) => (
             <button
               key={f.key}
@@ -670,17 +719,13 @@ export default function AdminPackagesPage() {
                     <td className="px-4 py-3">{p.region}</td>
                     <td className="px-4 py-3">
                       <select
-                        value={p.category || "local"}
+                        value={p.category || "europe"}
                         onChange={(e) => handleSetCategory(p, e.target.value, "main")}
-                        className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
-                          p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                          : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                          : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                        }`}
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${CATEGORY_COLORS[p.category || "europe"] || CATEGORY_COLORS.europe}`}
                       >
-                        <option value="local">Lok</option>
-                        <option value="regional">Raj</option>
-                        <option value="global">Glo</option>
+                        {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                          <option key={k} value={k}>{v}</option>
+                        ))}
                       </select>
                     </td>
                     <td className="px-4 py-3">{p.data}</td>
@@ -726,17 +771,13 @@ export default function AdminPackagesPage() {
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
                     <select
-                      value={p.category || "local"}
+                      value={p.category || "europe"}
                       onChange={(e) => handleSetCategory(p, e.target.value, "main")}
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
-                        p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                        : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                      }`}
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${CATEGORY_COLORS[p.category || "europe"] || CATEGORY_COLORS.europe}`}
                     >
-                      <option value="local">Lok</option>
-                      <option value="regional">Raj</option>
-                      <option value="global">Glo</option>
+                      {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                        <option key={k} value={k}>{v}</option>
+                      ))}
                     </select>
                     <button
                       onClick={() => handleToggleVisible(p, "main")}
@@ -847,17 +888,13 @@ export default function AdminPackagesPage() {
                           <td className="px-3 py-2 font-semibold">{"\u20AC"}{Number(p.price).toFixed(2)}</td>
                           <td className="px-3 py-2">
                             <select
-                              value={p.category || "local"}
+                              value={p.category || "europe"}
                               onChange={(e) => handleSetCategory(p, e.target.value, "browse")}
-                              className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
-                                p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                                : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                              }`}
+                              className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${CATEGORY_COLORS[p.category || "europe"] || CATEGORY_COLORS.europe}`}
                             >
-                              <option value="local">Lok</option>
-                              <option value="regional">Raj</option>
-                              <option value="global">Glo</option>
+                              {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                                <option key={k} value={k}>{v}</option>
+                              ))}
                             </select>
                           </td>
                           <td className="px-3 py-2">
@@ -907,17 +944,13 @@ export default function AdminPackagesPage() {
                         {/* Row 2: category + toggles */}
                         <div className="flex items-center gap-3">
                           <select
-                            value={p.category || "local"}
+                            value={p.category || "europe"}
                             onChange={(e) => handleSetCategory(p, e.target.value, "browse")}
-                            className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${
-                              p.category === "regional" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                              : p.category === "global" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                              : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                            }`}
+                            className={`rounded-full px-2 py-0.5 text-[11px] font-bold border-0 outline-none cursor-pointer ${CATEGORY_COLORS[p.category || "europe"] || CATEGORY_COLORS.europe}`}
                           >
-                            <option value="local">Lok</option>
-                            <option value="regional">Raj</option>
-                            <option value="global">Glo</option>
+                            {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                              <option key={k} value={k}>{v}</option>
+                            ))}
                           </select>
                           <div className="flex items-center gap-1.5 ml-auto">
                             <span className="text-[11px] text-zinc-400">Web</span>

@@ -35,7 +35,8 @@ router.get('/', async (req, res) => {
     sql += " AND (package_type IS NULL OR package_type = 'sim')";
   }
 
-  if (req.query.category && ['local', 'regional', 'global'].includes(req.query.category)) {
+  const validCategories = ['balkans', 'europe', 'asia', 'middle_east', 'africa', 'americas', 'oceania', 'global'];
+  if (req.query.category && validCategories.includes(req.query.category)) {
     sql += ` AND category = $${paramIdx}`;
     params.push(req.query.category);
     paramIdx++;
@@ -44,6 +45,23 @@ router.get('/', async (req, res) => {
   sql += ' ORDER BY region, price';
 
   const packages = (await db.query(sql, params)).rows;
+  res.json(packages.map(normalizePackage));
+});
+
+// GET /api/packages/search - Search ALL packages (including non-visible) for visitors
+router.get('/search', async (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (!q || q.length < 2) return res.json([]);
+
+  const like = `%${q}%`;
+  const packages = (await db.query(
+    `SELECT * FROM packages
+     WHERE (package_type IS NULL OR package_type = 'sim')
+       AND (name ILIKE $1 OR region ILIKE $1 OR country_code ILIKE $1 OR description ILIKE $1)
+     ORDER BY visible DESC, region, price
+     LIMIT 50`,
+    [like]
+  )).rows;
   res.json(packages.map(normalizePackage));
 });
 

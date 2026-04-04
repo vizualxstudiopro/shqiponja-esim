@@ -173,7 +173,8 @@ router.get('/packages', async (req, res) => {
     paramIdx++;
   }
   // Filter by category
-  if (['local', 'regional', 'global'].includes(req.query.category)) {
+  const validCats = ['balkans', 'europe', 'asia', 'middle_east', 'africa', 'americas', 'oceania', 'global'];
+  if (validCats.includes(req.query.category)) {
     where += ` AND category = $${paramIdx}`;
     params.push(req.query.category);
     paramIdx++;
@@ -227,7 +228,7 @@ router.patch('/packages/:id/category', async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
     const { category } = req.body;
-    const validCategories = ['local', 'regional', 'global'];
+    const validCategories = ['balkans', 'europe', 'asia', 'middle_east', 'africa', 'americas', 'oceania', 'global'];
     if (!validCategories.includes(category)) return res.status(400).json({ error: 'Kategori e pavlefshme' });
     await db.query('UPDATE packages SET category = $1 WHERE id = $2', [category, id]);
     const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [id])).rows[0];
@@ -248,8 +249,8 @@ router.post('/packages', async (req, res) => {
   if (!Number.isFinite(numPrice) || numPrice < 0) {
     return res.status(400).json({ error: 'Çmimi duhet të jetë numër pozitiv' });
   }
-  const validCategories = ['local', 'regional', 'global'];
-  const safeCategory = validCategories.includes(category) ? category : 'local';
+  const validCategories = ['balkans', 'europe', 'asia', 'middle_east', 'africa', 'americas', 'oceania', 'global'];
+  const safeCategory = validCategories.includes(category) ? category : 'europe';
   const result = await db.query(`
     INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description, category)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
@@ -266,8 +267,8 @@ router.put('/packages/:id', async (req, res) => {
   if (!Number.isFinite(numPrice) || numPrice < 0) {
     return res.status(400).json({ error: 'Çmimi duhet të jetë numër pozitiv' });
   }
-  const validCategories = ['local', 'regional', 'global'];
-  const safeCategory = validCategories.includes(category) ? category : 'local';
+  const validCategories = ['balkans', 'europe', 'asia', 'middle_east', 'africa', 'americas', 'oceania', 'global'];
+  const safeCategory = validCategories.includes(category) ? category : 'europe';
   await db.query(`
     UPDATE packages SET name=$1, region=$2, flag=$3, data=$4, duration=$5, price=$6, currency=$7, highlight=$8, description=$9, visible=$10, category=$11
     WHERE id=$12
@@ -334,7 +335,7 @@ router.patch('/packages-bulk', async (req, res) => {
     }
 
     if (action === 'category') {
-      const validCategories = ['local', 'regional', 'global'];
+      const validCategories = ['balkans', 'europe', 'asia', 'middle_east', 'africa', 'americas', 'oceania', 'global'];
       if (!validCategories.includes(category)) return res.status(400).json({ error: 'Kategori e pavlefshme' });
       if (Array.isArray(ids) && ids.length > 0) {
         const safeIds = ids.filter(id => Number.isFinite(Number(id))).map(Number);
@@ -355,6 +356,53 @@ router.patch('/packages-bulk', async (req, res) => {
     res.status(400).json({ error: 'Veprim i pavlefshëm. Përdor: visible, hidden, category' });
   } catch (err) {
     console.error('Bulk update error:', err);
+    res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
+  }
+});
+
+/* ─── AUTO-CATEGORIZE BY REGION ─── */
+const BALKAN_CODES = new Set(['AL', 'BA', 'BG', 'HR', 'GR', 'XK', 'ME', 'MK', 'RO', 'RS', 'SI', 'TR', 'CY']);
+
+function regionForPackage(row) {
+  const cc = (row.country_code || '').toUpperCase();
+  const region = (row.region || '').toLowerCase();
+
+  // Global packages
+  if (cc === 'GL' || region === 'global') return 'global';
+
+  // Balkans
+  if (BALKAN_CODES.has(cc)) return 'balkans';
+
+  // Map Airalo regions
+  if (region.includes('europe')) return 'europe';
+  if (region.includes('asia') || region.includes('middle east')) return 'asia';
+  if (region.includes('africa')) return 'africa';
+  if (region.includes('oceania')) return 'oceania';
+  if (region.includes('america') || region.includes('caribbean')) return 'americas';
+
+  // Regional codes
+  if (cc === 'EU') return 'europe';
+  if (cc === 'AS') return 'asia';
+  if (cc === 'AF') return 'africa';
+  if (cc === 'OC') return 'oceania';
+  if (cc === 'ME') return 'americas';
+  if (cc === 'CB') return 'americas';
+
+  return 'europe'; // default fallback
+}
+
+router.post('/packages-auto-categorize', async (req, res) => {
+  try {
+    const rows = (await db.query('SELECT id, country_code, region FROM packages')).rows;
+    let updated = 0;
+    for (const row of rows) {
+      const cat = regionForPackage(row);
+      await db.query('UPDATE packages SET category = $1 WHERE id = $2', [cat, row.id]);
+      updated++;
+    }
+    res.json({ updated, message: `${updated} paketa u kategorizuan automatikisht` });
+  } catch (err) {
+    console.error('Auto-categorize error:', err);
     res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
   }
 });

@@ -98,6 +98,20 @@ export async function getDestinations(): Promise<Destination[]> {
   }
 }
 
+export async function searchPackages(q: string): Promise<EsimPackage[]> {
+  if (!q || q.trim().length < 2) return [];
+  try {
+    const res = await fetchWithTimeout(
+      `${API_URL}/api/packages/search?q=${encodeURIComponent(q.trim())}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function getPackageById(id: number): Promise<EsimPackage | null> {
   try {
     const res = await fetchWithTimeout(`${API_URL}/api/packages/${id}`, {
@@ -416,6 +430,12 @@ export async function adminGetCountries(token: string): Promise<CountryGroup[]> 
 export async function adminBulkUpdate(token: string, body: { action: string; ids?: number[]; country_code?: string; category?: string }): Promise<{ updated: number }> {
   const res = await fetchWithTimeout(`${API_URL}/api/admin/packages-bulk`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify(body) });
   if (!res.ok) { const e = await res.json().catch(() => ({ error: "Veprimi dështoi" })); throw new Error(e.error || "Veprimi dështoi"); }
+  return res.json();
+}
+
+export async function adminAutoCategorize(token: string): Promise<{ updated: number; message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages-auto-categorize`, { method: "POST", headers: authHeaders(token) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Kategorizimi dështoi" })); throw new Error(e.error || "Kategorizimi dështoi"); }
   return res.json();
 }
 
