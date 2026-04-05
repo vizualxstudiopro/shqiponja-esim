@@ -77,6 +77,15 @@ const translations = {
     "how.step3.title": "Aktivizo Internetin",
     "how.step3.desc": "Aktivizo eSIM-in direkt nga cilësimet e telefonit dhe shijo internetin.",
 
+    // Device Compatibility
+    "compat.badge": "Kompatibilitëti",
+    "compat.title": "A është pajisja jote e gatshme?",
+    "compat.subtitle": "Shkruaj modelin e telefonit tënd për të verifikuar nëse mbështet eSIM.",
+    "compat.placeholder": "p.sh. iPhone 13, Samsung S24, Pixel 8...",
+    "compat.yes": "Po, pajisja juaj është e gatshme për eSIM!",
+    "compat.unknown": "Nuk e gjetëm këtë model. Kontrolloni listen zyrtare të prodhuesit.",
+    "compat.hint": "Lista përfshijn shumicën e pajisjeve të njohura. Nëse nuk e gjeni tuajën, kontaktoni prodhuesin.",
+
     // CTA
     "cta.title": "Gati për të udhëtuar pa kufij?",
     "cta.subtitle": "Bli paketën tënde eSIM sot dhe shijo internet kudo pa roaming.",
@@ -415,6 +424,15 @@ const translations = {
     "how.step2.desc": "Receive the QR code via email and scan it with your phone.",
     "how.step3.title": "Activate Internet",
     "how.step3.desc": "Activate the eSIM from your phone settings and enjoy the internet.",
+
+    // Device Compatibility
+    "compat.badge": "Compatibility",
+    "compat.title": "Is your device ready?",
+    "compat.subtitle": "Type your phone model to check if it supports eSIM.",
+    "compat.placeholder": "e.g. iPhone 13, Samsung S24, Pixel 8...",
+    "compat.yes": "Yes, your device is eSIM ready!",
+    "compat.unknown": "We couldn\u2019t find this model. Check your manufacturer\u2019s official list.",
+    "compat.hint": "This list covers most popular devices. If yours isn\u2019t listed, contact your manufacturer.",
 
     // CTA
     "cta.title": "Ready to travel without limits?",

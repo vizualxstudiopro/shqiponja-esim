@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import PackageGrid from "@/components/package-grid";
+import { Smartphone, Search, CheckCircle, XCircle } from "lucide-react";
 
 import Link from "next/link";
 
@@ -58,11 +59,67 @@ function StepIcon3() {
 
 const stepIcons = [<StepIcon1 key="1" />, <StepIcon2 key="2" />, <StepIcon3 key="3" />];
 
+/* eSIM-compatible device patterns (case-insensitive partial match) */
+const ESIM_DEVICES = [
+  // Apple
+  "iphone xr", "iphone xs", "iphone xs max",
+  "iphone 11", "iphone 11 pro", "iphone 11 pro max",
+  "iphone 12", "iphone 12 mini", "iphone 12 pro", "iphone 12 pro max",
+  "iphone 13", "iphone 13 mini", "iphone 13 pro", "iphone 13 pro max",
+  "iphone 14", "iphone 14 plus", "iphone 14 pro", "iphone 14 pro max",
+  "iphone 15", "iphone 15 plus", "iphone 15 pro", "iphone 15 pro max",
+  "iphone 16", "iphone 16 plus", "iphone 16 pro", "iphone 16 pro max",
+  "iphone se 2", "iphone se 3",
+  "ipad pro", "ipad air", "ipad mini", "ipad 10",
+  "apple watch",
+  // Samsung
+  "galaxy s20", "galaxy s21", "galaxy s22", "galaxy s23", "galaxy s24", "galaxy s25",
+  "galaxy s20 fe", "galaxy s21 fe", "galaxy s23 fe", "galaxy s24 fe",
+  "galaxy s20+", "galaxy s20 plus", "galaxy s20 ultra",
+  "galaxy s21+", "galaxy s21 plus", "galaxy s21 ultra",
+  "galaxy s22+", "galaxy s22 plus", "galaxy s22 ultra",
+  "galaxy s23+", "galaxy s23 plus", "galaxy s23 ultra",
+  "galaxy s24+", "galaxy s24 plus", "galaxy s24 ultra",
+  "galaxy s25+", "galaxy s25 plus", "galaxy s25 ultra",
+  "galaxy note 20", "galaxy note 20 ultra",
+  "galaxy z flip", "galaxy z flip3", "galaxy z flip4", "galaxy z flip5", "galaxy z flip6",
+  "galaxy z fold", "galaxy z fold2", "galaxy z fold3", "galaxy z fold4", "galaxy z fold5", "galaxy z fold6",
+  "galaxy a54", "galaxy a55", "galaxy a35", "galaxy a34",
+  // Google
+  "pixel 2", "pixel 3", "pixel 3a", "pixel 4", "pixel 4a", "pixel 5", "pixel 5a",
+  "pixel 6", "pixel 6a", "pixel 6 pro", "pixel 7", "pixel 7a", "pixel 7 pro",
+  "pixel 8", "pixel 8a", "pixel 8 pro", "pixel 9", "pixel 9 pro",
+  // Huawei
+  "huawei p40", "huawei p40 pro", "huawei p50", "huawei p50 pro", "huawei mate 40",
+  // Motorola
+  "motorola razr", "moto g", "edge 40", "edge 30",
+  // Xiaomi
+  "xiaomi 12t", "xiaomi 13", "xiaomi 13 pro", "xiaomi 14",
+  // OnePlus / Oppo
+  "oneplus 12", "oneplus 11", "oppo find x5", "oppo find x6", "oppo find n",
+  // Sony
+  "xperia 1 iv", "xperia 1 v", "xperia 5 iv", "xperia 5 v", "xperia 10 iv", "xperia 10 v",
+  // Other
+  "surface duo", "surface pro",
+];
+
 export default function LandingContent() {
   const { t } = useI18n();
   const packagesRef = useReveal();
   const howRef = useReveal();
+  const compatRef = useReveal();
   const ctaRef = useReveal();
+
+  const [deviceQuery, setDeviceQuery] = useState("");
+  const [compatResult, setCompatResult] = useState<"idle" | "compatible" | "unknown">("idle");
+
+  function checkDevice(q: string) {
+    setDeviceQuery(q);
+    if (q.trim().length < 2) { setCompatResult("idle"); return; }
+    const lower = q.toLowerCase().trim();
+    const found = ESIM_DEVICES.some((d) => lower.includes(d) || d.includes(lower));
+    setCompatResult(found ? "compatible" : "unknown");
+  }
 
   const steps = [
     { num: "01", titleKey: "how.step1.title" as const, descKey: "how.step1.desc" as const },
@@ -199,6 +256,51 @@ export default function LandingContent() {
                 <p className="mt-2 text-sm leading-relaxed text-zinc-500">{t(step.descKey)}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ DEVICE COMPATIBILITY CHECK ══════════ */}
+      <section className="bg-white py-20 lg:py-28 dark:bg-zinc-950">
+        <div ref={compatRef} className="reveal mx-auto max-w-7xl px-6">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="inline-block rounded-full bg-shqiponja/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-shqiponja">
+              {t("compat.badge")}
+            </span>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              {t("compat.title")}
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-zinc-500">
+              {t("compat.subtitle")}
+            </p>
+
+            <div className="mt-8 relative mx-auto max-w-md">
+              <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400 pointer-events-none" />
+              <input
+                type="text"
+                value={deviceQuery}
+                onChange={(e) => checkDevice(e.target.value)}
+                placeholder={t("compat.placeholder")}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-4 pl-12 pr-12 text-base outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-300 pointer-events-none" />
+            </div>
+
+            {/* Result */}
+            {compatResult === "compatible" && (
+              <div className="mt-5 inline-flex items-center gap-2 rounded-xl bg-green-50 px-5 py-3 text-green-700 dark:bg-green-900/20 dark:text-green-400 animate-fade-up">
+                <CheckCircle className="h-5 w-5 shrink-0" />
+                <span className="text-sm font-semibold">{t("compat.yes")}</span>
+              </div>
+            )}
+            {compatResult === "unknown" && (
+              <div className="mt-5 inline-flex items-center gap-2 rounded-xl bg-amber-50 px-5 py-3 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 animate-fade-up">
+                <XCircle className="h-5 w-5 shrink-0" />
+                <span className="text-sm font-semibold">{t("compat.unknown")}</span>
+              </div>
+            )}
+
+            <p className="mt-6 text-xs text-zinc-400">{t("compat.hint")}</p>
           </div>
         </div>
       </section>
