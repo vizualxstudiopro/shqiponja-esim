@@ -1,5 +1,5 @@
 const express = require('express');
-const { escapeHtml } = require('../lib/email');
+const { escapeHtml, contactConfirmationTemplate, contactAdminTemplate } = require('../lib/email');
 const { sendTransactionalEmail } = require('../lib/emailService');
 const { contactLimiter } = require('../middleware/rate-limit');
 const { sanitizeString } = require('../middleware/validate');
@@ -26,37 +26,20 @@ router.post('/', contactLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Email i pavlefshëm' });
   }
 
-  const customerHtml = `<h2>Përshëndetje, ${escapeHtml(name)}!</h2><p>E morëm mesazhin tënd dhe do të të kontaktojmë sa më shpejt.</p><p><strong>Mesazhi yt:</strong></p><p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`;
   const customerPromise = sendTransactionalEmail({
     toEmail: email,
     subject: 'Konfirmim kontakti — Shqiponja eSIM',
-    html: customerHtml,
-    templateId: 3,
-    params: {
-      FIRSTNAME: name,
-      MESSAGE: message,
-    },
+    html: contactConfirmationTemplate(name, message),
     logLabel: 'CONTACT CUSTOMER EMAIL',
   }).catch(err => {
     console.error('Contact confirmation delivery failed:', err);
     throw err;
   });
 
-  const adminHtml = `<h2>Mesazh i ri nga forma e kontaktit</h2>
-       <p><strong>Emri:</strong> ${escapeHtml(name)}</p>
-       <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-       <p><strong>Mesazhi:</strong></p>
-       <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`;
   const supportPromise = sendTransactionalEmail({
     toEmail: SUPPORT_EMAIL,
     subject: `Kontakt nga ${escapeHtml(name)} — Shqiponja eSIM`,
-    html: adminHtml,
-    templateId: 4,
-    params: {
-      FIRSTNAME: name,
-      EMAIL: email,
-      MESSAGE: message,
-    },
+    html: contactAdminTemplate(name, email, message),
     logLabel: 'CONTACT ADMIN EMAIL',
   }).catch(err => {
     console.error('Admin contact delivery failed:', err);

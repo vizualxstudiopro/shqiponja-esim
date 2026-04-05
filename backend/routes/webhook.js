@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const router = express.Router();
 const db = require('../db');
 const { sendTransactionalEmail } = require('../lib/emailService');
+const { orderConfirmationTemplate } = require('../lib/email');
 const airalo = require('../lib/airaloService');
 
 const LS_WEBHOOK_SECRET = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
@@ -90,33 +91,24 @@ router.post('/', async (req, res) => {
 
       // Send confirmation email
       const updatedOrder = (await db.query(`
-        SELECT o.*, p.name AS package_name, p.flag AS package_flag
+        SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price
         FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1
       `, [Number(orderId)])).rows[0];
       if (updatedOrder) {
         const customerEmail = event.data?.attributes?.user_email || customData?.email || updatedOrder.email;
         const esimCode = updatedOrder.iccid || updatedOrder.qr_data || airaloQr;
 
-        const orderHtml = `<div style="font-family:sans-serif;max-width:500px;margin:0 auto">
-              <h2>Shqiponja eSIM</h2>
-              <p>Faleminderit për blerjen! Porosia jote #${orderId} është konfirmuar.</p>
-              <div style="background:#f4f4f5;padding:16px;border-radius:12px;margin:16px 0">
-                <p><strong>${updatedOrder.package_flag} ${updatedOrder.package_name}</strong></p>
-                <p>ICCID: <strong>${updatedOrder.iccid || 'N/A'}</strong></p>
-                <p>QR Kodi: <strong>${updatedOrder.qr_data}</strong></p>
-              </div>
-              <p>Skano QR kodin në Cilësimet > Celular > Shto Plan eSIM për ta aktivizuar.</p>
-            </div>`;
         sendTransactionalEmail({
           toEmail: customerEmail,
           subject: 'Porosia jote — Shqiponja eSIM',
-          html: orderHtml,
-          templateId: 1,
-          params: {
-            FIRSTNAME: customerEmail.split('@')[0],
-            COUNTRY: updatedOrder.package_name || '',
-            ACTIVATION_CODE: esimCode,
-          },
+          html: orderConfirmationTemplate({
+            orderId,
+            packageFlag: updatedOrder.package_flag,
+            packageName: updatedOrder.package_name,
+            price: updatedOrder.price,
+            iccid: updatedOrder.iccid,
+            qrData: updatedOrder.qr_data,
+          }),
           logLabel: 'ORDER EMAIL',
         }).catch(err => {
           console.error('Order confirmation delivery failed:', err);

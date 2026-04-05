@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../db');
 const { authMiddleware } = require('../middleware/auth');
-const { escapeHtml } = require('../lib/email');
+const { escapeHtml, verifyEmailTemplate, resetPasswordTemplate } = require('../lib/email');
 const { sendTransactionalEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { validateRegister, validateLogin } = require('../middleware/validate');
@@ -53,7 +53,7 @@ router.post('/register', authLimiter, validateRegister, async (req, res) => {
   sendTransactionalEmail({
     toEmail: email,
     subject: 'Verifiko email-in tënd — Shqiponja eSIM',
-    html: `<h2>Mirë se vjen, ${escapeHtml(name)}!</h2><p>Kliko linkun për ta verifikuar email-in:</p><a href="${verifyUrl}">${verifyUrl}</a>`,
+    html: verifyEmailTemplate(name, verifyUrl),
     logLabel: 'VERIFY EMAIL',
   }).catch(err => console.error('Verification email error:', err));
 
@@ -135,7 +135,7 @@ router.post('/resend-verify', authMiddleware, async (req, res) => {
   sendTransactionalEmail({
     toEmail: user.email,
     subject: 'Verifiko email-in tënd — Shqiponja eSIM',
-    html: `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për ta verifikuar email-in:</p><a href="${verifyUrl}">${verifyUrl}</a>`,
+    html: verifyEmailTemplate(user.name, verifyUrl),
     logLabel: 'RESEND VERIFY EMAIL',
   }).catch(err => console.error('Resend verification email error:', err));
 
@@ -168,17 +168,10 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
 
   const resetUrl = `${FRONTEND_URL}/rivendos-fjalekalimin?token=${resetToken}`;
 
-  const resetHtml = `<h2>Përshëndetje, ${escapeHtml(user.name)}!</h2><p>Kliko linkun për të rivendosur fjalëkalimin (i vlefshëm për 1 orë):</p><a href="${resetUrl}">${resetUrl}</a><p>Nëse nuk e kërkove këtë, injoroje këtë email.</p>`;
-
   sendTransactionalEmail({
     toEmail: email,
     subject: 'Rivendos fjalëkalimin — Shqiponja eSIM',
-    html: resetHtml,
-    templateId: 2,
-    params: {
-      FIRSTNAME: user.name || email.split('@')[0],
-      RESET_LINK: resetUrl,
-    },
+    html: resetPasswordTemplate(user.name || email.split('@')[0], resetUrl),
     logLabel: 'PASSWORD RESET EMAIL',
   }).catch(err => {
     console.error('Password reset delivery failed:', err);

@@ -4,6 +4,7 @@ const axios = require('axios');
 const router = express.Router();
 const db = require('../db');
 const { sendTransactionalEmail } = require('../lib/emailService');
+const { orderConfirmationTemplate } = require('../lib/email');
 const airalo = require('../lib/airaloService');
 const { apiLimiter } = require('../middleware/rate-limit');
 const { validateCheckout } = require('../middleware/validate');
@@ -93,15 +94,14 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     sendTransactionalEmail({
       toEmail: email,
       subject: 'Porosia jote — Shqiponja eSIM',
-      html: `<div style="font-family:sans-serif;max-width:500px;margin:0 auto">
-        <h2>🦅 Shqiponja eSIM</h2>
-        <p>Faleminderit për blerjen! Porosia jote #${orderId} është konfirmuar.</p>
-        <div style="background:#f4f4f5;padding:16px;border-radius:12px;margin:16px 0">
-          <p><strong>${order.package_flag} ${order.package_name}</strong></p>
-          <p>QR Kodi yt: <strong>${qrData}</strong></p>
-        </div>
-        <p>Skano QR kodin në Cilësimet > Celular > Shto Plan eSIM për ta aktivizuar.</p>
-      </div>`,
+      html: orderConfirmationTemplate({
+        orderId,
+        packageFlag: order.package_flag,
+        packageName: order.package_name,
+        price: order.price,
+        iccid: null,
+        qrData,
+      }),
       logLabel: 'ORDER EMAIL',
     }).catch(err => console.error('Order email error:', err));
 
