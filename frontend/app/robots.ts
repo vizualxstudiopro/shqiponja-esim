@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/profili", "/porosi/", "/verifiko", "/rivendos-fjalekalimin"],
       },
     ],
-    sitemap: "https://shqiponja-esim.com/sitemap.xml",
+    sitemap: "https://shqiponjaesim.com/sitemap.xml",
   };
 }
