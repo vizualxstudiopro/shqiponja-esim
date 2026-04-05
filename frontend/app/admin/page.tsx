@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { adminGetStats } from "@/lib/api";
+import { ShoppingCart, CreditCard, Euro, Users, Package, type LucideIcon } from "lucide-react";
 
 interface Stats {
   totalOrders: number;
@@ -51,12 +52,12 @@ export default function AdminDashboard() {
     return <div className="animate-pulse space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="h-24 rounded-xl bg-zinc-200" />)}</div>;
   }
 
-  const cards = [
-    { label: t("admin.totalOrders"), value: stats.totalOrders, color: "bg-blue-50 text-blue-700" },
-    { label: t("admin.paidOrders"), value: stats.paidOrders, color: "bg-green-50 text-green-700" },
-    { label: t("admin.revenue"), value: `€${stats.totalRevenue.toFixed(2)}`, color: "bg-shqiponja/10 text-shqiponja" },
-    { label: t("admin.usersCount"), value: stats.totalUsers, color: "bg-purple-50 text-purple-700" },
-    { label: t("admin.packagesCount"), value: stats.totalPackages, color: "bg-amber-50 text-amber-700" },
+  const cards: { label: string; value: string | number; color: string; icon: LucideIcon; iconColor: string }[] = [
+    { label: t("admin.totalOrders"), value: stats.totalOrders, color: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400", icon: ShoppingCart, iconColor: "text-blue-500 dark:text-blue-400" },
+    { label: t("admin.paidOrders"), value: stats.paidOrders, color: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400", icon: CreditCard, iconColor: "text-green-500 dark:text-green-400" },
+    { label: t("admin.revenue"), value: `€${stats.totalRevenue.toFixed(2)}`, color: "bg-shqiponja/10 text-shqiponja", icon: Euro, iconColor: "text-shqiponja" },
+    { label: t("admin.usersCount"), value: stats.totalUsers, color: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400", icon: Users, iconColor: "text-purple-500 dark:text-purple-400" },
+    { label: t("admin.packagesCount"), value: stats.totalPackages, color: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400", icon: Package, iconColor: "text-amber-500 dark:text-amber-400" },
   ];
 
   return (
@@ -65,12 +66,18 @@ export default function AdminDashboard() {
       <p className="mt-1 text-sm text-zinc-500">{t("admin.summary")}</p>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
-        {cards.map((c) => (
-          <div key={c.label} className={`rounded-xl border border-zinc-200 p-4 sm:p-5 dark:border-zinc-700 ${c.color}`}>
-            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider opacity-70">{c.label}</p>
-            <p className="mt-1 sm:mt-2 text-xl sm:text-2xl font-extrabold">{c.value}</p>
-          </div>
-        ))}
+        {cards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <div key={c.label} className={`rounded-xl border border-zinc-200 p-4 sm:p-5 dark:border-zinc-700 ${c.color}`}>
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider opacity-70">{c.label}</p>
+                <Icon className={`h-5 w-5 opacity-60 ${c.iconColor}`} />
+              </div>
+              <p className="mt-1 sm:mt-2 text-xl sm:text-2xl font-extrabold">{c.value}</p>
+            </div>
+          );
+        })}
       </div>
 
       {/* Charts */}

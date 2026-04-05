@@ -17,6 +17,7 @@ import {
   type CountryGroup,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
+import { RefreshCw, Globe, List, Star, Search, ChevronDown, ChevronLeft, ChevronRight, Pencil, Trash2, Plus, Check, X as XIcon, Eye, EyeOff } from "lucide-react";
 
 const PAGE_SIZE = 50;
 
@@ -33,7 +34,7 @@ function AdminFlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: s
   if (cc && cc.length === 2 && !REGIONAL.has(upper) && !GLOBAL.has(upper)) {
     return <span className={`fi fi-${cc} fis`} style={{ fontSize: "1.25rem", borderRadius: "3px", display: "inline-block", verticalAlign: "middle" }} />;
   }
-  return <span className="text-lg leading-none">{emoji || "🌍"}</span>;
+  return <Globe className="h-5 w-5 text-zinc-400" />;
 }
 
 type QuickFilter = "all" | "visible" | "hidden" | "highlighted" | "balkans" | "europe" | "asia" | "middle_east" | "africa" | "americas" | "oceania" | "global";
@@ -391,21 +392,21 @@ export default function AdminPackagesPage() {
             disabled={bulkLoading}
             className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm font-semibold text-amber-700 hover:bg-amber-100 transition disabled:opacity-50 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
           >
-            🔄 Auto-Kategorizim
+            <RefreshCw className={`h-4 w-4 ${bulkLoading ? "animate-spin" : ""}`} /> Auto-Kategorizim
           </button>
           {/* View mode toggle */}
           <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
             <button
               onClick={() => setViewMode("countries")}
-              className={`px-3 py-2 text-sm font-medium transition ${viewMode === "countries" ? "bg-shqiponja text-white" : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"}`}
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition ${viewMode === "countries" ? "bg-shqiponja text-white" : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"}`}
             >
-              🌍 Vendet
+              <Globe className="h-4 w-4" /> Vendet
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`px-3 py-2 text-sm font-medium transition ${viewMode === "list" ? "bg-shqiponja text-white" : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"}`}
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition ${viewMode === "list" ? "bg-shqiponja text-white" : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"}`}
             >
-              📋 Lista
+              <List className="h-4 w-4" /> Lista
             </button>
           </div>
           <button
@@ -479,14 +480,14 @@ export default function AdminPackagesPage() {
                 disabled={bulkLoading}
                 className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition disabled:opacity-50"
               >
-                ✓ Aktivizo të gjitha
+                <Check className="h-3.5 w-3.5" /> Aktivizo të gjitha
               </button>
               <button
                 onClick={() => bulkToggleSelected(false)}
                 disabled={bulkLoading}
                 className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition disabled:opacity-50"
               >
-                ✕ Çaktivizo të gjitha
+                <XIcon className="h-3.5 w-3.5" /> Çaktivizo të gjitha
               </button>
               <button
                 onClick={deselectAll}
@@ -565,7 +566,7 @@ export default function AdminPackagesPage() {
                         onClick={() => expandCountry(c.country_code)}
                         className="shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
                       >
-                        <svg className={`h-4 w-4 transition ${expandedCountry === c.country_code ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        <ChevronDown className={`h-4 w-4 transition ${expandedCountry === c.country_code ? "rotate-180" : ""}`} />
                       </button>
                     </div>
                     {/* Expanded packages */}
@@ -584,16 +585,16 @@ export default function AdminPackagesPage() {
                                   <p className="text-[11px] text-zinc-400">{p.data} · {p.duration} · €{Number(p.price).toFixed(2)}</p>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
-                                  {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                                  {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja flex items-center"><Star className="h-3 w-3" /></span>}
                                   <button
                                     onClick={() => handleToggleVisible(p, "main")}
-                                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition ${
+                                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition flex items-center gap-1 ${
                                       p.visible
                                         ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                                         : "bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400"
                                     }`}
                                   >
-                                    {p.visible ? "Web ✓" : "Web ✕"}
+                                    {p.visible ? <><Eye className="h-3 w-3" /> Web</> : <><EyeOff className="h-3 w-3" /> Web</>}
                                   </button>
                                   <button
                                     onClick={() => handleToggleHighlight(p, "main")}
@@ -603,7 +604,7 @@ export default function AdminPackagesPage() {
                                         : "bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400"
                                     }`}
                                   >
-                                    ★
+                                    <Star className="h-3 w-3" />
                                   </button>
                                   <button onClick={() => openEdit(p)} className="rounded-lg border border-zinc-200 px-2 py-1 text-[11px] font-medium dark:border-zinc-600">{t("admin.edit")}</button>
                                 </div>
@@ -638,7 +639,7 @@ export default function AdminPackagesPage() {
         </div>
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-900/20">
           <p className="text-2xl font-extrabold text-amber-700 dark:text-amber-400">{stats.highlighted}</p>
-          <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">★ Populare</p>
+          <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">Populare</p>
         </div>
       </div>
 
@@ -656,7 +657,7 @@ export default function AdminPackagesPage() {
             { key: "all" as QuickFilter, label: "Të gjitha" },
             { key: "visible" as QuickFilter, label: "Aktive" },
             { key: "hidden" as QuickFilter, label: "Jo aktive" },
-            { key: "highlighted" as QuickFilter, label: "★" },
+            { key: "highlighted" as QuickFilter, label: "Populare" },
             { key: "balkans" as QuickFilter, label: "Ballkani" },
             { key: "europe" as QuickFilter, label: "Evropa" },
             { key: "asia" as QuickFilter, label: "Azia" },
@@ -714,7 +715,7 @@ export default function AdminPackagesPage() {
                       <div className="flex items-center gap-2">
                         <AdminFlagIcon countryCode={p.country_code} emoji={p.flag} />
                         <span>{p.name}</span>
-                        {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                        {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja flex items-center gap-0.5"><Star className="h-3 w-3" /></span>}
                       </div>
                     </td>
                     <td className="px-4 py-3">{p.region}</td>
@@ -770,7 +771,7 @@ export default function AdminPackagesPage() {
                   </div>
                   {/* Row 2: Badges + toggles + actions */}
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja">★</span>}
+                    {p.highlight && <span className="rounded-full bg-shqiponja/10 px-2 py-0.5 text-[10px] font-bold text-shqiponja flex items-center gap-0.5"><Star className="h-3 w-3" /></span>}
                     <select
                       value={p.category || "europe"}
                       onChange={(e) => handleSetCategory(p, e.target.value, "main")}
@@ -788,7 +789,7 @@ export default function AdminPackagesPage() {
                           : "bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400"
                       }`}
                     >
-                      {p.visible ? "Web ✓" : "Web ✕"}
+                      {p.visible ? <><Eye className="h-3 w-3 inline" /> Web</> : <><EyeOff className="h-3 w-3 inline" /> Web</>}
                     </button>
                     <div className="ml-auto flex gap-1.5">
                       <button onClick={() => openEdit(p)} className="rounded-lg border border-zinc-200 px-2.5 py-1 text-[11px] font-medium dark:border-zinc-600">{t("admin.edit")}</button>
@@ -814,14 +815,14 @@ export default function AdminPackagesPage() {
               onClick={() => fetchPackages(page - 1, search)}
               className="rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
             >
-              ←
+              <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => fetchPackages(page + 1, search)}
               className="rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
             >
-              →
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -839,7 +840,7 @@ export default function AdminPackagesPage() {
                   <h2 className="text-lg font-bold">Zgjedh Paketë nga Databaza</h2>
                   <p className="mt-1 text-sm text-zinc-500">{browseTotal} paketa gjithsej</p>
                 </div>
-                <button onClick={() => setBrowsing(false)} className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition dark:border-zinc-600 dark:hover:bg-zinc-700">✕</button>
+                <button onClick={() => setBrowsing(false)} className="rounded-lg border border-zinc-200 p-1.5 text-sm font-medium hover:bg-zinc-50 transition dark:border-zinc-600 dark:hover:bg-zinc-700"><XIcon className="h-5 w-5" /></button>
               </div>
               <input
                 type="text"
@@ -870,7 +871,7 @@ export default function AdminPackagesPage() {
                         <th className="px-3 py-2 font-semibold">{t("admin.price")}</th>
                         <th className="px-3 py-2 font-semibold">Kat.</th>
                         <th className="px-3 py-2 font-semibold">Web</th>
-                        <th className="px-3 py-2 font-semibold">★</th>
+                        <th className="px-3 py-2 font-semibold">Pop.</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-100 dark:divide-zinc-700">
@@ -967,7 +968,7 @@ export default function AdminPackagesPage() {
                             </button>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] text-zinc-400">★</span>
+                            <span className="text-[11px] text-zinc-400">Pop.</span>
                             <button
                               onClick={() => handleToggleHighlight(p, "browse")}
                               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
@@ -996,14 +997,14 @@ export default function AdminPackagesPage() {
                       onClick={() => fetchBrowseResults(browsePage - 1, browseSearch)}
                       className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
                     >
-                      ←
+                      <ChevronLeft className="h-4 w-4" />
                     </button>
                     <button
                       disabled={browsePage >= browseTotalPages}
                       onClick={() => fetchBrowseResults(browsePage + 1, browseSearch)}
                       className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 transition disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-600 dark:hover:bg-zinc-700"
                     >
-                      →
+                      <ChevronRight className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => { setBrowsing(false); fetchPackages(page, search); }}
@@ -1085,7 +1086,7 @@ export default function AdminPackagesPage() {
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${editing.visible ? "translate-x-5" : "translate-x-0"}`} />
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3" /></svg>
+                    <Globe className="h-4 w-4" />
                     Aktiv në Web
                   </span>
                 </label>
@@ -1094,7 +1095,7 @@ export default function AdminPackagesPage() {
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${editing.highlight ? "translate-x-5" : "translate-x-0"}`} />
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" /></svg>
+                    <Star className="h-4 w-4" />
                     {t("admin.popular")}
                   </span>
                 </label>

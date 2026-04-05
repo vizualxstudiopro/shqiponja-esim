@@ -10,6 +10,7 @@ import {
   type PaginatedOrders,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
+import { Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function AdminOrdersPage() {
   const { token } = useAuth();
@@ -96,7 +97,8 @@ export default function AdminOrdersPage() {
           <h1 className="text-xl sm:text-2xl font-extrabold">{t("admin.orders")}</h1>
           <p className="mt-1 text-sm text-zinc-500">{total} {t("admin.totalSuffix")}</p>
         </div>
-        <button onClick={exportCSV} className="w-full sm:w-auto rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 transition dark:border-zinc-700 dark:hover:bg-zinc-800">
+        <button onClick={exportCSV} className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 transition dark:border-zinc-700 dark:hover:bg-zinc-800">
+          <Download className="h-4 w-4" />
           {t("admin.exportCSV")}
         </button>
       </div>
@@ -200,10 +202,10 @@ export default function AdminOrdersPage() {
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700">◀</button>
+            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700"><ChevronLeft className="h-4 w-4" /></button>
           <span className="text-sm text-zinc-500">{t("admin.page")} {page} / {totalPages}</span>
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700">▶</button>
+            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700"><ChevronRight className="h-4 w-4" /></button>
         </div>
       )}
     </div>

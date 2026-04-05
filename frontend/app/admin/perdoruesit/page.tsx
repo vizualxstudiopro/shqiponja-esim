@@ -11,6 +11,7 @@ import {
   type PaginatedUsers,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
+import { ChevronLeft, ChevronRight, Trash2, UserCircle } from "lucide-react";
 
 export default function AdminUsersPage() {
   const { token, user: me } = useAuth();
@@ -142,10 +143,10 @@ export default function AdminUsersPage() {
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700">◀</button>
+            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700"><ChevronLeft className="h-4 w-4" /></button>
           <span className="text-sm text-zinc-500">{t("admin.page")} {page} / {totalPages}</span>
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700">▶</button>
+            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700"><ChevronRight className="h-4 w-4" /></button>
         </div>
       )}
     </div>
