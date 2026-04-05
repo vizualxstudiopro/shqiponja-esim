@@ -99,8 +99,6 @@ async function sendTransactionalEmail({
   params = {},
   logLabel = "EMAIL",
 }) {
-  console.log(`[${logLabel}] Preparing email to ${toEmail} | subject: ${subject} | html length: ${html?.length || 0} | has DOCTYPE: ${html?.includes('DOCTYPE') || false}`);
-
   // 1. Try Brevo REST API first
   if (BREVO_API_KEY) {
     try {
