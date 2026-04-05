@@ -1,4 +1,4 @@
-// Shqiponja eSIM Backend v2.1 — branded email templates
+// Shqiponja eSIM Backend v2.2 — 2026-04-05
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
