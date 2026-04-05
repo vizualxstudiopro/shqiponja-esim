@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://shqiponja-esim.com"),
+  metadataBase: new URL("https://shqiponjaesim.com"),
   title: {
     default: "Shqiponja eSIM — Lidhu me botën menjëherë",
     template: "%s | Shqiponja eSIM",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   description:
     "Bli paketa eSIM ndërkombëtare nga operatorët më të mëdhenj. Interneti kudo pa roaming, pa SIM fizike.",
   alternates: {
-    canonical: "https://shqiponja-esim.com",
+    canonical: "https://shqiponjaesim.com",
   },
   openGraph: {
     type: "website",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     siteName: "Shqiponja eSIM",
     title: "Shqiponja eSIM — Lidhu me botën menjëherë",
     description: "Bli paketa eSIM ndërkombëtare. Interneti kudo pa roaming, pa SIM fizike.",
-    url: "https://shqiponja-esim.com",
+    url: "https://shqiponjaesim.com",
     images: [
       {
         url: "/opengraph-image",

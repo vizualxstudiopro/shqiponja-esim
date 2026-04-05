@@ -39,7 +39,7 @@ export default async function BliPage({ params }: Props) {
       price: pkg.price,
       priceCurrency: pkg.currency || "EUR",
       availability: "https://schema.org/InStock",
-      url: `https://shqiponja-esim.com/bli/${pkg.id}`,
+      url: `https://shqiponjaesim.com/bli/${pkg.id}`,
     },
     brand: {
       "@type": "Brand",

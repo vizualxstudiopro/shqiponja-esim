@@ -20,6 +20,18 @@ const translations = {
     "hero.countries": "Vende",
     "hero.support": "Mbështetje",
 
+    // Trust badges
+    "trust.title": "Pse Shqiponja eSIM?",
+    "trust.subtitle": "Mijëra klientë na besojnë për internet të shpejtë kudo në botë.",
+    "trust.instant": "Aktivizim i Menjëhershëm",
+    "trust.instantDesc": "Merr QR kodin menjëherë pas pagesës — pa pritje, pa dërgesë.",
+    "trust.secure": "Pagesë e Sigurt",
+    "trust.secureDesc": "Pagesa procesohet në mënyrë të sigurt me enkriptim SSL.",
+    "trust.global": "Mbulim Global",
+    "trust.globalDesc": "Interneti funksionon në mbi 190 vende me 4G/5G.",
+    "trust.noHidden": "Pa Tarifa të Fshehura",
+    "trust.noHiddenDesc": "Çmimi që shikon është çmimi që paguan — zero surpriza.",
+
     // Operators
     "operators.title": "Mbështetur nga operatorët ndërkombëtarë",
 
@@ -369,6 +381,18 @@ const translations = {
     "hero.countries": "Countries",
     "hero.clients": "Clients",
     "hero.support": "Support",
+
+    // Trust badges
+    "trust.title": "Why Shqiponja eSIM?",
+    "trust.subtitle": "Thousands of customers trust us for fast internet worldwide.",
+    "trust.instant": "Instant Activation",
+    "trust.instantDesc": "Get your QR code immediately after payment — no waiting, no shipping.",
+    "trust.secure": "Secure Payment",
+    "trust.secureDesc": "Payments are processed securely with SSL encryption.",
+    "trust.global": "Global Coverage",
+    "trust.globalDesc": "Internet works in 190+ countries with 4G/5G.",
+    "trust.noHidden": "No Hidden Fees",
+    "trust.noHiddenDesc": "The price you see is the price you pay — zero surprises.",
 
     // Operators
     "operators.title": "Supported by international operators",
