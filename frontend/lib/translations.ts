@@ -50,6 +50,7 @@ const translations = {
     "packages.africa": "Afrika",
     "packages.americas": "Amerika",
     "packages.oceania": "Oqeania",
+    "packages.middle_east": "Lindja e Mesme",
     "packages.viewAll": "Shiko të gjitha",
     "packages.popularDesc": "Destinacionet më të kërkuara — çmimet fillojnë nga çmimi i treguar.",
     "packages.localDesc": "Paketa eSIM për një vend të vetëm.",
@@ -61,6 +62,7 @@ const translations = {
     "packages.africaDesc": "Paketa eSIM për vendet Afrikane.",
     "packages.americasDesc": "Paketa eSIM për Amerikën Veriore dhe Jugore.",
     "packages.oceaniaDesc": "Paketa eSIM për Oqeani dhe Australi.",
+    "packages.middle_eastDesc": "Paketa eSIM për vendet e Lindjes së Mesme.",
     "packages.searchAll": "Kërkon në të gjitha paketat e disponueshme",
 
     // How it works
@@ -386,6 +388,7 @@ const translations = {
     "packages.africa": "Africa",
     "packages.americas": "Americas",
     "packages.oceania": "Oceania",
+    "packages.middle_east": "Middle East",
     "packages.viewAll": "View all locations",
     "packages.popularDesc": "Most popular destinations — prices start from the shown price.",
     "packages.localDesc": "eSIM packages for a single country.",
@@ -397,6 +400,7 @@ const translations = {
     "packages.africaDesc": "eSIM packages for African countries.",
     "packages.americasDesc": "eSIM packages for North and South America.",
     "packages.oceaniaDesc": "eSIM packages for Oceania and Australia.",
+    "packages.middle_eastDesc": "eSIM packages for Middle Eastern countries.",
     "packages.searchAll": "Searching across all available packages",
 
     // How it works

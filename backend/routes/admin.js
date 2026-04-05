@@ -375,7 +375,8 @@ function regionForPackage(row) {
 
   // Map Airalo regions
   if (region.includes('europe')) return 'europe';
-  if (region.includes('asia') || region.includes('middle east')) return 'asia';
+  if (region.includes('middle east')) return 'middle_east';
+  if (region.includes('asia')) return 'asia';
   if (region.includes('africa')) return 'africa';
   if (region.includes('oceania')) return 'oceania';
   if (region.includes('america') || region.includes('caribbean')) return 'americas';
@@ -385,7 +386,7 @@ function regionForPackage(row) {
   if (cc === 'AS') return 'asia';
   if (cc === 'AF') return 'africa';
   if (cc === 'OC') return 'oceania';
-  if (cc === 'ME') return 'americas';
+  if (cc === 'ME') return 'middle_east';
   if (cc === 'CB') return 'americas';
 
   return 'europe'; // default fallback

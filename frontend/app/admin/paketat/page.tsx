@@ -660,6 +660,7 @@ export default function AdminPackagesPage() {
             { key: "balkans" as QuickFilter, label: "Ballkani" },
             { key: "europe" as QuickFilter, label: "Evropa" },
             { key: "asia" as QuickFilter, label: "Azia" },
+            { key: "middle_east" as QuickFilter, label: "Lindja e Mesme" },
             { key: "africa" as QuickFilter, label: "Afrika" },
             { key: "americas" as QuickFilter, label: "Amerika" },
             { key: "oceania" as QuickFilter, label: "Oqeania" },
