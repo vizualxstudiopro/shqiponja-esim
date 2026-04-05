@@ -85,6 +85,8 @@ const translations = {
     "compat.yes": "Po, pajisja juaj është e gatshme për eSIM!",
     "compat.unknown": "Nuk e gjetëm këtë model. Kontrolloni listen zyrtare të prodhuesit.",
     "compat.hint": "Lista përfshijn shumicën e pajisjeve të njohura. Nëse nuk e gjeni tuajën, kontaktoni prodhuesin.",
+    "compat.showAll": "Shiko të gjitha pajisjet",
+    "compat.modalTitle": "Pajisjet e mbështetura me eSIM",
 
     // CTA
     "cta.title": "Gati për të udhëtuar pa kufij?",
@@ -433,6 +435,8 @@ const translations = {
     "compat.yes": "Yes, your device is eSIM ready!",
     "compat.unknown": "We couldn\u2019t find this model. Check your manufacturer\u2019s official list.",
     "compat.hint": "This list covers most popular devices. If yours isn\u2019t listed, contact your manufacturer.",
+    "compat.showAll": "Show all devices",
+    "compat.modalTitle": "eSIM supported devices",
 
     // CTA
     "cta.title": "Ready to travel without limits?",

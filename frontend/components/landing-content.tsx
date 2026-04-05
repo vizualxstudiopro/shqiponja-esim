@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import PackageGrid from "@/components/package-grid";
-import { Smartphone, Search, CheckCircle, XCircle } from "lucide-react";
+import { Smartphone, Search, CheckCircle, XCircle, ChevronDown, X, ListChecks } from "lucide-react";
 
 import Link from "next/link";
 
@@ -59,49 +59,221 @@ function StepIcon3() {
 
 const stepIcons = [<StepIcon1 key="1" />, <StepIcon2 key="2" />, <StepIcon3 key="3" />];
 
-/* eSIM-compatible device patterns (case-insensitive partial match) */
-const ESIM_DEVICES = [
-  // Apple
-  "iphone xr", "iphone xs", "iphone xs max",
-  "iphone 11", "iphone 11 pro", "iphone 11 pro max",
-  "iphone 12", "iphone 12 mini", "iphone 12 pro", "iphone 12 pro max",
-  "iphone 13", "iphone 13 mini", "iphone 13 pro", "iphone 13 pro max",
-  "iphone 14", "iphone 14 plus", "iphone 14 pro", "iphone 14 pro max",
-  "iphone 15", "iphone 15 plus", "iphone 15 pro", "iphone 15 pro max",
-  "iphone 16", "iphone 16 plus", "iphone 16 pro", "iphone 16 pro max",
-  "iphone se 2", "iphone se 3",
-  "ipad pro", "ipad air", "ipad mini", "ipad 10",
-  "apple watch",
-  // Samsung
-  "galaxy s20", "galaxy s21", "galaxy s22", "galaxy s23", "galaxy s24", "galaxy s25",
-  "galaxy s20 fe", "galaxy s21 fe", "galaxy s23 fe", "galaxy s24 fe",
-  "galaxy s20+", "galaxy s20 plus", "galaxy s20 ultra",
-  "galaxy s21+", "galaxy s21 plus", "galaxy s21 ultra",
-  "galaxy s22+", "galaxy s22 plus", "galaxy s22 ultra",
-  "galaxy s23+", "galaxy s23 plus", "galaxy s23 ultra",
-  "galaxy s24+", "galaxy s24 plus", "galaxy s24 ultra",
-  "galaxy s25+", "galaxy s25 plus", "galaxy s25 ultra",
-  "galaxy note 20", "galaxy note 20 ultra",
-  "galaxy z flip", "galaxy z flip3", "galaxy z flip4", "galaxy z flip5", "galaxy z flip6",
-  "galaxy z fold", "galaxy z fold2", "galaxy z fold3", "galaxy z fold4", "galaxy z fold5", "galaxy z fold6",
-  "galaxy a54", "galaxy a55", "galaxy a35", "galaxy a34",
-  // Google
-  "pixel 2", "pixel 3", "pixel 3a", "pixel 4", "pixel 4a", "pixel 5", "pixel 5a",
-  "pixel 6", "pixel 6a", "pixel 6 pro", "pixel 7", "pixel 7a", "pixel 7 pro",
-  "pixel 8", "pixel 8a", "pixel 8 pro", "pixel 9", "pixel 9 pro",
-  // Huawei
-  "huawei p40", "huawei p40 pro", "huawei p50", "huawei p50 pro", "huawei mate 40",
-  // Motorola
-  "motorola razr", "moto g", "edge 40", "edge 30",
-  // Xiaomi
-  "xiaomi 12t", "xiaomi 13", "xiaomi 13 pro", "xiaomi 14",
-  // OnePlus / Oppo
-  "oneplus 12", "oneplus 11", "oppo find x5", "oppo find x6", "oppo find n",
-  // Sony
-  "xperia 1 iv", "xperia 1 v", "xperia 5 iv", "xperia 5 v", "xperia 10 iv", "xperia 10 v",
-  // Other
-  "surface duo", "surface pro",
-];
+/* ═══ Real eSIM-compatible devices database (grouped by brand) ═══ */
+const ESIM_DEVICES: Record<string, string[]> = {
+  Apple: [
+    "iPhone XR",
+    "iPhone XS",
+    "iPhone XS Max",
+    "iPhone 11",
+    "iPhone 11 Pro",
+    "iPhone 11 Pro Max",
+    "iPhone SE (2020)",
+    "iPhone 12 mini",
+    "iPhone 12",
+    "iPhone 12 Pro",
+    "iPhone 12 Pro Max",
+    "iPhone 13 mini",
+    "iPhone 13",
+    "iPhone 13 Pro",
+    "iPhone 13 Pro Max",
+    "iPhone SE (2022)",
+    "iPhone 14",
+    "iPhone 14 Plus",
+    "iPhone 14 Pro",
+    "iPhone 14 Pro Max",
+    "iPhone 15",
+    "iPhone 15 Plus",
+    "iPhone 15 Pro",
+    "iPhone 15 Pro Max",
+    "iPhone 16",
+    "iPhone 16 Plus",
+    "iPhone 16 Pro",
+    "iPhone 16 Pro Max",
+    "iPad Pro (2018+)",
+    "iPad Air (2019+)",
+    "iPad mini (2019+)",
+    "iPad (2019+)",
+    "Apple Watch Series 3+",
+  ],
+  Samsung: [
+    "Galaxy S20",
+    "Galaxy S20+",
+    "Galaxy S20 Ultra",
+    "Galaxy S20 FE",
+    "Galaxy S21",
+    "Galaxy S21+",
+    "Galaxy S21 Ultra",
+    "Galaxy S21 FE",
+    "Galaxy S22",
+    "Galaxy S22+",
+    "Galaxy S22 Ultra",
+    "Galaxy S23",
+    "Galaxy S23+",
+    "Galaxy S23 Ultra",
+    "Galaxy S23 FE",
+    "Galaxy S24",
+    "Galaxy S24+",
+    "Galaxy S24 Ultra",
+    "Galaxy S24 FE",
+    "Galaxy S25",
+    "Galaxy S25+",
+    "Galaxy S25 Ultra",
+    "Galaxy Note 20",
+    "Galaxy Note 20 Ultra",
+    "Galaxy Z Flip",
+    "Galaxy Z Flip3",
+    "Galaxy Z Flip4",
+    "Galaxy Z Flip5",
+    "Galaxy Z Flip6",
+    "Galaxy Z Fold2",
+    "Galaxy Z Fold3",
+    "Galaxy Z Fold4",
+    "Galaxy Z Fold5",
+    "Galaxy Z Fold6",
+    "Galaxy A54 5G",
+    "Galaxy A55 5G",
+    "Galaxy A35 5G",
+    "Galaxy A34 5G",
+    "Galaxy A25 5G",
+    "Galaxy A15 5G",
+  ],
+  Google: [
+    "Pixel 2",
+    "Pixel 2 XL",
+    "Pixel 3",
+    "Pixel 3 XL",
+    "Pixel 3a",
+    "Pixel 3a XL",
+    "Pixel 4",
+    "Pixel 4 XL",
+    "Pixel 4a",
+    "Pixel 4a 5G",
+    "Pixel 5",
+    "Pixel 5a",
+    "Pixel 6",
+    "Pixel 6 Pro",
+    "Pixel 6a",
+    "Pixel 7",
+    "Pixel 7 Pro",
+    "Pixel 7a",
+    "Pixel 8",
+    "Pixel 8 Pro",
+    "Pixel 8a",
+    "Pixel 9",
+    "Pixel 9 Pro",
+    "Pixel 9 Pro Fold",
+  ],
+  Huawei: [
+    "P40",
+    "P40 Pro",
+    "P40 Pro+",
+    "P50 Pro",
+    "P50 Pocket",
+    "Mate 40 Pro",
+    "Mate 40 Pro+",
+    "Mate 50 Pro",
+    "Nova 8i",
+  ],
+  Motorola: [
+    "Razr (2019)",
+    "Razr 5G",
+    "Razr (2022)",
+    "Razr+ (2023)",
+    "Razr (2023)",
+    "Razr+ (2024)",
+    "Razr (2024)",
+    "Edge 40",
+    "Edge 40 Pro",
+    "Edge 40 Neo",
+    "Edge 30 Fusion",
+    "Edge+ (2023)",
+    "Moto G84 5G",
+    "Moto G54 5G",
+    "Moto G53 5G",
+  ],
+  Xiaomi: [
+    "12T Pro",
+    "13",
+    "13 Lite",
+    "13 Pro",
+    "13T",
+    "13T Pro",
+    "14",
+    "14 Pro",
+    "14 Ultra",
+    "14T",
+    "14T Pro",
+    "Mix Fold 3",
+    "Redmi Note 13 Pro 5G",
+    "Poco F6 Pro",
+  ],
+  OnePlus: [
+    "12",
+    "12R",
+    "11",
+    "11R",
+    "Open (Fold)",
+    "Nord 3",
+    "Nord CE3 Lite",
+  ],
+  Oppo: [
+    "Find X5 Pro",
+    "Find X5",
+    "Find X6 Pro",
+    "Find N2 Flip",
+    "Find N3",
+    "Find N3 Flip",
+    "Reno 10 Pro+",
+    "A79 5G",
+  ],
+  Sony: [
+    "Xperia 1 IV",
+    "Xperia 1 V",
+    "Xperia 1 VI",
+    "Xperia 5 IV",
+    "Xperia 5 V",
+    "Xperia 10 IV",
+    "Xperia 10 V",
+    "Xperia 10 VI",
+  ],
+  Nokia: [
+    "G60 5G",
+    "X30 5G",
+    "XR21",
+  ],
+  Honor: [
+    "Magic 4 Pro",
+    "Magic 5 Pro",
+    "Magic 6 Pro",
+    "90",
+    "Magic V2",
+    "Magic V3",
+  ],
+  Microsoft: [
+    "Surface Duo",
+    "Surface Duo 2",
+    "Surface Pro X",
+    "Surface Pro 9 5G",
+    "Surface Pro 10",
+  ],
+  Nothing: [
+    "Phone (2)",
+    "Phone (2a)",
+  ],
+};
+
+/* Flatten all devices into a searchable array with brand prefix */
+const ALL_DEVICES: { brand: string; model: string; searchKey: string }[] = [];
+for (const [brand, models] of Object.entries(ESIM_DEVICES)) {
+  for (const model of models) {
+    ALL_DEVICES.push({
+      brand,
+      model,
+      searchKey: `${brand} ${model}`.toLowerCase(),
+    });
+  }
+}
 
 export default function LandingContent() {
   const { t } = useI18n();
@@ -112,14 +284,42 @@ export default function LandingContent() {
 
   const [deviceQuery, setDeviceQuery] = useState("");
   const [compatResult, setCompatResult] = useState<"idle" | "compatible" | "unknown">("idle");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showAllModal, setShowAllModal] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  function checkDevice(q: string) {
+  const suggestions = useMemo(() => {
+    if (deviceQuery.trim().length < 1) return [];
+    const q = deviceQuery.toLowerCase().trim();
+    return ALL_DEVICES.filter((d) => d.searchKey.includes(q)).slice(0, 20);
+  }, [deviceQuery]);
+
+  function handleDeviceInput(q: string) {
     setDeviceQuery(q);
+    setShowSuggestions(true);
     if (q.trim().length < 2) { setCompatResult("idle"); return; }
     const lower = q.toLowerCase().trim();
-    const found = ESIM_DEVICES.some((d) => lower.includes(d) || d.includes(lower));
-    setCompatResult(found ? "compatible" : "unknown");
+    const exact = ALL_DEVICES.some((d) => d.searchKey === lower);
+    if (exact) { setCompatResult("compatible"); setShowSuggestions(false); return; }
+    setCompatResult(suggestions.length > 0 ? "idle" : "unknown");
   }
+
+  function selectDevice(brand: string, model: string) {
+    setDeviceQuery(`${brand} ${model}`);
+    setCompatResult("compatible");
+    setShowSuggestions(false);
+  }
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   const steps = [
     { num: "01", titleKey: "how.step1.title" as const, descKey: "how.step1.desc" as const },
@@ -274,16 +474,35 @@ export default function LandingContent() {
               {t("compat.subtitle")}
             </p>
 
-            <div className="mt-8 relative mx-auto max-w-md">
-              <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400 pointer-events-none" />
+            {/* Search input + autocomplete */}
+            <div className="mt-8 relative mx-auto max-w-md" ref={suggestionsRef}>
+              <Smartphone className="absolute left-4 top-[18px] h-5 w-5 text-zinc-400 pointer-events-none z-10" />
               <input
                 type="text"
                 value={deviceQuery}
-                onChange={(e) => checkDevice(e.target.value)}
+                onChange={(e) => handleDeviceInput(e.target.value)}
+                onFocus={() => deviceQuery.length >= 1 && setShowSuggestions(true)}
                 placeholder={t("compat.placeholder")}
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-4 pl-12 pr-12 text-base outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
               />
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-300 pointer-events-none" />
+              <Search className="absolute right-4 top-[18px] h-5 w-5 text-zinc-300 pointer-events-none" />
+
+              {/* Dropdown suggestions */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
+                  {suggestions.map((d) => (
+                    <button
+                      key={`${d.brand}-${d.model}`}
+                      onClick={() => selectDevice(d.brand, d.model)}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm hover:bg-shqiponja/5 transition-colors dark:hover:bg-shqiponja/10"
+                    >
+                      <Smartphone className="h-4 w-4 shrink-0 text-shqiponja" />
+                      <span className="font-semibold text-zinc-700 dark:text-zinc-200">{d.brand}</span>
+                      <span className="text-zinc-500 dark:text-zinc-400">{d.model}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Result */}
@@ -293,17 +512,62 @@ export default function LandingContent() {
                 <span className="text-sm font-semibold">{t("compat.yes")}</span>
               </div>
             )}
-            {compatResult === "unknown" && (
+            {compatResult === "unknown" && deviceQuery.trim().length >= 2 && suggestions.length === 0 && (
               <div className="mt-5 inline-flex items-center gap-2 rounded-xl bg-amber-50 px-5 py-3 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 animate-fade-up">
                 <XCircle className="h-5 w-5 shrink-0" />
                 <span className="text-sm font-semibold">{t("compat.unknown")}</span>
               </div>
             )}
 
-            <p className="mt-6 text-xs text-zinc-400">{t("compat.hint")}</p>
+            {/* Show all devices button */}
+            <div className="mt-6">
+              <button
+                onClick={() => setShowAllModal(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-5 py-2.5 text-sm font-semibold text-zinc-600 transition hover:bg-shqiponja/5 hover:border-shqiponja/30 hover:text-shqiponja dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-shqiponja/10"
+              >
+                <ListChecks className="h-4 w-4" />
+                {t("compat.showAll")}
+              </button>
+            </div>
+
+            <p className="mt-4 text-xs text-zinc-400">{t("compat.hint")}</p>
           </div>
         </div>
       </section>
+
+      {/* ══════════ SHOW ALL DEVICES MODAL ══════════ */}
+      {showAllModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowAllModal(false)}>
+          <div
+            className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-zinc-900"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-white/95 backdrop-blur-sm px-6 py-4 dark:border-zinc-700 dark:bg-zinc-900/95">
+              <h3 className="text-lg font-bold">{t("compat.modalTitle")}</h3>
+              <button onClick={() => setShowAllModal(false)} className="rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(ESIM_DEVICES).map(([brand, models]) => (
+                <div key={brand}>
+                  <h4 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-shqiponja">
+                    <Smartphone className="h-4 w-4" /> {brand}
+                  </h4>
+                  <ul className="mt-2 space-y-1">
+                    {models.map((model) => (
+                      <li key={model} className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <CheckCircle className="h-3 w-3 shrink-0 text-green-500" />
+                        {model}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ══════════ CTA BANNER ══════════ */}
       <section className="relative overflow-hidden bg-gradient-to-r from-shqiponja to-shqiponja-dark py-16 text-white">
