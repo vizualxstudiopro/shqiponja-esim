@@ -87,6 +87,7 @@ const translations = {
     "footer.terms": "Kushtet e Përdorimit",
     "footer.privacy": "Privatësia",
     "footer.contact": "Kontakti",
+    "footer.payWith": "Paguaj me siguri",
 
     // Auth
     "auth.loginTitle": "Kyçu në llogari",
@@ -425,6 +426,7 @@ const translations = {
     "footer.terms": "Terms of Use",
     "footer.privacy": "Privacy",
     "footer.contact": "Contact",
+    "footer.payWith": "Pay securely with",
 
     // Auth
     "auth.loginTitle": "Log in to your account",

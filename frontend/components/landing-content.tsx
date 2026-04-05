@@ -234,6 +234,36 @@ export default function LandingContent() {
               <Link href="/kontakti" className="hover:text-shqiponja transition">{t("footer.contact")}</Link>
             </div>
           </div>
+          {/* Payment methods */}
+          <div className="mt-8 flex flex-col items-center gap-3 border-t border-zinc-100 pt-6 dark:border-zinc-800">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">{t("footer.payWith")}</p>
+            <div className="flex items-center gap-4">
+              {/* Visa */}
+              <svg className="h-8 w-auto text-zinc-400 dark:text-zinc-500" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="32" rx="4" fill="currentColor" fillOpacity="0.08" stroke="currentColor" strokeOpacity="0.15"/>
+                <path d="M20.3 21H17.7L19.3 11H21.9L20.3 21ZM15.8 11L13.3 17.8L13 16.3L13 16.3L12.1 11.7C12.1 11.7 12 11 11.1 11H7.1L7 11.2C7 11.2 8 11.4 9.2 12.1L11.5 21H14.2L18.5 11H15.8ZM37 21H39.3L37.3 11H35.2C34.5 11 33.9 11.4 33.7 12L29.8 21H32.5L33 19.5H36.3L37 21ZM33.8 17.5L35.2 13.7L36 17.5H33.8ZM30.2 13.6L30.6 11.3C30.6 11.3 29.5 11 28.4 11C27.2 11 24.2 11.5 24.2 14.1C24.2 16.5 27.5 16.5 27.5 17.8C27.5 19.1 24.6 18.8 23.5 18L23 20.4C23 20.4 24.2 21 25.8 21C27.5 21 30.2 20.1 30.2 17.7C30.2 15.2 26.9 15 26.9 13.9C26.9 12.8 29.1 12.9 30.2 13.6Z" fill="currentColor" fillOpacity="0.6"/>
+              </svg>
+              {/* Mastercard */}
+              <svg className="h-8 w-auto text-zinc-400 dark:text-zinc-500" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="32" rx="4" fill="currentColor" fillOpacity="0.08" stroke="currentColor" strokeOpacity="0.15"/>
+                <circle cx="20" cy="16" r="7" fill="currentColor" fillOpacity="0.2"/>
+                <circle cx="28" cy="16" r="7" fill="currentColor" fillOpacity="0.2"/>
+                <path d="M24 10.8A6.97 6.97 0 0 1 27 16a6.97 6.97 0 0 1-3 5.2A6.97 6.97 0 0 1 21 16a6.97 6.97 0 0 1 3-5.2Z" fill="currentColor" fillOpacity="0.3"/>
+              </svg>
+              {/* Apple Pay */}
+              <svg className="h-8 w-auto text-zinc-400 dark:text-zinc-500" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="32" rx="4" fill="currentColor" fillOpacity="0.08" stroke="currentColor" strokeOpacity="0.15"/>
+                <path d="M16.2 12.1c.4-.5.7-1.2.6-1.9-.6 0-1.4.4-1.8.9-.4.4-.7 1.1-.6 1.8.7.1 1.3-.3 1.8-.8Zm.6 1c-1 0-1.8.6-2.3.6-.5 0-1.2-.5-2-.5-1 0-2 .6-2.5 1.5-1.1 1.9-.3 4.6.8 6.1.5.8 1.1 1.6 1.9 1.5.8 0 1-.5 2-.5.9 0 1.1.5 2 .5.8 0 1.3-.7 1.8-1.5.6-.8.8-1.7.8-1.7-1.7-.7-2-3.1-.3-4.5-.7-.8-1.3-1.5-2.2-1.5Z" fill="currentColor" fillOpacity="0.6"/>
+                <path d="M23.5 12.5h2.3c1.6 0 2.7 1.1 2.7 2.7 0 1.6-1.1 2.7-2.7 2.7h-1.5v2.8h-1.8v-8.2Zm1.8 4h1.2c1.1 0 1.7-.6 1.7-1.4 0-.8-.6-1.3-1.7-1.3h-1.2v2.7Zm6 4.4c-1.2 0-2-.7-2-1.7 0-1 .7-1.6 2.2-1.7l1.6-.1v-.4c0-.7-.4-1-1.2-1-.6 0-1.1.3-1.2.7h-1c0-1 .9-1.8 2.3-1.8s2.2.8 2.2 2v4.1h-1.1v-1h0c-.4.7-1 1-1.8 1Zm.3-1.2c.8 0 1.4-.5 1.4-1.3v-.5l-1.4.1c-.8.1-1.1.4-1.1.8 0 .5.4.9 1.1.9Zm4 3.1c-.2 0-.4 0-.5 0v-1.1h.4c.6 0 .9-.2 1.1-.9l.1-.3-2.2-6.1h1.4l1.5 5h0l1.5-5h1.4l-2.3 6.5c-.5 1.4-1 1.9-2.4 1.9Z" fill="currentColor" fillOpacity="0.6"/>
+              </svg>
+              {/* PayPal */}
+              <svg className="h-8 w-auto text-zinc-400 dark:text-zinc-500" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="32" rx="4" fill="currentColor" fillOpacity="0.08" stroke="currentColor" strokeOpacity="0.15"/>
+                <path d="M19.4 22.5h-2l.2-1.3h1.1c1.4 0 2.5-.4 2.8-2 .3-1.3-.4-2-1.8-2h-3.2l-2 10h2l.8-4h.8c2.3 0 3.9-1 4.3-3.1.3-1.5-.3-2.8-2-3.2-.2 0 0 0 0 0-.5-.1.7.2-.5.1l-.5 5.5Z" fill="currentColor" fillOpacity="0.35"/>
+                <path d="M30 10.5h-3.3c-.3 0-.5.2-.5.4l-2 10c0 .2.1.3.3.3h1.7c.2 0 .4-.1.4-.3l.6-3c0-.3.3-.4.5-.4h1.2c2.5 0 3.9-1.2 4.3-3.5.2-.9 0-1.7-.4-2.3-.5-.6-1.5-1-2.8-1.2Zm.4 3.5c-.2 1.3-1.2 1.3-2.2 1.3h-.6l.4-2.5c0-.1.1-.2.3-.2h.3c.7 0 1.3 0 1.6.4.2.2.3.6.2 1Z" fill="currentColor" fillOpacity="0.6"/>
+              </svg>
+            </div>
+          </div>
         </div>
       </footer>
     </>
