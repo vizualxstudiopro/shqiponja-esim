@@ -26,7 +26,6 @@ export interface Order {
   email: string;
   status: string;
   payment_status: string;
-  paddle_transaction_id: string | null;
   ls_order_id: string | null;
   qr_data: string | null;
   created_at: string;

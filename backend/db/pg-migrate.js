@@ -79,7 +79,7 @@ async function run() {
       status                TEXT    NOT NULL DEFAULT 'pending',
       payment_status        TEXT    NOT NULL DEFAULT 'unpaid',
       qr_data               TEXT,
-      paddle_transaction_id TEXT,
+      ls_order_id            TEXT,
       airalo_order_id       TEXT,
       iccid                 TEXT,
       esim_status           TEXT,

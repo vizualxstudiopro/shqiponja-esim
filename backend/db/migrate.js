@@ -55,7 +55,6 @@ async function migrate() {
       status              TEXT    NOT NULL DEFAULT 'pending',
       payment_status      TEXT    NOT NULL DEFAULT 'unpaid',
       qr_data             TEXT,
-      paddle_transaction_id TEXT,
       ls_order_id         TEXT,
       airalo_order_id     TEXT,
       iccid               TEXT,
@@ -85,7 +84,7 @@ async function migrate() {
     // Column likely already exists
   }
 
-  // Add ls_order_id column if missing (migration from Paddle to Lemon Squeezy)
+  // Add ls_order_id column if missing
   try {
     await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS ls_order_id TEXT`);
   } catch (e) {

@@ -58,7 +58,7 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
 });
 
 // GET /api/orders/:id - Get a single order
-// Requires auth (owner/admin) OR matching paddle_transaction_id
+// Requires auth (owner/admin) OR matching ls_order_id
 router.get('/:id', orderLimiter, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const order = (await db.query(`
@@ -69,9 +69,9 @@ router.get('/:id', orderLimiter, async (req, res) => {
   `, [id])).rows[0];
   if (!order) return res.status(404).json({ error: 'Order not found' });
 
-  // Allow access if paddle_transaction_id matches (post-payment confirmation)
+  // Allow access if ls_order_id matches (post-payment confirmation)
   const txnId = req.query.transaction_id;
-  if (txnId && order.paddle_transaction_id && txnId === order.paddle_transaction_id) {
+  if (txnId && order.ls_order_id && txnId === order.ls_order_id) {
     return res.json(order);
   }
 
