@@ -10,17 +10,15 @@ const { validateCheckout } = require('../middleware/validate');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'shqiponja-dev-secret';
 
-const PADDLE_API_KEY = process.env.PADDLE_API_KEY;
-const PADDLE_PRODUCT_ID = process.env.PADDLE_PRODUCT_ID;
-const PADDLE_ENV = process.env.PADDLE_ENVIRONMENT || 'sandbox';
-const PADDLE_API_URL = PADDLE_ENV === 'production'
-  ? 'https://api.paddle.com'
-  : 'https://sandbox-api.paddle.com';
+const LS_API_KEY = process.env.LEMONSQUEEZY_API_KEY;
+const LS_STORE_ID = process.env.LEMONSQUEEZY_STORE_ID;
+const LS_VARIANT_ID = process.env.LEMONSQUEEZY_VARIANT_ID;
+const LS_API_URL = 'https://api.lemonsqueezy.com/v1';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-const paddleEnabled = PADDLE_API_KEY && !PADDLE_API_KEY.includes('YOUR_KEY') && PADDLE_PRODUCT_ID;
+const lsEnabled = LS_API_KEY && LS_STORE_ID && LS_VARIANT_ID;
 
-// POST /api/checkout - Create Paddle transaction
+// POST /api/checkout - Create Lemon Squeezy checkout
 router.post('/', apiLimiter, validateCheckout, async (req, res) => {
   const { packageId, email } = req.body;
   if (!packageId || !email) {
@@ -48,8 +46,8 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
   );
   const orderId = result.rows[0].id;
 
-  // If Paddle is not configured, skip payment (dev mode)
-  if (!paddleEnabled) {
+  // If Lemon Squeezy is not configured, skip payment (dev mode)
+  if (!lsEnabled) {
     const qrData = `SHQIPONJA-ESIM-${orderId}-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
     // Try to order real eSIM from Airalo if credentials are available
@@ -110,37 +108,52 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     return res.json({ url: `${FRONTEND_URL}/porosi/${orderId}`, order });
   }
 
-  // Create Paddle transaction with non-catalog (inline) price
+  // Create Lemon Squeezy checkout session
   try {
-    const { data: paddleRes } = await axios.post(`${PADDLE_API_URL}/transactions`, {
-      items: [{
-        price: {
-          product_id: PADDLE_PRODUCT_ID,
-          description: `${pkg.flag} ${pkg.name} — ${pkg.data} / ${pkg.duration}`,
-          unit_price: {
-            amount: String(Math.round(pkg.price * 100)),
-            currency_code: pkg.currency.toUpperCase(),
+    const priceInCents = Math.round(pkg.price * 100);
+
+    const { data: lsRes } = await axios.post(`${LS_API_URL}/checkouts`, {
+      data: {
+        type: 'checkouts',
+        attributes: {
+          custom_price: priceInCents,
+          product_options: {
+            name: `${pkg.name} — ${pkg.data} / ${pkg.duration}`,
+            description: pkg.description || `eSIM ${pkg.region}`,
+            redirect_url: `${FRONTEND_URL}/porosi/${orderId}`,
+            receipt_link_url: `${FRONTEND_URL}/porosi/${orderId}`,
+            receipt_button_text: 'Shiko porosinë',
+          },
+          checkout_options: {
+            embed: false,
+            media: false,
+            logo: true,
+          },
+          checkout_data: {
+            email: email,
+            custom: {
+              order_id: String(orderId),
+              package_id: String(packageId),
+            },
           },
         },
-        quantity: 1,
-      }],
-      custom_data: {
-        order_id: String(orderId),
-        package_id: String(packageId),
+        relationships: {
+          store: { data: { type: 'stores', id: String(LS_STORE_ID) } },
+          variant: { data: { type: 'variants', id: String(LS_VARIANT_ID) } },
+        },
       },
     }, {
       headers: {
-        Authorization: `Bearer ${PADDLE_API_KEY}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${LS_API_KEY}`,
+        Accept: 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json',
       },
     });
 
-    const txnId = paddleRes.data.id;
-    await db.query('UPDATE orders SET paddle_transaction_id = $1 WHERE id = $2', [txnId, orderId]);
-
-    res.json({ transactionId: txnId, orderId: Number(orderId) });
+    const checkoutUrl = lsRes.data.attributes.url;
+    res.json({ url: checkoutUrl, orderId: Number(orderId) });
   } catch (err) {
-    console.error('Paddle error:', err.response?.data || err.message);
+    console.error('Lemon Squeezy error:', err.response?.data || err.message);
     await db.query('DELETE FROM orders WHERE id = $1', [orderId]);
     res.status(500).json({ error: 'Inicializimi i pagesës dështoi' });
   }

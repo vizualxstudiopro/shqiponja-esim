@@ -5,50 +5,40 @@ const db = require('../db');
 const { sendTransactionalEmail } = require('../lib/emailService');
 const airalo = require('../lib/airaloService');
 
-const PADDLE_WEBHOOK_SECRET = process.env.PADDLE_WEBHOOK_SECRET;
+const LS_WEBHOOK_SECRET = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
 
-function verifyPaddleSignature(rawBody, signature, secret) {
-  if (!signature || !secret) return false;
-  const parts = {};
-  signature.split(';').forEach(part => {
-    const idx = part.indexOf('=');
-    if (idx > 0) parts[part.slice(0, idx)] = part.slice(idx + 1);
-  });
-  const ts = parts.ts;
-  const h1 = parts.h1;
-  if (!ts || !h1) return false;
-
-  const payload = `${ts}:${rawBody}`;
-  const expectedSig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-
+function verifyLemonSqueezySignature(rawBody, signatureHeader, secret) {
+  if (!signatureHeader || !secret) return false;
+  const expectedSig = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
   try {
-    return crypto.timingSafeEqual(Buffer.from(h1, 'hex'), Buffer.from(expectedSig, 'hex'));
+    return crypto.timingSafeEqual(Buffer.from(signatureHeader, 'hex'), Buffer.from(expectedSig, 'hex'));
   } catch {
     return false;
   }
 }
 
-// POST /api/webhook/paddle - Paddle webhook handler
+// POST /api/webhook/lemonsqueezy - Lemon Squeezy webhook handler
 router.post('/', async (req, res) => {
-  if (!PADDLE_WEBHOOK_SECRET) {
-    console.error('Webhook: PADDLE_WEBHOOK_SECRET not configured');
+  if (!LS_WEBHOOK_SECRET) {
+    console.error('Webhook: LEMONSQUEEZY_WEBHOOK_SECRET not configured');
     return res.status(500).json({ error: 'Webhook secret not configured' });
   }
 
-  const sig = req.headers['paddle-signature'];
+  const sig = req.headers['x-signature'];
   const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
 
-  if (!verifyPaddleSignature(rawBody, sig, PADDLE_WEBHOOK_SECRET)) {
-    console.error('Webhook: Paddle signature verification failed');
+  if (!verifyLemonSqueezySignature(rawBody, sig, LS_WEBHOOK_SECRET)) {
+    console.error('Webhook: Lemon Squeezy signature verification failed');
     return res.status(400).json({ error: 'Invalid signature' });
   }
 
   const event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  console.log(`Webhook received: ${event.event_type} [${event.event_id}]`);
+  const eventName = event.meta?.event_name;
+  console.log(`Webhook received: ${eventName}`);
 
-  if (event.event_type === 'transaction.completed') {
-    const txnData = event.data;
-    const orderId = txnData.custom_data?.order_id;
+  if (eventName === 'order_created') {
+    const customData = event.meta?.custom_data;
+    const orderId = customData?.order_id;
 
     if (orderId) {
       const order = (await db.query('SELECT * FROM orders WHERE id = $1', [Number(orderId)])).rows[0];
@@ -56,6 +46,9 @@ router.post('/', async (req, res) => {
         console.error('Webhook: Order not found:', orderId);
         return res.json({ received: true });
       }
+
+      // Store the Lemon Squeezy order ID
+      const lsOrderId = String(event.data?.id || '');
 
       const qrData = `SHQIPONJA-ESIM-${orderId}-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
@@ -87,22 +80,21 @@ router.post('/', async (req, res) => {
 
       await db.query(`
         UPDATE orders SET payment_status = $1, status = $2, qr_data = $3,
-          airalo_order_id = $4, iccid = $5, esim_status = $6, qr_code_url = $7, activation_code = $8
-        WHERE id = $9
+          airalo_order_id = $4, iccid = $5, esim_status = $6, qr_code_url = $7, activation_code = $8,
+          ls_order_id = $9
+        WHERE id = $10
       `, ['paid', 'completed', airaloQr,
         airaloOrderId, iccid, iccid ? 'active' : (esimProvisioningAttempted ? 'provisioning_failed' : null),
-        qrCodeUrl, activationCode, Number(orderId)]);
-      console.log(`✔ Webhook: Order #${orderId} marked as paid (event: ${event.event_id})`);
+        qrCodeUrl, activationCode, lsOrderId, Number(orderId)]);
+      console.log(`✔ Webhook: Order #${orderId} marked as paid (LS order: ${lsOrderId})`);
 
-      // Send confirmation email — re-fetch the updated order
+      // Send confirmation email
       const updatedOrder = (await db.query(`
         SELECT o.*, p.name AS package_name, p.flag AS package_flag
         FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1
       `, [Number(orderId)])).rows[0];
       if (updatedOrder) {
-        const customerEmail = txnData.customer?.email || txnData.custom_data?.email || updatedOrder.email;
-        const country = updatedOrder.package_name || '';
-        const firstName = txnData.custom_data?.firstname || customerEmail.split('@')[0];
+        const customerEmail = event.data?.attributes?.user_email || customData?.email || updatedOrder.email;
         const esimCode = updatedOrder.iccid || updatedOrder.qr_data || airaloQr;
 
         const orderHtml = `<div style="font-family:sans-serif;max-width:500px;margin:0 auto">
@@ -121,8 +113,8 @@ router.post('/', async (req, res) => {
           html: orderHtml,
           templateId: 1,
           params: {
-            FIRSTNAME: firstName,
-            COUNTRY: country,
+            FIRSTNAME: customerEmail.split('@')[0],
+            COUNTRY: updatedOrder.package_name || '',
             ACTIVATION_CODE: esimCode,
           },
           logLabel: 'ORDER EMAIL',

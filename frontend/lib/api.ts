@@ -27,6 +27,7 @@ export interface Order {
   status: string;
   payment_status: string;
   paddle_transaction_id: string | null;
+  ls_order_id: string | null;
   qr_data: string | null;
   created_at: string;
   package_name: string;
@@ -126,7 +127,6 @@ export async function getPackageById(id: number): Promise<EsimPackage | null> {
 
 export interface CheckoutResponse {
   url?: string;
-  transactionId?: string;
   orderId?: number;
   order?: Order;
 }

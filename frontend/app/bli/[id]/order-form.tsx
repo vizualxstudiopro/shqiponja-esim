@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { initializePaddle, type Paddle } from "@paddle/paddle-js";
+import { useState } from "react";
 import { checkout } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
 
@@ -10,32 +9,11 @@ interface Props {
   price: number;
 }
 
-const PADDLE_CLIENT_TOKEN = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-const PADDLE_ENV = process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === "production" ? "production" : "sandbox";
-
 export default function OrderForm({ packageId, price }: Props) {
   const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [paddle, setPaddle] = useState<Paddle>();
-  const orderIdRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!PADDLE_CLIENT_TOKEN) return;
-    initializePaddle({
-      environment: PADDLE_ENV as "sandbox" | "production",
-      token: PADDLE_CLIENT_TOKEN,
-      eventCallback: (event) => {
-        if (event.name === "checkout.completed" && orderIdRef.current) {
-          window.location.href = `/porosi/${orderIdRef.current}`;
-        }
-        if (event.name === "checkout.closed") {
-          setLoading(false);
-        }
-      },
-    }).then((p) => setPaddle(p ?? undefined));
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,22 +28,12 @@ export default function OrderForm({ packageId, price }: Props) {
     try {
       const result = await checkout(packageId, email.trim());
 
-      // Dev mode — direct redirect
+      // Redirect to checkout URL (Lemon Squeezy hosted page or direct order page in dev mode)
       if (result.url) {
         window.location.href = result.url;
         return;
       }
 
-      // Paddle overlay checkout
-      if (result.transactionId && paddle) {
-        orderIdRef.current = result.orderId ?? null;
-        paddle.Checkout.open({
-          transactionId: result.transactionId,
-        });
-        return;
-      }
-
-      // Fallback — no Paddle loaded
       setError(t("buy.error"));
       setLoading(false);
     } catch (err) {

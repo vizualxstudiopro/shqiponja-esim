@@ -44,8 +44,8 @@ app.use(morgan('short'));
 
 app.use(apiLimiter);
 
-// Paddle webhook route
-app.use('/api/webhook/paddle', require('./routes/webhook'));
+// Lemon Squeezy webhook route
+app.use('/api/webhook/lemonsqueezy', require('./routes/webhook'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

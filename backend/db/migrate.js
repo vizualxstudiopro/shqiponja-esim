@@ -56,6 +56,7 @@ async function migrate() {
       payment_status      TEXT    NOT NULL DEFAULT 'unpaid',
       qr_data             TEXT,
       paddle_transaction_id TEXT,
+      ls_order_id         TEXT,
       airalo_order_id     TEXT,
       iccid               TEXT,
       esim_status         TEXT,
@@ -80,6 +81,13 @@ async function migrate() {
     // Auto-populate category for existing packages based on country_code
     await db.query(`UPDATE packages SET category = 'regional' WHERE category IS NULL OR category = 'local' AND country_code IN ('EU','AS','ME','OC','CB','AF')`);
     await db.query(`UPDATE packages SET category = 'global' WHERE category IS NULL OR category = 'local' AND country_code IN ('GL')`);
+  } catch (e) {
+    // Column likely already exists
+  }
+
+  // Add ls_order_id column if missing (migration from Paddle to Lemon Squeezy)
+  try {
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS ls_order_id TEXT`);
   } catch (e) {
     // Column likely already exists
   }
