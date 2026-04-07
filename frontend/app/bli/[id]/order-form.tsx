@@ -14,9 +14,11 @@ export default function OrderForm({ packageId, price }: Props) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitted) return;
     setError("");
 
     if (!email.trim()) {
@@ -24,6 +26,7 @@ export default function OrderForm({ packageId, price }: Props) {
       return;
     }
 
+    setSubmitted(true);
     setLoading(true);
     try {
       const result = await checkout(packageId, email.trim());
@@ -36,9 +39,11 @@ export default function OrderForm({ packageId, price }: Props) {
 
       setError(t("buy.error"));
       setLoading(false);
+      setSubmitted(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("buy.error"));
       setLoading(false);
+      setSubmitted(false);
     }
   }
 
@@ -71,7 +76,7 @@ export default function OrderForm({ packageId, price }: Props) {
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || submitted}
         className="w-full rounded-xl bg-shqiponja py-3.5 text-base font-semibold text-white shadow-lg shadow-shqiponja/25 transition hover:bg-shqiponja-dark disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? t("buy.processing") : `${t("buy.pay")} €${Number(price).toFixed(2)}`}

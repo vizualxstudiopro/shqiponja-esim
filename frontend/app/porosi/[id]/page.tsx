@@ -6,12 +6,14 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ token?: string }>;
 }
 
-export default async function PorosiPage({ params }: Props) {
+export default async function PorosiPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const order = await getOrderById(Number(id));
+  const { token } = await searchParams;
+  const order = await getOrderById(Number(id), token);
   if (!order) notFound();
 
-  return <OrderPageContent order={order} />;
+  return <OrderPageContent order={order} token={token} />;
 }

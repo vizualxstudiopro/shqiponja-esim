@@ -69,10 +69,11 @@ router.get('/:id', orderLimiter, async (req, res) => {
   `, [id])).rows[0];
   if (!order) return res.status(404).json({ error: 'Order not found' });
 
-  // Allow access if ls_order_id matches (post-payment confirmation)
-  const txnId = req.query.transaction_id;
-  if (txnId && order.ls_order_id && txnId === order.ls_order_id) {
-    return res.json(order);
+  // Allow access with cryptographic access token
+  const token = req.query.token;
+  if (token && order.access_token && token === order.access_token) {
+    const { access_token, ...safeOrder } = order;
+    return res.json(safeOrder);
   }
 
   // Otherwise require authentication

@@ -62,6 +62,7 @@ router.post('/', async (req, res) => {
       let airaloOrderId = null;
 
       const esimProvisioningAttempted = airalo.isEnabled() && pkg && pkg.airalo_package_id;
+      let provisioningFailed = false;
       if (esimProvisioningAttempted) {
         try {
           const airaloData = await airalo.createOrder(pkg.airalo_package_id, 1, `Order #${orderId}`);
@@ -73,21 +74,27 @@ router.post('/', async (req, res) => {
             activationCode = esim.direct_apple_installation_url || null;
             airaloOrderId = String(airaloData.data.id);
             console.log(`[AIRALO] eSIM ordered for Order #${orderId}, ICCID: ${iccid}`);
+          } else {
+            provisioningFailed = true;
           }
         } catch (err) {
           console.error(`[AIRALO ORDER ERROR] Order #${orderId}:`, err.message);
+          provisioningFailed = true;
         }
       }
+
+      // Determine order status: only "completed" if eSIM was provisioned or not needed
+      const orderStatus = (esimProvisioningAttempted && provisioningFailed) ? 'awaiting_esim' : 'completed';
 
       await db.query(`
         UPDATE orders SET payment_status = $1, status = $2, qr_data = $3,
           airalo_order_id = $4, iccid = $5, esim_status = $6, qr_code_url = $7, activation_code = $8,
           ls_order_id = $9
         WHERE id = $10
-      `, ['paid', 'completed', airaloQr,
+      `, ['paid', orderStatus, provisioningFailed ? null : airaloQr,
         airaloOrderId, iccid, iccid ? 'active' : (esimProvisioningAttempted ? 'provisioning_failed' : null),
         qrCodeUrl, activationCode, lsOrderId, Number(orderId)]);
-      console.log(`✔ Webhook: Order #${orderId} marked as paid (LS order: ${lsOrderId})`);
+      console.log(`✔ Webhook: Order #${orderId} marked as paid, status: ${orderStatus} (LS order: ${lsOrderId})`);
 
       // Send confirmation email
       const updatedOrder = (await db.query(`
@@ -96,24 +103,43 @@ router.post('/', async (req, res) => {
       `, [Number(orderId)])).rows[0];
       if (updatedOrder) {
         const customerEmail = event.data?.attributes?.user_email || customData?.email || updatedOrder.email;
-        const esimCode = updatedOrder.iccid || updatedOrder.qr_data || airaloQr;
 
-        sendTransactionalEmail({
-          toEmail: customerEmail,
-          subject: 'Porosia jote — Shqiponja eSIM',
-          html: orderConfirmationTemplate({
-            orderId,
-            packageFlag: updatedOrder.package_flag,
-            packageName: updatedOrder.package_name,
-            price: updatedOrder.price,
-            iccid: updatedOrder.iccid,
-            qrData: updatedOrder.qr_data,
-            qrCodeUrl: updatedOrder.qr_code_url,
-          }),
-          logLabel: 'ORDER EMAIL',
-        }).catch(err => {
-          console.error('Order confirmation delivery failed:', err);
-        });
+        if (provisioningFailed) {
+          // Airalo failed — send payment confirmation without QR, tell customer we're working on it
+          sendTransactionalEmail({
+            toEmail: customerEmail,
+            subject: 'Pagesa u konfirmua — eSIM po përgatitet — Shqiponja eSIM',
+            html: await orderConfirmationTemplate({
+              orderId,
+              packageFlag: updatedOrder.package_flag,
+              packageName: updatedOrder.package_name,
+              price: updatedOrder.price,
+              iccid: null,
+              qrData: null,
+              qrCodeUrl: null,
+            }),
+            logLabel: 'ORDER EMAIL (awaiting eSIM)',
+          }).catch(err => {
+            console.error('Order confirmation delivery failed:', err);
+          });
+        } else {
+          sendTransactionalEmail({
+            toEmail: customerEmail,
+            subject: 'Porosia jote — Shqiponja eSIM',
+            html: await orderConfirmationTemplate({
+              orderId,
+              packageFlag: updatedOrder.package_flag,
+              packageName: updatedOrder.package_name,
+              price: updatedOrder.price,
+              iccid: updatedOrder.iccid,
+              qrData: updatedOrder.qr_data,
+              qrCodeUrl: updatedOrder.qr_code_url,
+            }),
+            logLabel: 'ORDER EMAIL',
+          }).catch(err => {
+            console.error('Order confirmation delivery failed:', err);
+          });
+        }
       }
     }
   }

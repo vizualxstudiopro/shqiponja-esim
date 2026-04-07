@@ -161,9 +161,12 @@ export async function checkout(
   return res.json();
 }
 
-export async function getOrderById(id: number): Promise<Order | null> {
+export async function getOrderById(id: number, token?: string): Promise<Order | null> {
   try {
-    const res = await fetchWithTimeout(`${API_URL}/api/orders/${id}`, {
+    const url = token
+      ? `${API_URL}/api/orders/${id}?token=${encodeURIComponent(token)}`
+      : `${API_URL}/api/orders/${id}`;
+    const res = await fetchWithTimeout(url, {
       cache: "no-store",
     });
     if (!res.ok) return null;

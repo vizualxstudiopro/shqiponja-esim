@@ -91,6 +91,13 @@ async function migrate() {
     // Column likely already exists
   }
 
+  // Add access_token column for secure unauthenticated order access
+  try {
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS access_token TEXT`);
+  } catch (e) {
+    // Column likely already exists
+  }
+
   // Performance indexes
   await db.query(`
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const QRCode = require('qrcode');
 
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = process.env.SMTP_PORT || 587;
@@ -161,11 +162,17 @@ function resetPasswordTemplate(name, resetUrl) {
   `, 'Rivendos fjalëkalimin tënd');
 }
 
-function orderConfirmationTemplate({ orderId, packageFlag, packageName, price, iccid, qrData, qrCodeUrl }) {
+async function orderConfirmationTemplate({ orderId, packageFlag, packageName, price, iccid, qrData, qrCodeUrl }) {
   const priceDisplay = price ? `€${Number(price).toFixed(2)}` : '';
-  // Build QR image URL: prefer Airalo-hosted image, fallback to qrserver.com API
-  const qrImageSrc = qrCodeUrl
-    || (qrData ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}` : null);
+  // Generate QR as embedded base64 data URI (no external API dependency)
+  let qrImageSrc = qrCodeUrl || null;
+  if (!qrImageSrc && qrData) {
+    try {
+      qrImageSrc = await QRCode.toDataURL(qrData, { width: 250, margin: 2, color: { dark: '#0a0a0a', light: '#ffffff' } });
+    } catch (err) {
+      console.error('[EMAIL] QR generation failed:', err.message);
+    }
+  }
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Porosia u konfirmua! ✅</h2>
     <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">

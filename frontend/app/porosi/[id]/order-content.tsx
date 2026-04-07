@@ -2,12 +2,32 @@
 
 import { useI18n } from "@/lib/i18n-context";
 import type { Order } from "@/lib/api";
+import { getOrderById } from "@/lib/api";
 import QrCodeDisplay from "@/components/qr-code";
 import Navbar from "@/components/navbar";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
-export default function OrderPageContent({ order }: { order: Order }) {
+export default function OrderPageContent({ order: initialOrder, token }: { order: Order; token?: string }) {
   const { t, locale } = useI18n();
+  const [order, setOrder] = useState(initialOrder);
+
+  // Poll for updates when order is pending/awaiting eSIM
+  useEffect(() => {
+    if (order.status === "completed" && (order.qr_data || order.qr_code_url)) return;
+    const interval = setInterval(async () => {
+      try {
+        const updated = await getOrderById(order.id, token);
+        if (updated) {
+          setOrder(updated);
+          if (updated.status === "completed" && (updated.qr_data || updated.qr_code_url)) {
+            clearInterval(interval);
+          }
+        }
+      } catch { /* silent */ }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [order.id, order.status, order.qr_data, order.qr_code_url, token]);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -136,7 +156,7 @@ export default function OrderPageContent({ order }: { order: Order }) {
             </>
           ) : (
             <>
-              <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-xl bg-zinc-100" aria-label="QR placeholder">
+              <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-xl bg-zinc-100 animate-pulse" aria-label="QR placeholder">
                 <svg
                   className="h-16 w-16 text-zinc-300"
                   fill="none"
@@ -154,6 +174,9 @@ export default function OrderPageContent({ order }: { order: Order }) {
               </div>
               <p className="mt-4 text-sm text-zinc-400">
                 {t("order.qrPending")}
+              </p>
+              <p className="mt-1 text-xs text-zinc-300">
+                {locale === "sq" ? "Duke kontrolluar automatikisht..." : "Checking automatically..."}
               </p>
             </>
           )}

@@ -41,9 +41,10 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     } catch { /* not logged in, that's ok */ }
   }
 
+  const accessToken = crypto.randomBytes(32).toString('hex');
   const result = await db.query(
-    'INSERT INTO orders (package_id, email, status, payment_status, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-    [packageId, email, 'pending', 'unpaid', userId]
+    'INSERT INTO orders (package_id, email, status, payment_status, user_id, access_token) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+    [packageId, email, 'pending', 'unpaid', userId, accessToken]
   );
   const orderId = result.rows[0].id;
 
@@ -94,7 +95,7 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     sendTransactionalEmail({
       toEmail: email,
       subject: 'Porosia jote — Shqiponja eSIM',
-      html: orderConfirmationTemplate({
+      html: await orderConfirmationTemplate({
         orderId,
         packageFlag: order.package_flag,
         packageName: order.package_name,
@@ -105,7 +106,7 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
       logLabel: 'ORDER EMAIL',
     }).catch(err => console.error('Order email error:', err));
 
-    return res.json({ url: `${FRONTEND_URL}/porosi/${orderId}`, order });
+    return res.json({ url: `${FRONTEND_URL}/porosi/${orderId}?token=${accessToken}`, order });
   }
 
   // Create Lemon Squeezy checkout session
@@ -120,8 +121,8 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
           product_options: {
             name: `${pkg.name} — ${pkg.data} / ${pkg.duration}`,
             description: pkg.description || `eSIM ${pkg.region}`,
-            redirect_url: `${FRONTEND_URL}/porosi/${orderId}`,
-            receipt_link_url: `${FRONTEND_URL}/porosi/${orderId}`,
+            redirect_url: `${FRONTEND_URL}/porosi/${orderId}?token=${accessToken}`,
+            receipt_link_url: `${FRONTEND_URL}/porosi/${orderId}?token=${accessToken}`,
             receipt_button_text: 'Shiko porosinë',
           },
           checkout_options: {
@@ -154,8 +155,8 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     res.json({ url: checkoutUrl, orderId: Number(orderId) });
   } catch (err) {
     console.error('Lemon Squeezy error:', err.response?.data || err.message);
-    await db.query('DELETE FROM orders WHERE id = $1', [orderId]);
-    res.status(500).json({ error: 'Inicializimi i pagesës dështoi' });
+    await db.query('UPDATE orders SET payment_status = $1, status = $2 WHERE id = $3', ['failed', 'failed', orderId]);
+    res.status(500).json({ error: 'Inicializimi i pagesës dështoi. Provo përsëri.' });
   }
 });
 

@@ -98,28 +98,40 @@ async function sendTransactionalEmail({
   templateId,
   params = {},
   logLabel = "EMAIL",
+  retries = 2,
 }) {
-  // 1. Try Brevo REST API first
-  if (BREVO_API_KEY) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) {
+      const delay = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
+      await new Promise(r => setTimeout(r, delay));
+      console.log(`[${logLabel}] Retry ${attempt}/${retries} for ${toEmail}...`);
+    }
+
+    // 1. Try Brevo REST API first
+    if (BREVO_API_KEY) {
+      try {
+        const response = await sendBrevoRawEmail(toEmail, subject, html);
+        console.log(`[${logLabel}] Sent via Brevo API to ${toEmail} (messageId: ${response?.messageId})`);
+        return { provider: "brevo-api", info: response };
+      } catch (brevoErr) {
+        lastErr = brevoErr;
+        console.error(`[${logLabel}] Brevo API error:`, brevoErr && brevoErr.message ? brevoErr.message : brevoErr);
+      }
+    }
+
+    // 2. Fallback: SMTP
     try {
-      const response = await sendBrevoRawEmail(toEmail, subject, html);
-      console.log(`[${logLabel}] Sent via Brevo API to ${toEmail} (messageId: ${response?.messageId})`);
-      return { provider: "brevo-api", info: response };
-    } catch (brevoErr) {
-      console.error(`[${logLabel}] Brevo API error:`, brevoErr && brevoErr.message ? brevoErr.message : brevoErr);
+      const smtpInfo = await sendMail(toEmail, subject, html);
+      console.log(`[${logLabel}] Sent via SMTP to ${toEmail}`);
+      return { provider: "smtp", info: smtpInfo };
+    } catch (smtpErr) {
+      lastErr = smtpErr;
+      console.error(`[${logLabel}] SMTP error:`, smtpErr && smtpErr.message ? smtpErr.message : smtpErr);
     }
   }
 
-  // 2. Fallback: SMTP
-  try {
-    const smtpInfo = await sendMail(toEmail, subject, html);
-    console.log(`[${logLabel}] Sent via SMTP to ${toEmail}`);
-    return { provider: "smtp", info: smtpInfo };
-  } catch (smtpErr) {
-    console.error(`[${logLabel}] SMTP error:`, smtpErr && smtpErr.message ? smtpErr.message : smtpErr);
-  }
-
-  throw new Error(`[${logLabel}] All email delivery methods failed`);
+  throw new Error(`[${logLabel}] All email delivery methods failed after ${retries + 1} attempts`);
 }
 
 module.exports = { sendTemplateEmail, sendTransactionalEmail };

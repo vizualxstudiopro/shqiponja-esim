@@ -77,7 +77,7 @@ app.get('/api/test-email', async (req, res) => {
     await sendTransactionalEmail({
       toEmail: email,
       subject: 'Porosia jote — Shqiponja eSIM',
-      html: orderConfirmationTemplate({
+      html: await orderConfirmationTemplate({
         orderId: 'TEST-001',
         packageFlag: '🇦🇱',
         packageName: 'Albania — 5 GB',
