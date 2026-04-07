@@ -5,11 +5,8 @@ const AIRALO_CLIENT_ID = process.env.AIRALO_CLIENT_ID;
 const AIRALO_CLIENT_SECRET = process.env.AIRALO_CLIENT_SECRET;
 const AIRALO_ENV = process.env.AIRALO_ENV || 'sandbox'; // 'sandbox' or 'production'
 
-const BASE_URL = process.env.AIRALO_API_URL || (
-  AIRALO_ENV === 'production'
-    ? 'https://partner-api.airalo.com/v2'
-    : 'https://sandbox-partners-api.airalo.com/v2'
-);
+// Airalo uses a single API URL — sandbox vs production is determined by credentials
+const BASE_URL = process.env.AIRALO_API_URL || 'https://partners-api.airalo.com/v2';
 
 console.log(`[AIRALO] Environment: ${AIRALO_ENV}, Base URL: ${BASE_URL}`);
 
