@@ -68,6 +68,10 @@ export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
             </div>
           </div>
 
+          <p className="mt-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
+            {t("packages.rateNote")} 1 EUR = {eurToAll.toFixed(2)} ALL
+          </p>
+
           <div className="my-8 border-t border-zinc-100" />
 
           <h2 className="text-lg font-bold">{t("buy.fillOrder")}</h2>

@@ -76,6 +76,7 @@ const translations = {
     "packages.oceaniaDesc": "Paketa eSIM për Oqeani dhe Australi.",
     "packages.middle_eastDesc": "Paketa eSIM për vendet e Lindjes së Mesme.",
     "packages.searchAll": "Kërkon në të gjitha paketat e disponueshme",
+    "packages.rateNote": "Kursi aktual:",
 
     // How it works
     "how.badge": "3 Hapa",
@@ -438,6 +439,7 @@ const translations = {
     "packages.oceaniaDesc": "eSIM packages for Oceania and Australia.",
     "packages.middle_eastDesc": "eSIM packages for Middle Eastern countries.",
     "packages.searchAll": "Searching across all available packages",
+    "packages.rateNote": "Current rate:",
 
     // How it works
     "how.badge": "3 Steps",

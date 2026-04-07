@@ -311,6 +311,13 @@ export default function PackageGrid() {
         </>
       )}
 
+      {/* Exchange rate note */}
+      {!loading && !error && displayPackages.length > 0 && (
+        <p className="mt-6 text-center text-xs text-zinc-400 dark:text-zinc-500">
+          {t("packages.rateNote")} 1 EUR = {eurToAll.toFixed(2)} ALL
+        </p>
+      )}
+
       {/* Empty state */}
       {!loading && !searchLoading && !error && displayPackages.length === 0 && (
         <div className="mt-8 flex flex-col items-center gap-4 py-10 text-center">
