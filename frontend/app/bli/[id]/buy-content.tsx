@@ -57,6 +57,7 @@ export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
               <p className="mt-1 text-lg font-bold text-shqiponja">
                 €{Number(pkg.price).toFixed(2)}
               </p>
+              <p className="text-xs text-zinc-400">~{Math.round(Number(pkg.price) * 100)} Lek</p>
             </div>
           </div>
 

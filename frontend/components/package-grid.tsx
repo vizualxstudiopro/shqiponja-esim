@@ -275,6 +275,9 @@ export default function PackageGrid() {
                   <span className="mt-2 text-2xl font-extrabold tracking-tight text-shqiponja">
                     €{Number(pkg.price).toFixed(2)}
                   </span>
+                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                    ~{Math.round(Number(pkg.price) * 100)} Lek
+                  </span>
                 </div>
 
                 <div className="mt-4 space-y-2 text-sm text-zinc-500">
