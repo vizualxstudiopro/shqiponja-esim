@@ -150,13 +150,19 @@ async function syncPackagesFromAiralo() {
         for (const operator of country.operators) {
           if (!operator.packages) continue;
           for (const pkg of operator.packages) {
+            // Determine category from country structure
+            const category = country.type === 'global' ? 'global'
+              : country.type === 'regional' ? 'regional' : 'local';
+
             await client.query(`
               INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description,
-                                    airalo_package_id, country_code, networks, package_type, net_price, sms, voice)
-              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+                                    airalo_package_id, country_code, networks, package_type, net_price, sms, voice,
+                                    visible, category)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
               ON CONFLICT(airalo_package_id) DO UPDATE SET
                 price = $6, net_price = $14, data = $4, duration = $5,
-                networks = $12, sms = $15, voice = $16, description = $9
+                networks = $12, sms = $15, voice = $16, description = $9,
+                visible = $17
             `, [
               `${country.title} — ${pkg.data || 'Unlimited'}`,
               region, flag, pkg.data || 'Unlimited',
@@ -166,6 +172,7 @@ async function syncPackagesFromAiralo() {
               pkg.id, countryCode, operator.title || '',
               pkg.type || 'sim', pkg.net_price || null,
               pkg.sms || 0, pkg.voice || 0,
+              1, category,
             ]);
             synced++;
           }
