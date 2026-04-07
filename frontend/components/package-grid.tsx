@@ -218,7 +218,7 @@ export default function PackageGrid() {
                 }`}
               >
                 {tb.icon}
-                <span className="hidden sm:inline">{tb.label}</span>
+                <span>{tb.label}</span>
                 {tb.count > 0 && (
                   <span className={`ml-0.5 rounded-full px-1.5 py-0.5 text-xs ${
                     tab === tb.key ? "bg-white/20 text-white" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400"
