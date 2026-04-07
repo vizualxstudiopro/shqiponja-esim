@@ -21,10 +21,14 @@ async function getToken() {
     return accessToken;
   }
 
-  const res = await axios.post(`${BASE_URL}/token`, {
-    client_id: AIRALO_CLIENT_ID,
-    client_secret: AIRALO_CLIENT_SECRET,
-    grant_type: 'client_credentials',
+  // Airalo requires x-www-form-urlencoded for token endpoint
+  const params = new URLSearchParams();
+  params.append('client_id', AIRALO_CLIENT_ID);
+  params.append('client_secret', AIRALO_CLIENT_SECRET);
+  params.append('grant_type', 'client_credentials');
+
+  const res = await axios.post(`${BASE_URL}/token`, params, {
+    headers: { Accept: 'application/json' },
   });
 
   accessToken = res.data.data.access_token;
