@@ -22,14 +22,26 @@ async function getToken() {
   }
 
   // Airalo requires x-www-form-urlencoded for token endpoint
-  const params = new URLSearchParams();
-  params.append('client_id', AIRALO_CLIENT_ID);
-  params.append('client_secret', AIRALO_CLIENT_SECRET);
-  params.append('grant_type', 'client_credentials');
+  const body = new URLSearchParams({
+    client_id: AIRALO_CLIENT_ID,
+    client_secret: AIRALO_CLIENT_SECRET,
+    grant_type: 'client_credentials',
+  }).toString();
 
-  const res = await axios.post(`${BASE_URL}/token`, params, {
-    headers: { Accept: 'application/json' },
-  });
+  console.log('[AIRALO] Requesting token from', `${BASE_URL}/token`);
+
+  let res;
+  try {
+    res = await axios.post(`${BASE_URL}/token`, body, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
+      },
+    });
+  } catch (err) {
+    console.error('[AIRALO] Token request failed:', err.response?.status, JSON.stringify(err.response?.data));
+    throw err;
+  }
 
   accessToken = res.data.data.access_token;
   // Expire 5 min early to avoid edge cases
