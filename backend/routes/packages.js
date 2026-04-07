@@ -123,6 +123,69 @@ router.get('/:id', async (req, res) => {
   res.json(normalizePackage({ ...pkg }));
 });
 
+/**
+ * Core sync logic — reusable from admin endpoint AND automated cron
+ * @returns {Promise<number>} Number of packages synced
+ */
+async function syncPackagesFromAiralo() {
+  let page = 1;
+  let synced = 0;
+  const limit = 100;
+
+  await db.query('CREATE UNIQUE INDEX IF NOT EXISTS idx_packages_airalo_unique ON packages(airalo_package_id)');
+
+  while (true) {
+    const result = await airalo.getPackages({ limit, page });
+    if (!result || !result.data || result.data.length === 0) break;
+
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+      for (const country of result.data) {
+        const countryCode = country.country_code || '';
+        const flag = country.flag || countryToFlag(countryCode);
+        const region = country.region || 'Other';
+
+        if (!country.operators) continue;
+        for (const operator of country.operators) {
+          if (!operator.packages) continue;
+          for (const pkg of operator.packages) {
+            await client.query(`
+              INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description,
+                                    airalo_package_id, country_code, networks, package_type, net_price, sms, voice)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+              ON CONFLICT(airalo_package_id) DO UPDATE SET
+                price = $6, net_price = $14, data = $4, duration = $5,
+                networks = $12, sms = $15, voice = $16, description = $9
+            `, [
+              `${country.title} — ${pkg.data || 'Unlimited'}`,
+              region, flag, pkg.data || 'Unlimited',
+              pkg.validity || pkg.day + ' ditë',
+              pkg.price || pkg.net_price * 1.5, 'USD', 0,
+              `${operator.title} — ${pkg.data || 'Unlimited'} / ${pkg.validity || pkg.day + ' ditë'}`,
+              pkg.id, countryCode, operator.title || '',
+              pkg.type || 'sim', pkg.net_price || null,
+              pkg.sms || 0, pkg.voice || 0,
+            ]);
+            synced++;
+          }
+        }
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    if (result.data.length < limit) break;
+    page++;
+  }
+
+  return synced;
+}
+
 // POST /api/packages/sync - Sync packages from Airalo API (admin only)
 router.post('/sync', authMiddleware, adminOnly, async (req, res) => {
   if (!airalo.isEnabled()) {
@@ -130,69 +193,17 @@ router.post('/sync', authMiddleware, adminOnly, async (req, res) => {
   }
 
   try {
-    let page = 1;
-    let synced = 0;
-    const limit = 100;
-
-    // Ensure unique index on airalo_package_id exists
-    await db.query('CREATE UNIQUE INDEX IF NOT EXISTS idx_packages_airalo_unique ON packages(airalo_package_id)');
-
-    while (true) {
-      const result = await airalo.getPackages({ limit, page });
-      if (!result || !result.data || result.data.length === 0) break;
-
-      const client = await db.connect();
-      try {
-        await client.query('BEGIN');
-        for (const country of result.data) {
-          const countryCode = country.country_code || '';
-          const flag = country.flag || countryToFlag(countryCode);
-          const region = country.region || 'Other';
-
-          if (!country.operators) continue;
-          for (const operator of country.operators) {
-            if (!operator.packages) continue;
-            for (const pkg of operator.packages) {
-              await client.query(`
-                INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description,
-                                      airalo_package_id, country_code, networks, package_type, net_price, sms, voice)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-                ON CONFLICT(airalo_package_id) DO UPDATE SET
-                  price = $6, net_price = $14, data = $4, duration = $5,
-                  networks = $12, sms = $15, voice = $16, description = $9
-              `, [
-                `${country.title} — ${pkg.data || 'Unlimited'}`,
-                region, flag, pkg.data || 'Unlimited',
-                pkg.validity || pkg.day + ' ditë',
-                pkg.price || pkg.net_price * 1.5, 'USD', 0,
-                `${operator.title} — ${pkg.data || 'Unlimited'} / ${pkg.validity || pkg.day + ' ditë'}`,
-                pkg.id, countryCode, operator.title || '',
-                pkg.type || 'sim', pkg.net_price || null,
-                pkg.sms || 0, pkg.voice || 0,
-              ]);
-              synced++;
-            }
-          }
-        }
-        await client.query('COMMIT');
-      } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-      } finally {
-        client.release();
-      }
-
-      if (result.data.length < limit) break;
-      page++;
-    }
-
-    console.log(`[AIRALO SYNC] ${synced} packages synced`);
+    const synced = await syncPackagesFromAiralo();
+    console.log(`[AIRALO SYNC] ${synced} packages synced (manual)`);
     res.json({ success: true, synced });
   } catch (err) {
     console.error('[AIRALO SYNC ERROR]', err.message);
     res.status(500).json({ error: 'Sinkronizimi dështoi: ' + err.message });
   }
 });
+
+// Export sync function for automated cron use
+router.syncPackagesFromAiralo = syncPackagesFromAiralo;
 
 // Helper: Convert country code to flag emoji
 function countryToFlag(code) {

@@ -1,4 +1,4 @@
-// Shqiponja eSIM Backend v2.2 — 2026-04-05
+// Shqiponja eSIM Backend v2.3 — 2026-04-07
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -7,6 +7,7 @@ require('dotenv').config();
 
 // Run database migrations & seed
 const { migrate } = require('./db/migrate');
+const airalo = require('./lib/airaloService');
 
 const { apiLimiter } = require('./middleware/rate-limit');
 
@@ -81,6 +82,25 @@ app.use((err, req, res, _next) => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT} (build: ${new Date().toISOString().slice(0,16)})`);
   });
+
+  // ── Airalo auto-sync: sync packages on startup + every hour ──
+  if (airalo.isEnabled()) {
+    const packagesRoute = require('./routes/packages');
+    const runSync = async () => {
+      try {
+        const synced = await packagesRoute.syncPackagesFromAiralo();
+        console.log(`[AIRALO CRON] ${synced} packages synced at ${new Date().toISOString()}`);
+      } catch (err) {
+        console.error('[AIRALO CRON ERROR]', err.message);
+      }
+    };
+
+    // Sync on startup (delay 10s to let DB settle)
+    setTimeout(runSync, 10_000);
+    // Then every 55 minutes (safely under the 60-min requirement)
+    setInterval(runSync, 55 * 60 * 1000);
+    console.log('[AIRALO CRON] Automatic package sync enabled (every 55 min)');
+  }
 })().catch(err => {
   console.error('Failed to start server:', err);
   process.exit(1);
