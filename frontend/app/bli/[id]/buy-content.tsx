@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import type { EsimPackage } from "@/lib/api";
+import { getExchangeRates } from "@/lib/api";
 import Navbar from "@/components/navbar";
 import OrderForm from "./order-form";
 
@@ -22,6 +24,11 @@ function BuyFlagIcon({ countryCode, emoji }: { countryCode?: string; emoji?: str
 
 export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
   const { t } = useI18n();
+  const [eurToAll, setEurToAll] = useState(109);
+
+  useEffect(() => {
+    getExchangeRates().then(r => setEurToAll(r.eur_to_all)).catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -57,7 +64,7 @@ export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
               <p className="mt-1 text-lg font-bold text-shqiponja">
                 €{Number(pkg.price).toFixed(2)}
               </p>
-              <p className="text-xs text-zinc-400">~{Math.round(Number(pkg.price) * 100)} Lek</p>
+              <p className="text-xs text-zinc-400">~{Math.round(Number(pkg.price) * eurToAll)} Lek</p>
             </div>
           </div>
 

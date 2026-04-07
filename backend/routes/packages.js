@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const airalo = require('../lib/airaloService');
+const { usdToEur } = require('../lib/exchangeRates');
 
 // ── Country → geographic category mapping ──
 const BALKANS = new Set(['AL','XK','MK','ME','RS','BA','HR','BG','RO','GR','SI','TR','CY']);
@@ -167,9 +168,6 @@ async function syncPackagesFromAiralo() {
   let synced = 0;
   const limit = 100;
 
-  // Configurable exchange rate (updated periodically)
-  const USD_TO_EUR = parseFloat(process.env.USD_TO_EUR) || 0.92;
-
   await db.query('CREATE UNIQUE INDEX IF NOT EXISTS idx_packages_airalo_unique ON packages(airalo_package_id)');
 
   while (true) {
@@ -204,7 +202,7 @@ async function syncPackagesFromAiralo() {
               `${country.title} — ${pkg.data || 'Unlimited'}`,
               region, flag, pkg.data || 'Unlimited',
               pkg.validity || pkg.day + ' ditë',
-              Math.round(((pkg.price || pkg.net_price * 1.5) * USD_TO_EUR) * 100) / 100, 'EUR', 0,
+              await usdToEur(pkg.price || pkg.net_price * 1.5), 'EUR', 0,
               `${operator.title} — ${pkg.data || 'Unlimited'} / ${pkg.validity || pkg.day + ' ditë'}`,
               pkg.id, countryCode, operator.title || '',
               pkg.type || 'sim', pkg.net_price || null,

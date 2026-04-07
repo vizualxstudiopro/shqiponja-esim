@@ -112,6 +112,21 @@ export async function searchPackages(q: string): Promise<EsimPackage[]> {
   }
 }
 
+export interface ExchangeRates {
+  eur_to_all: number;
+  updated_at: string | null;
+}
+
+export async function getExchangeRates(): Promise<ExchangeRates> {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/rates`, { cache: "no-store" });
+    if (!res.ok) return { eur_to_all: 109, updated_at: null };
+    return res.json();
+  } catch {
+    return { eur_to_all: 109, updated_at: null };
+  }
+}
+
 export async function getPackageById(id: number): Promise<EsimPackage | null> {
   try {
     const res = await fetchWithTimeout(`${API_URL}/api/packages/${id}`, {

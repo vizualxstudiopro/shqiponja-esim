@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
-import { getPackages, searchPackages, type EsimPackage } from "@/lib/api";
+import { getPackages, searchPackages, getExchangeRates, type EsimPackage } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
 
 type Tab = "popular" | "balkans" | "europe" | "asia" | "middle_east" | "africa" | "americas" | "oceania" | "global";
@@ -80,11 +80,15 @@ export default function PackageGrid() {
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [eurToAll, setEurToAll] = useState(109);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
-    getPackages()
-      .then((data) => setPackages(data))
+    Promise.all([getPackages(), getExchangeRates()])
+      .then(([data, rates]) => {
+        setPackages(data);
+        setEurToAll(rates.eur_to_all);
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
@@ -276,7 +280,7 @@ export default function PackageGrid() {
                     €{Number(pkg.price).toFixed(2)}
                   </span>
                   <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                    ~{Math.round(Number(pkg.price) * 100)} Lek
+                    ~{Math.round(Number(pkg.price) * eurToAll)} Lek
                   </span>
                 </div>
 

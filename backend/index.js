@@ -57,6 +57,14 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
+// Exchange rates endpoint (cached, real-time)
+const { eurToAllRate, getRates } = require('./lib/exchangeRates');
+app.get('/api/rates', async (req, res) => {
+  const rates = await getRates();
+  const allRate = await eurToAllRate();
+  res.json({ eur_to_all: allRate, updated_at: rates.updatedAt });
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/auth/oauth', require('./routes/oauth'));
