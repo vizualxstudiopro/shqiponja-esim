@@ -4,6 +4,41 @@ const db = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const airalo = require('../lib/airaloService');
 
+// ── Country → geographic category mapping ──
+const BALKANS = new Set(['AL','XK','MK','ME','RS','BA','HR','BG','RO','GR','SI','TR','CY']);
+const EUROPE = new Set(['AT','BE','CH','CZ','DE','DK','EE','ES','FI','FR','GB','HU','IE','IS','IT','LT','LU','LV','MT','NL','NO','PL','PT','SE','SK','UA','MD','BY','AD','MC','SM','VA','LI','FO','GI','JE','GG','IM','AX']);
+const ASIA = new Set(['CN','JP','KR','IN','ID','TH','VN','MY','SG','PH','TW','HK','MO','KH','LA','MM','BD','LK','NP','PK','AF','MN','KZ','UZ','KG','TJ','TM','BN','TL','MV','BT']);
+const MIDDLE_EAST = new Set(['AE','SA','QA','KW','BH','OM','JO','LB','IQ','IL','PS','IR','YE','SY']);
+const AFRICA = new Set(['ZA','EG','MA','TN','DZ','NG','KE','GH','TZ','UG','ET','SN','CM','CI','MU','MG','RW','MZ','ZM','ZW','BW','NA','AO','CD','CG','GA','ML','NE','BF','BJ','TG','SL','LR','GN','GM','CV','ST','SC','RE','YT','DJ','SO','SD','SS','ER','LY','MW','LS','SZ','KM']);
+const AMERICAS = new Set(['US','CA','MX','BR','AR','CL','CO','PE','VE','EC','BO','PY','UY','GY','SR','PA','CR','GT','HN','SV','NI','BZ','CU','DO','HT','JM','TT','BB','BS','AG','DM','GD','KN','LC','VC','PR','VI','AW','CW','SX','BQ','KY','TC','BM','MS','AI','MF','BL','GP','MQ','GF','FK','PM']);
+const OCEANIA = new Set(['AU','NZ','FJ','PG','WS','TO','VU','SB','PW','FM','MH','KI','NR','TV','CK','NU','TK','AS','GU','MP','NC','PF','WF']);
+
+function countryToCategory(countryCode, airaloType, slug) {
+  if (!countryCode || airaloType === 'global') {
+    // Check slug for regional packages
+    if (slug) {
+      const s = slug.toLowerCase();
+      if (s.includes('europe') || s.includes('eu')) return 'europe';
+      if (s.includes('asia') || s.includes('asean')) return 'asia';
+      if (s.includes('africa')) return 'africa';
+      if (s.includes('america') || s.includes('latam') || s.includes('caribbean')) return 'americas';
+      if (s.includes('middle') || s.includes('arab') || s.includes('gulf')) return 'middle_east';
+      if (s.includes('oceania') || s.includes('pacific')) return 'oceania';
+      if (s.includes('balkan')) return 'balkans';
+    }
+    return 'global';
+  }
+  const cc = countryCode.toUpperCase();
+  if (BALKANS.has(cc)) return 'balkans';
+  if (EUROPE.has(cc)) return 'europe';
+  if (ASIA.has(cc)) return 'asia';
+  if (MIDDLE_EAST.has(cc)) return 'middle_east';
+  if (AFRICA.has(cc)) return 'africa';
+  if (AMERICAS.has(cc)) return 'americas';
+  if (OCEANIA.has(cc)) return 'oceania';
+  return 'global';
+}
+
 function normalizePackage(p) {
   return { ...p, price: parseFloat(p.price) || 0, net_price: p.net_price != null ? parseFloat(p.net_price) || 0 : null, highlight: !!p.highlight, visible: !!p.visible };
 }
@@ -35,7 +70,7 @@ router.get('/', async (req, res) => {
     sql += " AND (package_type IS NULL OR package_type = 'sim')";
   }
 
-  const validCategories = ['balkans', 'europe', 'asia', 'middle_east', 'africa', 'americas', 'oceania', 'global'];
+  const validCategories = ['balkans', 'europe', 'asia', 'middle_east', 'africa', 'americas', 'oceania', 'global', 'local', 'regional'];
   if (req.query.category && validCategories.includes(req.query.category)) {
     sql += ` AND category = $${paramIdx}`;
     params.push(req.query.category);
@@ -150,9 +185,8 @@ async function syncPackagesFromAiralo() {
         for (const operator of country.operators) {
           if (!operator.packages) continue;
           for (const pkg of operator.packages) {
-            // Determine category from country structure
-            const category = country.type === 'global' ? 'global'
-              : country.type === 'regional' ? 'regional' : 'local';
+            // Map country to geographic category for frontend tabs
+            const category = countryToCategory(countryCode, country.type, country.slug);
 
             await client.query(`
               INSERT INTO packages (name, region, flag, data, duration, price, currency, highlight, description,
