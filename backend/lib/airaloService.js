@@ -7,7 +7,7 @@ const AIRALO_ENV = process.env.AIRALO_ENV || 'sandbox'; // 'sandbox' or 'product
 
 const BASE_URL = AIRALO_ENV === 'production'
   ? 'https://partner-api.airalo.com/v2'
-  : 'https://sandbox-partner-api.airalo.com/v2';
+  : 'https://sandbox-partners-api.airalo.com/v2';
 
 const enabled = !!(AIRALO_CLIENT_ID && AIRALO_CLIENT_SECRET);
 
