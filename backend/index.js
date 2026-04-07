@@ -65,6 +65,34 @@ app.get('/api/rates', async (req, res) => {
   res.json({ eur_to_all: allRate, updated_at: rates.updatedAt });
 });
 
+// Temporary test-email endpoint (remove after testing)
+const { sendTransactionalEmail } = require('./lib/emailService');
+const { orderConfirmationTemplate } = require('./lib/email');
+app.get('/api/test-email', async (req, res) => {
+  const secret = req.query.secret;
+  if (secret !== 'shqiponja2026test') return res.status(403).json({ error: 'forbidden' });
+  const email = req.query.email;
+  if (!email) return res.status(400).json({ error: 'email required' });
+  try {
+    await sendTransactionalEmail({
+      toEmail: email,
+      subject: 'Porosia jote — Shqiponja eSIM',
+      html: orderConfirmationTemplate({
+        orderId: 'TEST-001',
+        packageFlag: '🇦🇱',
+        packageName: 'Albania — 5 GB',
+        price: '13.00',
+        iccid: '8999999012345678901',
+        qrData: 'LPA:1$smdp.io$TEST-QR-CODE-SAMPLE-DATA-SHQIPONJA-ESIM',
+      }),
+      logLabel: 'TEST EMAIL',
+    });
+    res.json({ ok: true, sentTo: email });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/auth/oauth', require('./routes/oauth'));
