@@ -5,9 +5,13 @@ const AIRALO_CLIENT_ID = process.env.AIRALO_CLIENT_ID;
 const AIRALO_CLIENT_SECRET = process.env.AIRALO_CLIENT_SECRET;
 const AIRALO_ENV = process.env.AIRALO_ENV || 'sandbox'; // 'sandbox' or 'production'
 
-const BASE_URL = AIRALO_ENV === 'production'
-  ? 'https://partner-api.airalo.com/v2'
-  : 'https://sandbox-partners-api.airalo.com/v2';
+const BASE_URL = process.env.AIRALO_API_URL || (
+  AIRALO_ENV === 'production'
+    ? 'https://partner-api.airalo.com/v2'
+    : 'https://sandbox-partners-api.airalo.com/v2'
+);
+
+console.log(`[AIRALO] Environment: ${AIRALO_ENV}, Base URL: ${BASE_URL}`);
 
 const enabled = !!(AIRALO_CLIENT_ID && AIRALO_CLIENT_SECRET);
 
