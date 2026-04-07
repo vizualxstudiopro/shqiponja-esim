@@ -7,7 +7,7 @@ FROM node:20-alpine
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 
-# Cache bust: 2026-04-05
+# Cache bust: 2026-04-07-v2
 COPY . .
 ENV NODE_ENV=production
 EXPOSE 3001
