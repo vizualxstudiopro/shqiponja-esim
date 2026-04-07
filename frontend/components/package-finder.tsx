@@ -3,10 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
-  getCountriesByContinent,
   getPackages,
   getExchangeRates,
-  type CountryInfo,
   type EsimPackage,
 } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
@@ -21,15 +19,62 @@ type Continent =
   | "americas"
   | "oceania";
 
-const CONTINENTS: { key: Continent; emoji: string }[] = [
-  { key: "global", emoji: "🌍" },
-  { key: "balkans", emoji: "🇦🇱" },
-  { key: "europe", emoji: "🇪🇺" },
-  { key: "asia", emoji: "🌏" },
-  { key: "middle_east", emoji: "🕌" },
-  { key: "africa", emoji: "🌍" },
-  { key: "americas", emoji: "🌎" },
-  { key: "oceania", emoji: "🌊" },
+/* SVG globe icon reused for several continents */
+function GlobeIcon({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+    </svg>
+  );
+}
+
+/* Pin icon for Middle East */
+function PinIcon({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+    </svg>
+  );
+}
+
+const CONTINENTS: { key: Continent; icon: React.ReactNode; flagCode?: string }[] = [
+  {
+    key: "global",
+    icon: <GlobeIcon />,
+  },
+  {
+    key: "balkans",
+    flagCode: "al",
+    icon: <span className="fi fi-al fis" style={{ fontSize: "1.3rem", borderRadius: "3px" }} />,
+  },
+  {
+    key: "europe",
+    flagCode: "eu",
+    icon: <span className="fi fi-eu fis" style={{ fontSize: "1.3rem", borderRadius: "3px" }} />,
+  },
+  {
+    key: "asia",
+    icon: <GlobeIcon />,
+  },
+  {
+    key: "middle_east",
+    icon: <PinIcon />,
+  },
+  {
+    key: "africa",
+    icon: <GlobeIcon />,
+  },
+  {
+    key: "americas",
+    flagCode: "us",
+    icon: <span className="fi fi-us fis" style={{ fontSize: "1.3rem", borderRadius: "3px" }} />,
+  },
+  {
+    key: "oceania",
+    flagCode: "au",
+    icon: <span className="fi fi-au fis" style={{ fontSize: "1.3rem", borderRadius: "3px" }} />,
+  },
 ];
 
 function FlagIcon({
@@ -48,16 +93,20 @@ function FlagIcon({
       />
     );
   }
-  return <span style={{ fontSize: size }}>🌍</span>;
+  return <GlobeIcon className="h-5 w-5 text-zinc-400" />;
+}
+
+interface DerivedCountry {
+  country_code: string;
+  name: string;
+  flag: string;
+  min_price: number;
+  package_count: number;
 }
 
 export default function PackageFinder() {
   const { t } = useI18n();
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [countriesByContinent, setCountriesByContinent] = useState<
-    Record<string, CountryInfo[]>
-  >({});
-  const [globalCount, setGlobalCount] = useState(0);
   const [allPackages, setAllPackages] = useState<EsimPackage[]>([]);
   const [eurToAll, setEurToAll] = useState(109);
   const [loading, setLoading] = useState(true);
@@ -69,10 +118,8 @@ export default function PackageFinder() {
   const [selectedCountryName, setSelectedCountryName] = useState("");
 
   useEffect(() => {
-    Promise.all([getCountriesByContinent(), getPackages(), getExchangeRates()])
-      .then(([data, pkgs, rates]) => {
-        setCountriesByContinent(data.countries);
-        setGlobalCount(data.global_count);
+    Promise.all([getPackages(), getExchangeRates()])
+      .then(([pkgs, rates]) => {
         setAllPackages(pkgs);
         setEurToAll(rates.eur_to_all);
       })
@@ -80,12 +127,50 @@ export default function PackageFinder() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Derive countries from packages client-side (no extra endpoint needed)
+  const countriesByContinent = useMemo(() => {
+    const map: Record<string, Record<string, DerivedCountry>> = {};
+    let globalCount = 0;
+
+    for (const pkg of allPackages) {
+      const cat = pkg.category || "global";
+      if (!pkg.country_code || pkg.country_code === "") {
+        if (cat === "global") globalCount++;
+        continue;
+      }
+      if (!map[cat]) map[cat] = {};
+      const cc = pkg.country_code.toUpperCase();
+      if (!map[cat][cc]) {
+        // Extract country name from package name (before " — ")
+        const namePart = pkg.name.split(" — ")[0] || pkg.name.split(" - ")[0] || pkg.region;
+        map[cat][cc] = {
+          country_code: cc,
+          name: namePart,
+          flag: pkg.flag,
+          min_price: pkg.price,
+          package_count: 0,
+        };
+      }
+      map[cat][cc].package_count++;
+      if (pkg.price < map[cat][cc].min_price) {
+        map[cat][cc].min_price = pkg.price;
+      }
+    }
+
+    const result: Record<string, DerivedCountry[]> = {};
+    for (const [cat, countries] of Object.entries(map)) {
+      result[cat] = Object.values(countries).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+    }
+
+    return { grouped: result, globalCount };
+  }, [allPackages]);
+
   // Get countries for selected continent
   const countries = useMemo(() => {
     if (!selectedContinent || selectedContinent === "global") return [];
-    return (countriesByContinent[selectedContinent] || []).sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
+    return countriesByContinent.grouped[selectedContinent] || [];
   }, [selectedContinent, countriesByContinent]);
 
   // Get packages for selected country or global
@@ -122,7 +207,7 @@ export default function PackageFinder() {
     }
   }
 
-  function handleCountrySelect(country: CountryInfo) {
+  function handleCountrySelect(country: DerivedCountry) {
     setSelectedCountry(country.country_code);
     setSelectedCountryName(country.name);
     setStep(3);
@@ -234,16 +319,18 @@ export default function PackageFinder() {
           {CONTINENTS.map((c) => {
             const countryCount =
               c.key === "global"
-                ? globalCount
-                : (countriesByContinent[c.key] || []).length;
+                ? countriesByContinent.globalCount
+                : (countriesByContinent.grouped[c.key] || []).length;
             return (
               <button
                 key={c.key}
                 onClick={() => handleContinentSelect(c.key)}
                 className="group flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 text-left transition-all duration-200 hover:border-shqiponja/40 hover:shadow-lg hover:-translate-y-0.5 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-shqiponja/40"
               >
-                <span className="text-3xl">{c.emoji}</span>
-                <div>
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-shqiponja/10 text-shqiponja shrink-0">
+                  {c.icon}
+                </div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-zinc-800 dark:text-zinc-100">
                     {continentLabels[c.key]}
                   </p>
@@ -254,7 +341,7 @@ export default function PackageFinder() {
                   </p>
                 </div>
                 <svg
-                  className="ml-auto h-5 w-5 text-zinc-300 group-hover:text-shqiponja transition"
+                  className="h-5 w-5 shrink-0 text-zinc-300 group-hover:text-shqiponja transition"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
