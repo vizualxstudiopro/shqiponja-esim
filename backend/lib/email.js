@@ -161,8 +161,11 @@ function resetPasswordTemplate(name, resetUrl) {
   `, 'Rivendos fjalëkalimin tënd');
 }
 
-function orderConfirmationTemplate({ orderId, packageFlag, packageName, price, iccid, qrData }) {
+function orderConfirmationTemplate({ orderId, packageFlag, packageName, price, iccid, qrData, qrCodeUrl }) {
   const priceDisplay = price ? `€${Number(price).toFixed(2)}` : '';
+  // Build QR image URL: prefer Airalo-hosted image, fallback to qrserver.com API
+  const qrImageSrc = qrCodeUrl
+    || (qrData ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}` : null);
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Porosia u konfirmua! ✅</h2>
     <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
@@ -201,13 +204,22 @@ function orderConfirmationTemplate({ orderId, packageFlag, packageName, price, i
               <td align="right" style="padding:6px 0"><span style="display:inline-block;background:#dcfce7;color:#166534;padding:3px 10px;border-radius:9999px;font-size:12px;font-weight:600">Paguar ✓</span></td>
             </tr>
           </table>
-          ${qrData ? `
+          ${qrImageSrc ? `
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #e4e4e7;padding-top:16px">
             <tr>
-              <td style="font-size:13px;color:#71717a">Kodi i aktivizimit (QR)</td>
+              <td align="center" style="padding:12px 0 8px">
+                <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b">Skano kodin QR për ta aktivizuar:</p>
+                <img src="${qrImageSrc}" alt="eSIM QR Code" width="200" height="200" style="display:block;margin:0 auto;border-radius:12px;border:2px solid #e4e4e7" />
+              </td>
+            </tr>
+          </table>` : ''}
+          ${qrData ? `
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px">
+            <tr>
+              <td style="font-size:12px;color:#71717a;padding-bottom:4px">Kodi manual:</td>
             </tr>
             <tr>
-              <td style="padding-top:8px;font-size:12px;font-family:monospace;color:#18181b;word-break:break-all;background:#ffffff;padding:12px;border-radius:8px;border:1px solid #e4e4e7">${escapeHtml(qrData)}</td>
+              <td style="font-size:11px;font-family:monospace;color:#18181b;word-break:break-all;background:#ffffff;padding:10px;border-radius:8px;border:1px solid #e4e4e7">${escapeHtml(qrData)}</td>
             </tr>
           </table>` : ''}
         </td>

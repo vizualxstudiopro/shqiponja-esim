@@ -108,6 +108,7 @@ router.post('/', async (req, res) => {
             price: updatedOrder.price,
             iccid: updatedOrder.iccid,
             qrData: updatedOrder.qr_data,
+            qrCodeUrl: updatedOrder.qr_code_url,
           }),
           logLabel: 'ORDER EMAIL',
         }).catch(err => {
