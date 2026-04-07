@@ -84,6 +84,53 @@ router.get('/', async (req, res) => {
   res.json(packages.map(normalizePackage));
 });
 
+// GET /api/packages/countries - Unique countries grouped by category (continent)
+router.get('/countries', async (req, res) => {
+  try {
+    const rows = (await db.query(`
+      SELECT DISTINCT country_code, category,
+        SPLIT_PART(MIN(name), ' — ', 1) AS country_name,
+        MIN(flag) AS flag,
+        MIN(price)::float AS min_price,
+        COUNT(*)::int AS package_count
+      FROM packages
+      WHERE visible = 1
+        AND (package_type IS NULL OR package_type = 'sim')
+        AND country_code IS NOT NULL
+        AND country_code != ''
+      GROUP BY country_code, category
+      ORDER BY category, country_name
+    `)).rows;
+
+    // Group by category
+    const grouped = {};
+    for (const r of rows) {
+      const cat = r.category || 'global';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push({
+        country_code: r.country_code,
+        name: r.country_name,
+        flag: r.flag,
+        min_price: r.min_price,
+        package_count: r.package_count,
+      });
+    }
+
+    // Also include global packages count
+    const globalCount = (await db.query(`
+      SELECT COUNT(*)::int AS cnt FROM packages
+      WHERE visible = 1 AND (package_type IS NULL OR package_type = 'sim')
+        AND (country_code IS NULL OR country_code = '')
+        AND category = 'global'
+    `)).rows[0]?.cnt || 0;
+
+    res.json({ countries: grouped, global_count: globalCount });
+  } catch (err) {
+    console.error('Countries endpoint error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // GET /api/packages/search - Search ALL packages (including non-visible) for visitors
 router.get('/search', async (req, res) => {
   const q = (req.query.q || '').trim();

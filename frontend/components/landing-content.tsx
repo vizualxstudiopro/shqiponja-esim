@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import PackageGrid from "@/components/package-grid";
+import PackageFinder from "@/components/package-finder";
 import { Smartphone, Search, CheckCircle, XCircle, ChevronDown, X, ListChecks } from "lucide-react";
 
 import Link from "next/link";
@@ -278,6 +279,7 @@ for (const [brand, models] of Object.entries(ESIM_DEVICES)) {
 export default function LandingContent() {
   const { t } = useI18n();
   const packagesRef = useReveal();
+  const finderRef = useReveal();
   const howRef = useReveal();
   const compatRef = useReveal();
   const ctaRef = useReveal();
@@ -422,8 +424,29 @@ export default function LandingContent() {
         </div>
       </section>
 
+      {/* ══════════ PACKAGE FINDER ══════════ */}
+      <section id="finder" className="bg-zinc-50 py-20 lg:py-28 dark:bg-zinc-900">
+        <div ref={finderRef} className="reveal mx-auto max-w-7xl px-6">
+          <div className="text-center">
+            <span className="inline-block rounded-full bg-shqiponja/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-shqiponja">
+              {t("finder.badge")}
+            </span>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              {t("finder.title")}
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-zinc-500">
+              {t("finder.subtitle")}
+            </p>
+          </div>
+
+          <div className="mt-12">
+            <PackageFinder />
+          </div>
+        </div>
+      </section>
+
       {/* ══════════ HOW IT WORKS ══════════ */}
-      <section id="how" className="bg-zinc-50 py-20 lg:py-28 dark:bg-zinc-900">
+      <section id="how" className="bg-white py-20 lg:py-28 dark:bg-zinc-950">
         <div ref={howRef} className="reveal mx-auto max-w-7xl px-6">
           <div className="text-center">
             <span className="inline-block rounded-full bg-shqiponja/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-shqiponja">

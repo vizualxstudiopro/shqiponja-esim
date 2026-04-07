@@ -145,6 +145,31 @@ export interface CheckoutResponse {
   order?: Order;
 }
 
+export interface CountryInfo {
+  country_code: string;
+  name: string;
+  flag: string;
+  min_price: number;
+  package_count: number;
+}
+
+export interface CountriesByContinent {
+  countries: Record<string, CountryInfo[]>;
+  global_count: number;
+}
+
+export async function getCountriesByContinent(): Promise<CountriesByContinent> {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/packages/countries`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return { countries: {}, global_count: 0 };
+    return res.json();
+  } catch {
+    return { countries: {}, global_count: 0 };
+  }
+}
+
 export async function checkout(
   packageId: number,
   email: string
