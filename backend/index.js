@@ -54,7 +54,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime() });
+  res.json({ status: 'ok', uptime: process.uptime(), build: '2026-04-08-v12' });
 });
 
 // Exchange rates endpoint (cached, real-time)
