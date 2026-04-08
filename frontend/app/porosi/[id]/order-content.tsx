@@ -8,15 +8,27 @@ import Navbar from "@/components/navbar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-export default function OrderPageContent({ order: initialOrder, token, orderId }: { order: Order | null; token?: string; orderId: number }) {
+export default function OrderPageContent({ order: initialOrder, token: urlToken, orderId }: { order: Order | null; token?: string; orderId: number }) {
   const { t, locale } = useI18n();
   const [order, setOrder] = useState(initialOrder);
   const [loading, setLoading] = useState(!initialOrder);
   const [failed, setFailed] = useState(false);
 
+  // Resolve token: URL param first, then localStorage fallback
+  const [token, setToken] = useState(urlToken);
+  useEffect(() => {
+    if (!urlToken) {
+      try {
+        const stored = localStorage.getItem(`order_token_${orderId}`);
+        if (stored) setToken(stored);
+      } catch { /* localStorage unavailable */ }
+    }
+  }, [urlToken, orderId]);
+
   // Fetch order client-side if server-side fetch failed, and poll for updates
   useEffect(() => {
     if (order?.status === "completed" && (order.qr_data || order.qr_code_url)) return;
+    if (!token) return; // Wait for token resolution
 
     let attempts = 0;
     const interval = setInterval(async () => {

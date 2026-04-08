@@ -152,7 +152,7 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     });
 
     const checkoutUrl = lsRes.data.attributes.url;
-    res.json({ url: checkoutUrl, orderId: Number(orderId) });
+    res.json({ url: checkoutUrl, orderId: Number(orderId), accessToken });
   } catch (err) {
     console.error('Lemon Squeezy error:', err.response?.data || err.message);
     await db.query('UPDATE orders SET payment_status = $1, status = $2 WHERE id = $3', ['failed', 'failed', orderId]);

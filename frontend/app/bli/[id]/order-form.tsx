@@ -31,6 +31,13 @@ export default function OrderForm({ packageId, price }: Props) {
     try {
       const result = await checkout(packageId, email.trim());
 
+      // Store order token in localStorage before redirecting (LS may strip query params)
+      if (result.orderId && result.accessToken) {
+        try {
+          localStorage.setItem(`order_token_${result.orderId}`, result.accessToken);
+        } catch { /* localStorage unavailable */ }
+      }
+
       // Redirect to checkout URL (Lemon Squeezy hosted page or direct order page in dev mode)
       if (result.url) {
         window.location.href = result.url;

@@ -143,6 +143,7 @@ export interface CheckoutResponse {
   url?: string;
   orderId?: number;
   order?: Order;
+  accessToken?: string;
 }
 
 export interface CountryInfo {
