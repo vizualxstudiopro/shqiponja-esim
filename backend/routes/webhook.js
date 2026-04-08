@@ -26,14 +26,16 @@ router.post('/', async (req, res) => {
   }
 
   const sig = req.headers['x-signature'];
-  const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+  const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
+
+  console.log('Webhook: body type =', typeof req.body, ', isBuffer =', Buffer.isBuffer(req.body), ', sig present =', !!sig);
 
   if (!verifyLemonSqueezySignature(rawBody, sig, LS_WEBHOOK_SECRET)) {
     console.error('Webhook: Lemon Squeezy signature verification failed');
     return res.status(400).json({ error: 'Invalid signature' });
   }
 
-  const event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  const event = JSON.parse(rawBody);
   const eventName = event.meta?.event_name;
   console.log(`Webhook received: ${eventName}`);
 

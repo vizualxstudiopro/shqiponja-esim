@@ -46,8 +46,8 @@ app.use(morgan('short'));
 
 app.use(apiLimiter);
 
-// Lemon Squeezy webhook route
-app.use('/api/webhook/lemonsqueezy', require('./routes/webhook'));
+// Lemon Squeezy webhook route (raw body needed for signature verification)
+app.use('/api/webhook/lemonsqueezy', express.raw({ type: 'application/json' }), require('./routes/webhook'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
