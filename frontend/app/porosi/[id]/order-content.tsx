@@ -15,20 +15,26 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
   const [failed, setFailed] = useState(false);
 
   // Resolve token: URL param first, then localStorage fallback
-  const [token, setToken] = useState(urlToken);
-  useEffect(() => {
-    if (!urlToken) {
+  const [token] = useState(() => {
+    if (urlToken) return urlToken;
+    if (typeof window !== "undefined") {
       try {
-        const stored = localStorage.getItem(`order_token_${orderId}`);
-        if (stored) setToken(stored);
-      } catch { /* localStorage unavailable */ }
+        return localStorage.getItem(`order_token_${orderId}`) || undefined;
+      } catch { /* */ }
     }
-  }, [urlToken, orderId]);
+    return undefined;
+  });
 
   // Fetch order client-side if server-side fetch failed, and poll for updates
   useEffect(() => {
     if (order?.status === "completed" && (order.qr_data || order.qr_code_url)) return;
-    if (!token) return; // Wait for token resolution
+
+    // If no token at all and no initial order, show error immediately
+    if (!token && !order) {
+      setLoading(false);
+      setFailed(true);
+      return;
+    }
 
     let attempts = 0;
     const interval = setInterval(async () => {

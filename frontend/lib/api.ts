@@ -192,8 +192,15 @@ export async function getOrderById(id: number, token?: string): Promise<Order | 
     const url = token
       ? `${API_URL}/api/orders/${id}?token=${encodeURIComponent(token)}`
       : `${API_URL}/api/orders/${id}`;
+    const headers: Record<string, string> = {};
+    // Send JWT if available (for logged-in users accessing their own orders)
+    if (typeof window !== "undefined") {
+      const jwt = localStorage.getItem("token");
+      if (jwt) headers["Authorization"] = `Bearer ${jwt}`;
+    }
     const res = await fetchWithTimeout(url, {
       cache: "no-store",
+      headers,
     });
     if (!res.ok) return null;
     return res.json();
