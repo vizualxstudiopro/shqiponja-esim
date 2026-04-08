@@ -29,15 +29,9 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
   useEffect(() => {
     if (order?.status === "completed" && (order.qr_data || order.qr_code_url)) return;
 
-    // If no token at all and no initial order, show error immediately
-    if (!token && !order) {
-      setLoading(false);
-      setFailed(true);
-      return;
-    }
-
+    // Try immediately on mount (JWT auth may work even without token)
     let attempts = 0;
-    const interval = setInterval(async () => {
+    const tryFetch = async () => {
       try {
         const updated = await getOrderById(orderId, token);
         if (updated) {
@@ -45,17 +39,26 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
           setLoading(false);
           setFailed(false);
           if (updated.status === "completed" && (updated.qr_data || updated.qr_code_url)) {
-            clearInterval(interval);
+            return true; // done
           }
         } else {
           attempts++;
           if (attempts >= 10 && !order) {
             setLoading(false);
             setFailed(true);
-            clearInterval(interval);
+            return true; // give up
           }
         }
       } catch { /* silent */ }
+      return false;
+    };
+
+    // Immediate first attempt
+    tryFetch();
+
+    const interval = setInterval(async () => {
+      const done = await tryFetch();
+      if (done) clearInterval(interval);
     }, 3000);
     return () => clearInterval(interval);
   }, [orderId, order?.status, order?.qr_data, order?.qr_code_url, token, order]);

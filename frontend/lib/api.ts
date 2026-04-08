@@ -175,9 +175,14 @@ export async function checkout(
   packageId: number,
   email: string
 ): Promise<CheckoutResponse> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (typeof window !== "undefined") {
+    const jwt = localStorage.getItem("token");
+    if (jwt) headers["Authorization"] = `Bearer ${jwt}`;
+  }
   const res = await fetchWithTimeout(`${API_URL}/api/checkout`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ packageId, email }),
   });
   if (!res.ok) {
