@@ -106,7 +106,7 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
       logLabel: 'ORDER EMAIL',
     }).catch(err => console.error('Order email error:', err));
 
-    return res.json({ url: `${FRONTEND_URL}/porosi/${orderId}?token=${accessToken}`, order });
+    return res.json({ url: `${FRONTEND_URL}/porosi/${orderId}/${accessToken}`, order });
   }
 
   // Create Lemon Squeezy checkout session
@@ -121,8 +121,8 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
           product_options: {
             name: `${pkg.name} — ${pkg.data} / ${pkg.duration}`,
             description: pkg.description || `eSIM ${pkg.region}`,
-            redirect_url: `${FRONTEND_URL}/porosi/${orderId}?token=${accessToken}`,
-            receipt_link_url: `${FRONTEND_URL}/porosi/${orderId}?token=${accessToken}`,
+            redirect_url: `${FRONTEND_URL}/porosi/${orderId}/${accessToken}`,
+            receipt_link_url: `${FRONTEND_URL}/porosi/${orderId}/${accessToken}`,
             receipt_button_text: 'Shiko porosinë',
           },
           checkout_options: {
