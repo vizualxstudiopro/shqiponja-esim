@@ -12,7 +12,7 @@ const authLimiter = rateLimit({
 // General API limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Shumë kërkesa. Provo përsëri pas disa minutash.' },
@@ -21,7 +21,7 @@ const apiLimiter = rateLimit({
 // Stricter limiter for order endpoints
 const orderLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: 60,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Shumë kërkesa. Provo përsëri pas disa minutash.' },
