@@ -8,26 +8,69 @@ import Navbar from "@/components/navbar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-export default function OrderPageContent({ order: initialOrder, token }: { order: Order; token?: string }) {
+export default function OrderPageContent({ order: initialOrder, token, orderId }: { order: Order | null; token?: string; orderId: number }) {
   const { t, locale } = useI18n();
   const [order, setOrder] = useState(initialOrder);
+  const [loading, setLoading] = useState(!initialOrder);
+  const [failed, setFailed] = useState(false);
 
-  // Poll for updates when order is pending/awaiting eSIM
+  // Fetch order client-side if server-side fetch failed, and poll for updates
   useEffect(() => {
-    if (order.status === "completed" && (order.qr_data || order.qr_code_url)) return;
+    if (order?.status === "completed" && (order.qr_data || order.qr_code_url)) return;
+
+    let attempts = 0;
     const interval = setInterval(async () => {
       try {
-        const updated = await getOrderById(order.id, token);
+        const updated = await getOrderById(orderId, token);
         if (updated) {
           setOrder(updated);
+          setLoading(false);
+          setFailed(false);
           if (updated.status === "completed" && (updated.qr_data || updated.qr_code_url)) {
+            clearInterval(interval);
+          }
+        } else {
+          attempts++;
+          if (attempts >= 10 && !order) {
+            setLoading(false);
+            setFailed(true);
             clearInterval(interval);
           }
         }
       } catch { /* silent */ }
     }, 3000);
     return () => clearInterval(interval);
-  }, [order.id, order.status, order.qr_data, order.qr_code_url, token]);
+  }, [orderId, order?.status, order?.qr_data, order?.qr_code_url, token, order]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center px-6 py-32 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-shqiponja border-t-transparent" />
+          <p className="mt-4 text-zinc-500">{t("order.loading")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (failed || !order) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center px-6 py-32 text-center">
+          <span className="text-6xl">⚠️</span>
+          <h1 className="mt-4 text-2xl font-extrabold">{t("order.notFound")}</h1>
+          <Link
+            href="/"
+            className="mt-8 inline-block rounded-full bg-shqiponja px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
+          >
+            {t("notFound.home")}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">

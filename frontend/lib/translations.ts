@@ -379,6 +379,8 @@ const translations = {
     "order.scanQr": "Skanoje këtë QR kod me cilësimet e telefonit tënd për ta aktivizuar eSIM-in.",
     "order.qrPending": "QR Kodi do të shfaqet këtu pasi pagesa të konfirmohet",
     "order.backHome": "← Kthehu në Faqen Kryesore",
+    "order.loading": "Duke ngarkuar porosinë...",
+    "order.notFound": "Porosia nuk u gjet",
 
     // Profile extras
     "profile.emailVerified": "Email i verifikuar",
@@ -767,6 +769,8 @@ const translations = {
     "order.scanQr": "Scan this QR code with your phone settings to activate the eSIM.",
     "order.qrPending": "QR Code will appear here once payment is confirmed",
     "order.backHome": "← Back to Home",
+    "order.loading": "Loading order...",
+    "order.notFound": "Order not found",
 
     // Profile extras
     "profile.emailVerified": "Email verified",
