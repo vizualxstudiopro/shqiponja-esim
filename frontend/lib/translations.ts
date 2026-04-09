@@ -103,6 +103,17 @@ const translations = {
     "finder.back": "Kthehu",
     "finder.resultsFor": "Paketat për",
 
+    // Tourist destinations
+    "tourist.badge": "Destinacione Turistike",
+    "tourist.title": "Destinacionet më të preferuara",
+    "tourist.subtitle": "Paketa eSIM me çmimet më të mira për destinacionet turistike më të njohura.",
+    "tourist.buy": "Bli",
+    "tourist.tagBeach": "Plazh",
+    "tourist.tagCulture": "Kulturë",
+    "tourist.tagHistory": "Histori",
+    "tourist.tagExotic": "Ekzotik",
+    "tourist.tagAdventure": "Aventurë",
+
     // How it works
     "how.badge": "3 Hapa",
     "how.title": "Si funksionon?",
@@ -492,6 +503,17 @@ const translations = {
     "finder.showAll": "View all packages",
     "finder.back": "Go back",
     "finder.resultsFor": "Packages for",
+
+    // Tourist destinations
+    "tourist.badge": "Tourist Destinations",
+    "tourist.title": "Most popular destinations",
+    "tourist.subtitle": "eSIM packages with the best prices for the most popular tourist destinations.",
+    "tourist.buy": "Buy",
+    "tourist.tagBeach": "Beach",
+    "tourist.tagCulture": "Culture",
+    "tourist.tagHistory": "History",
+    "tourist.tagExotic": "Exotic",
+    "tourist.tagAdventure": "Adventure",
 
     // How it works
     "how.badge": "3 Steps",

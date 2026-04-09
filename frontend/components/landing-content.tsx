@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import PackageGrid from "@/components/package-grid";
 import PackageFinder from "@/components/package-finder";
+import TouristCards from "@/components/tourist-cards";
 import { Smartphone, Search, CheckCircle, XCircle, ChevronDown, X, ListChecks } from "lucide-react";
 
 import Link from "next/link";
@@ -278,6 +279,7 @@ for (const [brand, models] of Object.entries(ESIM_DEVICES)) {
 
 export default function LandingContent() {
   const { t } = useI18n();
+  const touristRef = useReveal();
   const packagesRef = useReveal();
   const finderRef = useReveal();
   const howRef = useReveal();
@@ -405,8 +407,29 @@ export default function LandingContent() {
         </div>
       </section>
 
+      {/* ══════════ TOURIST DESTINATIONS ══════════ */}
+      <section className="bg-white py-20 lg:py-28 dark:bg-zinc-950">
+        <div ref={touristRef} className="reveal mx-auto max-w-7xl px-6">
+          <div className="text-center">
+            <span className="inline-block rounded-full bg-shqiponja/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-shqiponja">
+              ✈️ {t("tourist.badge")}
+            </span>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              {t("tourist.title")}
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-zinc-500">
+              {t("tourist.subtitle")}
+            </p>
+          </div>
+
+          <div className="mt-12">
+            <TouristCards />
+          </div>
+        </div>
+      </section>
+
       {/* ══════════ PACKAGES ══════════ */}
-      <section id="packages" className="bg-white py-20 lg:py-28 dark:bg-zinc-950">
+      <section id="packages" className="bg-zinc-50 py-20 lg:py-28 dark:bg-zinc-900">
         <div ref={packagesRef} className="reveal mx-auto max-w-7xl px-6">
           <div className="text-center">
             <span className="inline-block rounded-full bg-shqiponja/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-shqiponja">
