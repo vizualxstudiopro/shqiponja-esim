@@ -14,10 +14,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pkg = await getPackageById(Number(id));
   if (!pkg) return { title: "Paketa nuk u gjet" };
 
+  const pkgUrl = `https://shqiponjaesim.com/bli/${id}`;
+
   return {
     title: `${pkg.name} — ${pkg.data} për ${pkg.duration}`,
     description: `Bli paketën eSIM ${pkg.name} me ${pkg.data} të dhëna për ${pkg.duration}. Vetëm €${pkg.price}. Pa roaming, pa SIM fizike.`,
     openGraph: {
+      title: `${pkg.name} — ${pkg.data} | Shqiponja eSIM`,
+      description: `Paketë eSIM ${pkg.region}: ${pkg.data} për ${pkg.duration}, vetëm €${pkg.price}.`,
+      url: pkgUrl,
+      siteName: "Shqiponja eSIM",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
       title: `${pkg.name} — ${pkg.data} | Shqiponja eSIM`,
       description: `Paketë eSIM ${pkg.region}: ${pkg.data} për ${pkg.duration}, vetëm €${pkg.price}.`,
     },
