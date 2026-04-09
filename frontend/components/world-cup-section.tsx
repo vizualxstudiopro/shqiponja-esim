@@ -15,16 +15,16 @@ function facebookShare(url: string) {
   return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
 }
 function whatsappShare(url: string, text: string) {
-  return `https://api.whatsapp.com/send?text=${encodeURIComponent(text + " " + url)}`;
+  return `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`;
 }
 function twitterShare(url: string, text: string) {
-  return `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+  return `https://x.com/intent/post?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
 }
 function telegramShare(url: string, text: string) {
   return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
 }
 function messengerShare(url: string) {
-  return `https://www.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=966242223397117&redirect_uri=${encodeURIComponent(url)}`;
+  return `fb-messenger://share/?link=${encodeURIComponent(url)}`;
 }
 
 /* ── SVG Icons ── */
