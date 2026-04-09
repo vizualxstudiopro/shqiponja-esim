@@ -103,7 +103,7 @@ const DESTINATIONS: TouristDest[] = [
   {
     country: "Egypt",
     countryCode: "eg",
-    image: "https://images.unsplash.com/photo-1568322445389-f64b0f36bd24?w=600&h=400&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=600&h=400&fit=crop&q=80",
     tagKey: "tourist.tagHistory",
   },
   {
