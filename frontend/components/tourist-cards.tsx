@@ -103,13 +103,13 @@ const DESTINATIONS: TouristDest[] = [
   {
     country: "Egypt",
     countryCode: "eg",
-    image: "https://images.unsplash.com/photo-1539768942893-daf53e736b68?w=600&h=400&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1568322445389-f64b0f36bd24?w=600&h=400&fit=crop&q=80",
     tagKey: "tourist.tagHistory",
   },
   {
     country: "Montenegro",
     countryCode: "me",
-    image: "https://images.unsplash.com/photo-1584132905271-512c958d674a?w=600&h=400&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1590001155093-a3c66ab0c3ff?w=600&h=400&fit=crop&q=80",
     tagKey: "tourist.tagBeach",
   },
   {
