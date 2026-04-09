@@ -186,6 +186,15 @@ export default function WorldCupSection() {
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}
         <div className="text-center">
+          {/* Official FIFA World Cup 2026 Logo */}
+          <div className="mb-6 flex justify-center">
+            <img
+              src="https://assets.football-logos.cc/logos/tournaments/fifa-world-cup-2026--white.d070fecd.svg"
+              alt="FIFA World Cup 2026"
+              className="h-24 w-auto sm:h-32 lg:h-36 drop-shadow-[0_0_30px_rgba(233,69,96,0.3)]"
+            />
+          </div>
+
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2 text-sm font-bold uppercase tracking-widest text-[#e94560] backdrop-blur-sm border border-white/10">
             ⚽ {t("worldcup.badge")}
           </span>
