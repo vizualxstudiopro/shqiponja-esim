@@ -103,6 +103,18 @@ const translations = {
     "finder.back": "Kthehu",
     "finder.resultsFor": "Paketat për",
 
+    // World Cup 2026
+    "worldcup.badge": "Botërori FIFA 2026",
+    "worldcup.title": "Botërori i Futbollit 2026",
+    "worldcup.subtitle": "SHBA, Kanada & Meksikë — siguro eSIM-in tënd para se të nisesh për ndeshjet!",
+    "worldcup.buy": "Bli eSIM",
+    "worldcup.from": "Nga",
+    "worldcup.allPackages": "Shiko të gjitha paketat",
+    "worldcup.days": "Ditë",
+    "worldcup.hours": "Orë",
+    "worldcup.minutes": "Minuta",
+    "worldcup.seconds": "Sekonda",
+
     // Tourist destinations
     "tourist.badge": "Destinacione Turistike",
     "tourist.title": "Destinacionet më të preferuara",
@@ -504,6 +516,18 @@ const translations = {
     "finder.showAll": "View all packages",
     "finder.back": "Go back",
     "finder.resultsFor": "Packages for",
+
+    // World Cup 2026
+    "worldcup.badge": "FIFA World Cup 2026",
+    "worldcup.title": "FIFA World Cup 2026",
+    "worldcup.subtitle": "USA, Canada & Mexico — get your eSIM before heading to the matches!",
+    "worldcup.buy": "Buy eSIM",
+    "worldcup.from": "From",
+    "worldcup.allPackages": "View all packages",
+    "worldcup.days": "Days",
+    "worldcup.hours": "Hours",
+    "worldcup.minutes": "Minutes",
+    "worldcup.seconds": "Seconds",
 
     // Tourist destinations
     "tourist.badge": "Tourist Destinations",

@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n-context";
 import PackageGrid from "@/components/package-grid";
 import PackageFinder from "@/components/package-finder";
 import TouristCards from "@/components/tourist-cards";
+import WorldCupSection from "@/components/world-cup-section";
 import { Smartphone, Search, CheckCircle, XCircle, ChevronDown, X, ListChecks } from "lucide-react";
 
 import Link from "next/link";
@@ -406,6 +407,9 @@ export default function LandingContent() {
           </div>
         </div>
       </section>
+
+      {/* ══════════ WORLD CUP 2026 ══════════ */}
+      <WorldCupSection />
 
       {/* ══════════ TOURIST DESTINATIONS ══════════ */}
       <section className="bg-white py-20 lg:py-28 dark:bg-zinc-950">
