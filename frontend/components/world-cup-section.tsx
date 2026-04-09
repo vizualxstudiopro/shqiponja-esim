@@ -186,13 +186,41 @@ export default function WorldCupSection() {
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}
         <div className="text-center">
-          {/* Official FIFA World Cup 2026 Logo */}
+          {/* FIFA World Cup 2026 Trophy Logo */}
           <div className="mb-6 flex justify-center">
-            <img
-              src="https://assets.football-logos.cc/logos/tournaments/fifa-world-cup-2026--white.d070fecd.svg"
-              alt="FIFA World Cup 2026"
-              className="h-24 w-auto sm:h-32 lg:h-36 drop-shadow-[0_0_30px_rgba(233,69,96,0.3)]"
-            />
+            <div className="flex flex-col items-center gap-2 drop-shadow-[0_0_30px_rgba(233,69,96,0.3)]">
+              <svg width="80" height="96" viewBox="0 0 80 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-20 w-auto sm:h-24">
+                {/* Trophy cup */}
+                <path d="M20 8h40v4H20z" fill="white" opacity="0.9" />
+                <path d="M22 12h36l-4 40h-28l-4-40z" fill="url(#trophy-grad)" />
+                <path d="M30 52h20l2 8H28l2-8z" fill="white" opacity="0.8" />
+                <path d="M26 60h28v4H26z" fill="white" opacity="0.6" />
+                <path d="M24 64h32v6H24z" fill="white" opacity="0.4" />
+                {/* Handles */}
+                <path d="M22 16c-12 0-16 8-14 20s10 16 16 16" stroke="white" strokeWidth="3" fill="none" opacity="0.7" />
+                <path d="M58 16c12 0 16 8 14 20s-10 16-16 16" stroke="white" strokeWidth="3" fill="none" opacity="0.7" />
+                {/* Star */}
+                <path d="M40 22l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="white" opacity="0.9" />
+                {/* Ball pattern */}
+                <circle cx="40" cy="40" r="5" stroke="white" strokeWidth="1.5" fill="none" opacity="0.5" />
+                <defs>
+                  <linearGradient id="trophy-grad" x1="40" y1="12" x2="40" y2="52" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FFD700" />
+                    <stop offset="1" stopColor="#B8860B" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="flex flex-col items-center leading-tight">
+                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">FIFA</span>
+                <span className="text-lg sm:text-xl font-extrabold uppercase tracking-[0.15em] text-white">World Cup</span>
+                <span className="text-2xl sm:text-3xl font-black text-[#e94560] tracking-wider">2026</span>
+                <div className="mt-1 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
+                  <span className="fi fi-us fis" style={{ fontSize: "0.7rem", borderRadius: "2px" }} />
+                  <span className="fi fi-ca fis" style={{ fontSize: "0.7rem", borderRadius: "2px" }} />
+                  <span className="fi fi-mx fis" style={{ fontSize: "0.7rem", borderRadius: "2px" }} />
+                </div>
+              </div>
+            </div>
           </div>
 
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2 text-sm font-bold uppercase tracking-widest text-[#e94560] backdrop-blur-sm border border-white/10">
