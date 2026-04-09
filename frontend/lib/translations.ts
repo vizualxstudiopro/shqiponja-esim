@@ -113,6 +113,7 @@ const translations = {
     "tourist.tagHistory": "Histori",
     "tourist.tagExotic": "Ekzotik",
     "tourist.tagAdventure": "Aventurë",
+    "tourist.share": "Shpërnda",
 
     // How it works
     "how.badge": "3 Hapa",
@@ -514,6 +515,7 @@ const translations = {
     "tourist.tagHistory": "History",
     "tourist.tagExotic": "Exotic",
     "tourist.tagAdventure": "Adventure",
+    "tourist.share": "Share",
 
     // How it works
     "how.badge": "3 Steps",
