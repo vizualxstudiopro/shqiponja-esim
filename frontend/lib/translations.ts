@@ -31,6 +31,9 @@ const translations = {
     "trust.globalDesc": "Interneti funksionon në mbi 190 vende me 4G/5G.",
     "trust.noHidden": "Pa Tarifa të Fshehura",
     "trust.noHiddenDesc": "Çmimi që shikon është çmimi që paguan — zero surpriza.",
+    "trust.airalo": "Partner Zyrtar i Airalo",
+    "trust.airaloDesc": "Jemi partner i certifikuar i Airalo — platforma më e madhe e eSIM në botë.",
+    "footer.airaloPartner": "Partner Zyrtar i Airalo",
 
     // Operators
     "operators.title": "Mbështetur nga operatorët ndërkombëtarë",
@@ -445,6 +448,9 @@ const translations = {
     "trust.globalDesc": "Internet works in 190+ countries with 4G/5G.",
     "trust.noHidden": "No Hidden Fees",
     "trust.noHiddenDesc": "The price you see is the price you pay — zero surprises.",
+    "trust.airalo": "Official Airalo Partner",
+    "trust.airaloDesc": "We are a certified partner of Airalo — the world's largest eSIM platform.",
+    "footer.airaloPartner": "Official Airalo Partner",
 
     // Operators
     "operators.title": "Supported by international operators",
