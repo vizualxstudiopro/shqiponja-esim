@@ -32,11 +32,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
   }, [user, loading, router]);
 
-  // Close sidebar on route change (mobile)
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname]);
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -69,6 +64,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link
               key={l.href}
               href={l.href}
+              onClick={() => setSidebarOpen(false)}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                 active
                   ? "bg-shqiponja/10 text-shqiponja"

@@ -1,4 +1,4 @@
-const db = require('./index');
+const db = require('../client');
 
 async function migrate() {
   // Create tables with PostgreSQL syntax

@@ -1,5 +1,5 @@
 const https = require("https");
-const { sendMail } = require("./email");
+const { sendMail } = require("../utils/email");
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import {
@@ -11,7 +11,7 @@ import {
   type PaginatedUsers,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
-import { ChevronLeft, ChevronRight, Trash2, UserCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function AdminUsersPage() {
   const { token, user: me } = useAuth();
@@ -24,20 +24,25 @@ export default function AdminUsersPage() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
 
-  const fetchUsers = useCallback(() => {
+  useEffect(() => {
     if (!token) return;
-    setLoading(true);
+
+    let cancelled = false;
     adminGetUsers(token, page, search)
       .then((data: PaginatedUsers) => {
+        if (cancelled) return;
         setUsers(data.users);
         setTotalPages(data.totalPages);
         setTotal(data.total);
       })
-      .finally(() => setLoading(false));
-  }, [token, page, search]);
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-  useEffect(() => { fetchUsers(); }, [fetchUsers]);
-  useEffect(() => { setPage(1); }, [search]);
+    return () => {
+      cancelled = true;
+    };
+  }, [token, page, search]);
 
   async function toggleRole(u: User) {
     if (!token) return;
@@ -81,7 +86,11 @@ export default function AdminUsersPage() {
         type="text"
         placeholder={t("admin.search")}
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => {
+          setLoading(true);
+          setPage(1);
+          setSearch(e.target.value);
+        }}
         className="mt-4 w-full sm:max-w-xs rounded-lg border border-zinc-200 px-4 py-2.5 text-sm outline-none focus:border-shqiponja dark:border-zinc-700 dark:bg-zinc-800"
       />
 
@@ -142,10 +151,16 @@ export default function AdminUsersPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+          <button onClick={() => {
+            setLoading(true);
+            setPage(p => Math.max(1, p - 1));
+          }} disabled={page === 1}
             className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700"><ChevronLeft className="h-4 w-4" /></button>
           <span className="text-sm text-zinc-500">{t("admin.page")} {page} / {totalPages}</span>
-          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+          <button onClick={() => {
+            setLoading(true);
+            setPage(p => Math.min(totalPages, p + 1));
+          }} disabled={page === totalPages}
             className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 transition disabled:opacity-40 dark:border-zinc-600 dark:hover:bg-zinc-700"><ChevronRight className="h-4 w-4" /></button>
         </div>
       )}

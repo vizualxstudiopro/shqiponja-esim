@@ -1,40 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { Suspense } from "react";
 
 function AppleCallbackInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { loginWithApple } = useAuth();
   const [error, setError] = useState("");
+  const token = searchParams.get("token");
+  const callbackError = searchParams.get("error") || "";
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    const err = searchParams.get("error");
+    if (!token || callbackError) return;
 
-    if (err) {
-      setError(err);
-      return;
-    }
+    loginWithApple(token)
+      .then(() => router.replace("/"))
+      .catch((e) => setError(e instanceof Error ? e.message : "Autentifikimi dÃ«shtoi"));
+  }, [token, callbackError, loginWithApple, router]);
 
-    if (token) {
-      // Backend already validated Apple token — just store the session
-      loginWithApple(token)
-        .then(() => router.replace("/"))
-        .catch((e) => setError(e instanceof Error ? e.message : "Autentifikimi dështoi"));
-    } else {
-      setError("Token mungon");
-    }
-  }, [searchParams, loginWithApple, router]);
+  const resolvedError = error || callbackError || (!token ? "Token mungon" : "");
 
-  if (error) {
+  if (resolvedError) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="rounded-lg bg-red-50 p-6 text-center dark:bg-red-900/20">
-          <p className="text-red-600 dark:text-red-400">{error}</p>
+          <p className="text-red-600 dark:text-red-400">{resolvedError}</p>
           <a href="/hyr" className="mt-3 inline-block text-sm font-semibold text-shqiponja hover:underline">
             Kthehu te hyrja
           </a>

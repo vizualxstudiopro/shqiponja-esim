@@ -36,8 +36,10 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : localStorage.getItem("token")
+  );
+  const [loading, setLoading] = useState(() => (typeof window !== "undefined" && !!localStorage.getItem("token")));
 
   const logout = useCallback(() => {
     localStorage.removeItem("token");
@@ -46,21 +48,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem("token");
-    if (saved) {
-      getMe(saved)
+    if (token) {
+      getMe(token)
         .then((u) => {
           setUser(u);
-          setToken(saved);
         })
         .catch(() => {
           localStorage.removeItem("token");
+          setToken(null);
         })
         .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   // Auto-logout on 401 responses (expired JWT)
   useEffect(() => {

@@ -9,15 +9,11 @@ import { Suspense } from "react";
 function VerifyContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<"loading" | "success" | "error">(token ? "loading" : "error");
+  const [message, setMessage] = useState(token ? "" : "Token mungon nga URL-ja");
 
   useEffect(() => {
-    if (!token) {
-      setStatus("error");
-      setMessage("Token mungon nga URL-ja");
-      return;
-    }
+    if (!token) return;
     verifyEmail(token)
       .then((res) => {
         setStatus("success");
