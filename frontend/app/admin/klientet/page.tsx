@@ -92,7 +92,7 @@ export default function AdminCustomersPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center gap-1 text-sm font-medium">
-                    <Euro className="h-3 w-3 text-zinc-400" /> {c.total_spent.toFixed(2)}
+                    <Euro className="h-3 w-3 text-zinc-400" /> {(c.total_spent ?? 0).toFixed(2)}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-zinc-500 text-xs">{new Date(c.created_at).toLocaleDateString(locale === "sq" ? "sq-AL" : "en-US")}</td>
@@ -130,7 +130,7 @@ export default function AdminCustomersPage() {
                     <ShoppingCart className="h-3 w-3" /> {detail.orders.length} porosi
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    <Euro className="h-3 w-3" /> {detail.total_spent.toFixed(2)} shpenzuar
+                    <Euro className="h-3 w-3" /> {(detail.total_spent ?? 0).toFixed(2)} shpenzuar
                   </span>
                   <span className="text-xs text-zinc-400">Regjistruar: {new Date(detail.created_at).toLocaleDateString(locale === "sq" ? "sq-AL" : "en-US")}</span>
                 </div>

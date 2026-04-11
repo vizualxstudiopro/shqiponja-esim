@@ -502,7 +502,8 @@ router.get('/customers/:id', async (req, res) => {
       WHERE o.user_id = $1 OR o.email = $2
       ORDER BY o.created_at DESC
     `, [id, user.email])).rows;
-    res.json({ ...user, orders });
+    const total_spent = orders.filter(o => o.payment_status === 'paid').reduce((sum, o) => sum + (parseFloat(o.package_price) || 0), 0);
+    res.json({ ...user, total_spent, orders });
   } catch (err) {
     res.status(500).json({ error: 'Gabim serveri' });
   }
