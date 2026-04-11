@@ -363,6 +363,8 @@ const translations = {
     "admin.hiddenFromWeb": "I fshehur",
     "admin.cancelled": "Anuluar",
     "admin.refunded": "Rimbursuar",
+    "admin.customers": "Klientët",
+    "admin.settings": "Konfigurimet",
 
     // Admin Security / 2FA
     "admin.security": "Siguria",
@@ -780,6 +782,8 @@ const translations = {
     "admin.hiddenFromWeb": "Hidden",
     "admin.cancelled": "Cancelled",
     "admin.refunded": "Refunded",
+    "admin.customers": "Customers",
+    "admin.settings": "Settings",
 
     // Admin Security / 2FA
     "admin.security": "Security",

@@ -65,6 +65,20 @@ async function migrate() {
     )
   `);
 
+  // Webhook logs for debugging payment flows
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS webhook_logs (
+      id              SERIAL PRIMARY KEY,
+      source          TEXT    NOT NULL DEFAULT 'lemonsqueezy',
+      event_type      TEXT,
+      order_id        INTEGER,
+      payload         TEXT,
+      status          TEXT    NOT NULL DEFAULT 'received',
+      error           TEXT,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   console.log('✔ Database tables ensured');
 
   // Add highlight column if missing (for tables created before highlight feature)

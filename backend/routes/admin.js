@@ -408,4 +408,159 @@ router.post('/packages-auto-categorize', async (req, res) => {
   }
 });
 
+/* ─── WEBHOOK LOGS ─── */
+router.get('/webhook-logs', async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+    const statusFilter = req.query.status || '';
+
+    let where = '1=1';
+    const params = [];
+    let paramIdx = 1;
+    if (['success', 'failed', 'received'].includes(statusFilter)) {
+      where += ` AND status = $${paramIdx}`;
+      params.push(statusFilter);
+      paramIdx++;
+    }
+
+    const total = parseInt((await db.query(`SELECT COUNT(*) AS cnt FROM webhook_logs WHERE ${where}`, params)).rows[0].cnt);
+    const logs = (await db.query(`
+      SELECT id, source, event_type, order_id, status, error, created_at,
+             LEFT(payload, 500) AS payload_preview
+      FROM webhook_logs WHERE ${where}
+      ORDER BY created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}
+    `, [...params, limit, offset])).rows;
+    res.json({ logs, total, page, totalPages: Math.ceil(total / limit) });
+  } catch (err) {
+    console.error('Webhook logs error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+router.get('/webhook-logs/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const log = (await db.query('SELECT * FROM webhook_logs WHERE id = $1', [id])).rows[0];
+    if (!log) return res.status(404).json({ error: 'Log nuk u gjet' });
+    res.json(log);
+  } catch (err) {
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+/* ─── CUSTOMERS ─── */
+router.get('/customers', async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+    const searchQuery = req.query.q || '';
+
+    let where = '1=1';
+    const params = [];
+    let paramIdx = 1;
+    if (searchQuery.trim()) {
+      where += ` AND (u.name ILIKE $${paramIdx} OR u.email ILIKE $${paramIdx + 1})`;
+      const like = `%${searchQuery.trim()}%`;
+      params.push(like, like);
+      paramIdx += 2;
+    }
+
+    const total = parseInt((await db.query(`SELECT COUNT(*) AS cnt FROM users u WHERE ${where}`, params)).rows[0].cnt);
+    const customers = (await db.query(`
+      SELECT u.id, u.name, u.email, u.role, u.created_at,
+             COUNT(o.id)::int AS order_count,
+             COALESCE(SUM(CASE WHEN o.payment_status = 'paid' THEN p.price ELSE 0 END), 0) AS total_spent
+      FROM users u
+      LEFT JOIN orders o ON o.user_id = u.id
+      LEFT JOIN packages p ON p.id = o.package_id
+      WHERE ${where}
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+      LIMIT $${paramIdx} OFFSET $${paramIdx + 1}
+    `, [...params, limit, offset])).rows;
+
+    res.json({ customers: customers.map(c => ({ ...c, total_spent: parseFloat(c.total_spent) || 0 })), total, page, totalPages: Math.ceil(total / limit) });
+  } catch (err) {
+    console.error('Customers error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+router.get('/customers/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const user = (await db.query('SELECT id, name, email, role, created_at FROM users WHERE id = $1', [id])).rows[0];
+    if (!user) return res.status(404).json({ error: 'Klienti nuk u gjet' });
+    const orders = (await db.query(`
+      SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price AS package_price
+      FROM orders o JOIN packages p ON p.id = o.package_id
+      WHERE o.user_id = $1 OR o.email = $2
+      ORDER BY o.created_at DESC
+    `, [id, user.email])).rows;
+    res.json({ ...user, orders });
+  } catch (err) {
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+/* ─── ORDER DETAIL + RESEND eSIM ─── */
+router.get('/orders/:id/detail', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const order = (await db.query(`
+      SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price AS package_price,
+             p.data AS package_data, p.duration AS package_duration, p.airalo_package_id,
+             u.name AS user_name, u.email AS user_email
+      FROM orders o
+      JOIN packages p ON p.id = o.package_id
+      LEFT JOIN users u ON u.id = o.user_id
+      WHERE o.id = $1
+    `, [id])).rows[0];
+    if (!order) return res.status(404).json({ error: 'Porosia nuk u gjet' });
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+router.post('/orders/:id/resend-esim', async (req, res) => {
+  const { sendTransactionalEmail } = require('../lib/emailService');
+  const { orderConfirmationTemplate } = require('../lib/email');
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const order = (await db.query(`
+      SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price
+      FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1
+    `, [id])).rows[0];
+    if (!order) return res.status(404).json({ error: 'Porosia nuk u gjet' });
+    if (!order.qr_data && !order.qr_code_url) return res.status(400).json({ error: 'Kjo porosi nuk ka eSIM të gatshme' });
+
+    await sendTransactionalEmail({
+      toEmail: order.email,
+      subject: 'Ridërgim eSIM — Shqiponja eSIM',
+      html: await orderConfirmationTemplate({
+        orderId: order.id,
+        packageFlag: order.package_flag,
+        packageName: order.package_name,
+        price: order.price,
+        iccid: order.iccid,
+        qrData: order.qr_data,
+        qrCodeUrl: order.qr_code_url,
+      }),
+      logLabel: 'RESEND eSIM',
+    });
+    res.json({ ok: true, message: 'eSIM u ridërgua me sukses' });
+  } catch (err) {
+    console.error('Resend eSIM error:', err);
+    res.status(500).json({ error: 'Ridërgimi dështoi: ' + (err.message || 'Unknown') });
+  }
+});
+
 module.exports = router;

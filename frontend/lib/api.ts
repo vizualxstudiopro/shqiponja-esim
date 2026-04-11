@@ -586,3 +586,87 @@ export async function changePassword(token: string, currentPassword: string, new
   if (!res.ok) { const e = await res.json().catch(() => ({ error: "Ndryshimi dështoi" })); throw new Error(e.error); }
   return res.json();
 }
+
+/* ─── Admin: Webhook Logs ─── */
+
+export interface WebhookLog {
+  id: number;
+  source: string;
+  event_type: string;
+  order_id: number | null;
+  payload_preview: string;
+  payload?: string;
+  status: string;
+  error: string | null;
+  created_at: string;
+}
+
+export interface PaginatedWebhookLogs { logs: WebhookLog[]; total: number; page: number; totalPages: number }
+export async function adminGetWebhookLogs(token: string, page = 1, status = ''): Promise<PaginatedWebhookLogs> {
+  const params = new URLSearchParams({ page: String(page) });
+  if (status) params.set('status', status);
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/webhook-logs?${params}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminGetWebhookLogDetail(token: string, id: number): Promise<WebhookLog> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/webhook-logs/${id}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+/* ─── Admin: Customers ─── */
+
+export interface Customer {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  created_at: string;
+  order_count: number;
+  total_spent: number;
+}
+
+export interface CustomerDetail extends Customer {
+  orders: Order[];
+}
+
+export interface PaginatedCustomers { customers: Customer[]; total: number; page: number; totalPages: number }
+export async function adminGetCustomers(token: string, page = 1, q = ''): Promise<PaginatedCustomers> {
+  const params = new URLSearchParams({ page: String(page) });
+  if (q.trim()) params.set('q', q.trim());
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/customers?${params}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminGetCustomerDetail(token: string, id: number): Promise<CustomerDetail> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/customers/${id}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+/* ─── Admin: Order Detail + Resend eSIM ─── */
+
+export interface OrderDetail extends Order {
+  package_price: number;
+  package_data: string;
+  package_duration: string;
+  airalo_package_id: string | null;
+  user_name: string | null;
+  user_email: string | null;
+  access_token: string | null;
+}
+
+export async function adminGetOrderDetail(token: string, id: number): Promise<OrderDetail> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${id}/detail`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminResendEsim(token: string, orderId: number): Promise<{ ok: boolean; message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${orderId}/resend-esim`, { method: "POST", headers: authHeaders(token) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Ridërgimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}

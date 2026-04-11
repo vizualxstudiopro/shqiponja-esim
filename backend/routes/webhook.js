@@ -22,6 +22,7 @@ function verifyLemonSqueezySignature(rawBody, signatureHeader, secret) {
 router.post('/', async (req, res) => {
   if (!LS_WEBHOOK_SECRET) {
     console.error('Webhook: LEMONSQUEEZY_WEBHOOK_SECRET not configured');
+    await db.query('INSERT INTO webhook_logs (source, event_type, payload, status, error) VALUES ($1,$2,$3,$4,$5)', ['lemonsqueezy', 'unknown', '', 'failed', 'Secret not configured']);
     return res.status(500).json({ error: 'Webhook secret not configured' });
   }
 
@@ -32,21 +33,32 @@ router.post('/', async (req, res) => {
 
   if (!verifyLemonSqueezySignature(rawBody, sig, LS_WEBHOOK_SECRET)) {
     console.error('Webhook: Lemon Squeezy signature verification failed');
+    await db.query('INSERT INTO webhook_logs (source, event_type, payload, status, error) VALUES ($1,$2,$3,$4,$5)', ['lemonsqueezy', 'unknown', rawBody.slice(0, 5000), 'failed', 'Invalid signature']);
     return res.status(400).json({ error: 'Invalid signature' });
   }
 
   const event = JSON.parse(rawBody);
   const eventName = event.meta?.event_name;
+  const customData = event.meta?.custom_data;
+  const webhookOrderId = customData?.order_id ? Number(customData.order_id) : null;
   console.log(`Webhook received: ${eventName}`);
 
+  // Log the webhook
+  const logResult = await db.query(
+    'INSERT INTO webhook_logs (source, event_type, order_id, payload, status) VALUES ($1,$2,$3,$4,$5) RETURNING id',
+    ['lemonsqueezy', eventName, webhookOrderId, rawBody.slice(0, 10000), 'received']
+  );
+  const logId = logResult.rows[0].id;
+
+  try {
   if (eventName === 'order_created') {
-    const customData = event.meta?.custom_data;
     const orderId = customData?.order_id;
 
     if (orderId) {
       const order = (await db.query('SELECT * FROM orders WHERE id = $1', [Number(orderId)])).rows[0];
       if (!order) {
         console.error('Webhook: Order not found:', orderId);
+        await db.query('UPDATE webhook_logs SET status=$1, error=$2 WHERE id=$3', ['failed', 'Order not found: ' + orderId, logId]);
         return res.json({ received: true });
       }
 
@@ -146,7 +158,13 @@ router.post('/', async (req, res) => {
     }
   }
 
+  await db.query('UPDATE webhook_logs SET status=$1 WHERE id=$2', ['success', logId]);
   res.json({ received: true });
+  } catch (webhookErr) {
+    console.error('Webhook processing error:', webhookErr);
+    await db.query('UPDATE webhook_logs SET status=$1, error=$2 WHERE id=$3', ['failed', String(webhookErr.message).slice(0, 1000), logId]);
+    res.json({ received: true });
+  }
 });
 
 module.exports = router;
