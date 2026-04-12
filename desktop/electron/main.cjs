@@ -32,7 +32,6 @@ function createWindow() {
 
   if (isDev) {
     win.loadURL(`http://localhost:${DEV_PORT}`);
-    win.webContents.openDevTools({ mode: "detach" });
   } else {
     win.loadFile(path.join(__dirname, "../dist/index.html"));
   }

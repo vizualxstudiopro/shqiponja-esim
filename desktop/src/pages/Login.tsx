@@ -1,9 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
 import { login } from "@/lib/api";
-import { Zap, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
 import eagleImg from "@/assets/eagle.png";
+
+const SAVED_CREDS_KEY = "shqiponja_saved_creds";
+
+function getSavedCreds(): { email: string; password: string } | null {
+  try {
+    const raw = localStorage.getItem(SAVED_CREDS_KEY);
+    if (!raw) return null;
+    return JSON.parse(atob(raw));
+  } catch { return null; }
+}
+
+function saveCreds(email: string, password: string) {
+  localStorage.setItem(SAVED_CREDS_KEY, btoa(JSON.stringify({ email, password })));
+}
+
+function clearCreds() {
+  localStorage.removeItem(SAVED_CREDS_KEY);
+}
 
 export default function Login() {
   const { setAuth } = useAuth();
@@ -13,8 +31,18 @@ export default function Login() {
   const [totpCode, setTotpCode] = useState("");
   const [needs2FA, setNeeds2FA] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const saved = getSavedCreds();
+    if (saved) {
+      setEmail(saved.email);
+      setPassword(saved.password);
+      setRememberMe(true);
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,6 +59,11 @@ export default function Login() {
         setError("Kjo llogari nuk ka qasje admin.");
         setLoading(false);
         return;
+      }
+      if (rememberMe) {
+        saveCreds(email, password);
+      } else {
+        clearCreds();
       }
       setAuth(res.token, res.user);
       navigate("/");
@@ -105,6 +138,16 @@ export default function Login() {
                 />
               </div>
             )}
+
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-zinc-600 bg-zinc-800 text-shqiponja accent-shqiponja"
+              />
+              <span className="text-xs text-zinc-400">Më mbaj mend</span>
+            </label>
 
             <button
               type="submit"
