@@ -166,12 +166,68 @@ export interface PaginatedPackages {
   totalPages: number;
 }
 
-export async function adminGetPackages(token: string, page = 1, limit = 50, q = "", visible?: 0 | 1): Promise<PaginatedPackages> {
+export async function adminGetPackages(token: string, page = 1, limit = 50, q = "", visible?: 0 | 1, category?: string): Promise<PaginatedPackages> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (q) params.set("q", q);
   if (visible !== undefined) params.set("visible", String(visible));
+  if (category) params.set("category", category);
   const res = await fetchWithTimeout(`${API_URL}/api/admin/packages?${params}`, { headers: authHeaders(token) });
   if (!res.ok) throw new Error("Packages fetch failed");
+  return res.json();
+}
+
+export async function adminToggleVisible(token: string, id: number, visible: boolean): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}/visible`, {
+    method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ visible }),
+  });
+  if (!res.ok) throw new Error("Toggle failed");
+  return res.json();
+}
+
+export async function adminToggleHighlight(token: string, id: number, highlight: boolean): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}/highlight`, {
+    method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ highlight }),
+  });
+  if (!res.ok) throw new Error("Toggle failed");
+  return res.json();
+}
+
+export async function adminUpdateCategory(token: string, id: number, category: string): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}/category`, {
+    method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ category }),
+  });
+  if (!res.ok) throw new Error("Category update failed");
+  return res.json();
+}
+
+export async function adminUpdatePackage(token: string, id: number, data: Partial<EsimPackage>): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}`, {
+    method: "PUT", headers: authHeaders(token), body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Update failed");
+  return res.json();
+}
+
+export async function adminDeletePackage(token: string, id: number): Promise<void> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages/${id}`, {
+    method: "DELETE", headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error("Delete failed");
+}
+
+export async function adminCreatePackage(token: string, data: Partial<EsimPackage>): Promise<EsimPackage> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages`, {
+    method: "POST", headers: authHeaders(token), body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Create failed");
+  return res.json();
+}
+
+export async function adminAutoCategories(token: string): Promise<{ updated: number; message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/packages-auto-categorize`, {
+    method: "POST", headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error("Auto-categorize failed");
   return res.json();
 }
 
