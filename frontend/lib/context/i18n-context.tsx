@@ -7,7 +7,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import translations, { type Locale, type TranslationKey } from "./translations";
+import translations, { type Locale, type TranslationKey } from "../i18n/translations";
 
 interface I18nContextType {
   locale: Locale;

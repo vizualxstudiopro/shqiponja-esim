@@ -62,7 +62,7 @@ function LockIcon() {
 
 export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
   const { t } = useI18n();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, currency, rates } = useCurrency();
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -140,9 +140,11 @@ export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
                 </div>
               </div>
 
-              <p className="mt-2 text-center text-[10px] text-zinc-400 dark:text-zinc-500">
-                {t("packages.rateNote")} 1 EUR = {eurToAll.toFixed(2)} ALL
-              </p>
+              {currency !== "EUR" && (
+                <p className="mt-2 text-center text-[10px] text-zinc-400 dark:text-zinc-500">
+                  {t("packages.rateNote")} 1 EUR = {rates[currency]?.toFixed(2)} {currency}
+                </p>
+              )}
             </div>
           </div>
         </div>

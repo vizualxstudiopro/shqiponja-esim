@@ -34,7 +34,7 @@ export default function CookieConsent() {
     setVisible(false);
     // Disable GA if user declines
     if (typeof window !== "undefined") {
-      (window as Record<string, unknown>)[
+      (window as unknown as Record<string, unknown>)[
         `ga-disable-G-LQ8N3VHELT`
       ] = true;
     }
