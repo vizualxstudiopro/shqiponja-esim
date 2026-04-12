@@ -21,7 +21,7 @@ const lsEnabled = LS_API_KEY && LS_STORE_ID && LS_VARIANT_ID;
 
 // POST /api/checkout - Create Lemon Squeezy checkout
 router.post('/', apiLimiter, validateCheckout, async (req, res) => {
-  const { packageId, email } = req.body;
+  const { packageId, email, customerName, phone } = req.body;
   if (!packageId || !email) {
     return res.status(400).json({ error: 'packageId and email are required' });
   }
@@ -43,8 +43,8 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
 
   const accessToken = crypto.randomBytes(32).toString('hex');
   const result = await db.query(
-    'INSERT INTO orders (package_id, email, status, payment_status, user_id, access_token) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-    [packageId, email, 'pending', 'unpaid', userId, accessToken]
+    'INSERT INTO orders (package_id, email, status, payment_status, user_id, access_token, customer_name, phone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+    [packageId, email, 'pending', 'unpaid', userId, accessToken, customerName || null, phone || null]
   );
   const orderId = result.rows[0].id;
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { checkout } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
+import Link from "next/link";
 
 interface Props {
   packageId: number;
@@ -11,7 +12,10 @@ interface Props {
 
 export default function OrderForm({ packageId, price }: Props) {
   const { t } = useI18n();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -21,15 +25,28 @@ export default function OrderForm({ packageId, price }: Props) {
     if (submitted) return;
     setError("");
 
+    if (!name.trim()) {
+      setError(t("buy.nameRequired"));
+      return;
+    }
     if (!email.trim()) {
       setError(t("buy.emailRequired"));
+      return;
+    }
+    if (!termsAccepted) {
+      setError(t("buy.termsRequired"));
       return;
     }
 
     setSubmitted(true);
     setLoading(true);
     try {
-      const result = await checkout(packageId, email.trim());
+      const result = await checkout(
+        packageId,
+        email.trim(),
+        name.trim(),
+        phone.trim() || undefined
+      );
 
       // Store order token in localStorage before redirecting (LS may strip query params)
       if (result.orderId && result.accessToken) {
@@ -54,14 +71,38 @@ export default function OrderForm({ packageId, price }: Props) {
     }
   }
 
+  const inputClass =
+    "mt-1.5 block w-full rounded-xl border border-zinc-300 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100";
+
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+    <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+      {/* Name */}
+      <div>
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+        >
+          {t("buy.nameLabel")} <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="name"
+          type="text"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={t("buy.namePlaceholder")}
+          autoComplete="name"
+          className={inputClass}
+        />
+      </div>
+
+      {/* Email */}
       <div>
         <label
           htmlFor="email"
           className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
         >
-          {t("buy.emailLabel")}
+          {t("buy.emailLabel")} <span className="text-red-500">*</span>
         </label>
         <input
           id="email"
@@ -69,14 +110,54 @@ export default function OrderForm({ packageId, price }: Props) {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="emri@shembull.com"
+          placeholder={t("buy.emailPlaceholder")}
           autoComplete="email"
-          className="mt-1.5 block w-full rounded-xl border border-zinc-300 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+          className={inputClass}
         />
       </div>
 
+      {/* Phone */}
+      <div>
+        <label
+          htmlFor="phone"
+          className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+        >
+          {t("buy.phoneLabel")}
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder={t("buy.phonePlaceholder")}
+          autoComplete="tel"
+          className={inputClass}
+        />
+      </div>
+
+      {/* Terms checkbox */}
+      <div className="flex items-start gap-3">
+        <input
+          id="terms"
+          type="checkbox"
+          checked={termsAccepted}
+          onChange={(e) => setTermsAccepted(e.target.checked)}
+          className="mt-1 h-4 w-4 rounded border-zinc-300 text-shqiponja focus:ring-shqiponja/20 dark:border-zinc-600"
+        />
+        <label htmlFor="terms" className="text-sm text-zinc-600 dark:text-zinc-400">
+          {t("buy.termsAgree")}{" "}
+          <Link href="/kushtet" className="text-shqiponja underline hover:text-shqiponja-dark">
+            {t("buy.termsLink")}
+          </Link>{" "}
+          {t("buy.andText")}{" "}
+          <Link href="/privatesia" className="text-shqiponja underline hover:text-shqiponja-dark">
+            {t("buy.privacyLink")}
+          </Link>
+        </label>
+      </div>
+
       {error && (
-        <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+        <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
           {error}
         </p>
       )}
@@ -88,10 +169,6 @@ export default function OrderForm({ packageId, price }: Props) {
       >
         {loading ? t("buy.processing") : `${t("buy.pay")} €${Number(price).toFixed(2)}`}
       </button>
-
-      <p className="text-center text-xs text-zinc-400">
-        {t("buy.termsNote")}
-      </p>
     </form>
   );
 }

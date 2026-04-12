@@ -112,6 +112,14 @@ async function migrate() {
     // Column likely already exists
   }
 
+  // Add customer_name and phone columns to orders
+  try {
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_name TEXT`);
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone TEXT`);
+  } catch (e) {
+    // Columns likely already exist
+  }
+
   // Performance indexes
   await db.query(`
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

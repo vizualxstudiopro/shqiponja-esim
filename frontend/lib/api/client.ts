@@ -173,7 +173,9 @@ export async function getCountriesByContinent(): Promise<CountriesByContinent> {
 
 export async function checkout(
   packageId: number,
-  email: string
+  email: string,
+  customerName?: string,
+  phone?: string
 ): Promise<CheckoutResponse> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
@@ -183,7 +185,7 @@ export async function checkout(
   const res = await fetchWithTimeout(`${API_URL}/api/checkout`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ packageId, email }),
+    body: JSON.stringify({ packageId, email, customerName, phone }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Checkout failed" }));
