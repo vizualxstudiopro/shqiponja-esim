@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const router = express.Router();
 const db = require('../db');
 const { sendTransactionalEmail } = require('../lib/emailService');
-const { orderConfirmationTemplate } = require('../lib/email');
+const { orderConfirmationTemplate, paymentReceiptTemplate } = require('../lib/email');
 const airalo = require('../lib/airaloService');
 
 const LS_WEBHOOK_SECRET = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
@@ -152,6 +152,23 @@ router.post('/', async (req, res) => {
             logLabel: 'ORDER EMAIL',
           }).catch(err => {
             console.error('Order confirmation delivery failed:', err);
+          });
+
+          // Send payment receipt email
+          sendTransactionalEmail({
+            toEmail: customerEmail,
+            subject: 'Fatura e pagesës — Shqiponja eSIM 🧾',
+            html: paymentReceiptTemplate({
+              orderId,
+              packageName: updatedOrder.package_name,
+              packageFlag: updatedOrder.package_flag,
+              price: updatedOrder.price,
+              email: customerEmail,
+              date: new Date(),
+            }),
+            logLabel: 'PAYMENT RECEIPT',
+          }).catch(err => {
+            console.error('Payment receipt delivery failed:', err);
           });
         }
       }

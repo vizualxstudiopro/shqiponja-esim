@@ -120,6 +120,53 @@ async function migrate() {
     // Columns likely already exist
   }
 
+  // Promo codes table
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS promo_codes (
+      id              SERIAL PRIMARY KEY,
+      code            TEXT    NOT NULL UNIQUE,
+      discount_type   TEXT    NOT NULL DEFAULT 'percent',
+      discount_value  REAL    NOT NULL,
+      max_uses        INTEGER,
+      used_count      INTEGER NOT NULL DEFAULT 0,
+      min_order       REAL    DEFAULT 0,
+      active          INTEGER NOT NULL DEFAULT 1,
+      expires_at      TIMESTAMPTZ,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // Promo code reference on orders
+  try {
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS promo_code_id INTEGER REFERENCES promo_codes(id)`);
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount REAL DEFAULT 0`);
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS final_price REAL`);
+  } catch (e) {
+    // Columns likely already exist
+  }
+
+  // Referral code on users
+  try {
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT UNIQUE`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by INTEGER REFERENCES users(id)`);
+  } catch (e) {
+    // Columns likely already exist
+  }
+
+  // Referrals table
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS referrals (
+      id              SERIAL PRIMARY KEY,
+      referrer_id     INTEGER NOT NULL REFERENCES users(id),
+      referred_id     INTEGER NOT NULL REFERENCES users(id),
+      order_id        INTEGER REFERENCES orders(id),
+      reward_type     TEXT    NOT NULL DEFAULT 'discount',
+      reward_value    REAL    NOT NULL DEFAULT 10,
+      status          TEXT    NOT NULL DEFAULT 'pending',
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   // Performance indexes
   await db.query(`
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

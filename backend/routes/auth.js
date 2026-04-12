@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../db');
 const { authMiddleware } = require('../middleware/auth');
-const { escapeHtml, verifyEmailTemplate, resetPasswordTemplate } = require('../lib/email');
+const { escapeHtml, verifyEmailTemplate, resetPasswordTemplate, welcomeEmailTemplate } = require('../lib/email');
 const { sendTransactionalEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { validateRegister, validateLogin } = require('../middleware/validate');
@@ -119,6 +119,18 @@ router.post('/verify', async (req, res) => {
   if (!user) return res.status(400).json({ error: 'Token i pavlefshëm ose i skaduar' });
 
   await db.query('UPDATE users SET email_verified = 1, verify_token = NULL WHERE id = $1', [user.id]);
+
+  // Send welcome email
+  const fullUser = (await db.query('SELECT name, email FROM users WHERE id = $1', [user.id])).rows[0];
+  if (fullUser) {
+    sendTransactionalEmail({
+      toEmail: fullUser.email,
+      subject: 'Mirësevini në Shqiponja eSIM! 🎉',
+      html: welcomeEmailTemplate(fullUser.name),
+      logLabel: 'WELCOME EMAIL',
+    }).catch(err => console.error('Welcome email error:', err));
+  }
+
   res.json({ ok: true, message: 'Email-i u verifikua me sukses!' });
 });
 

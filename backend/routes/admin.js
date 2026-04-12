@@ -586,4 +586,72 @@ router.post('/orders/:id/resend-esim', async (req, res) => {
   }
 });
 
+/* ─── PROMO CODES ─── */
+router.get('/promo-codes', async (req, res) => {
+  try {
+    const codes = (await db.query('SELECT * FROM promo_codes ORDER BY created_at DESC')).rows;
+    res.json(codes.map(c => ({ ...c, discount_value: parseFloat(c.discount_value) || 0, min_order: parseFloat(c.min_order) || 0 })));
+  } catch (err) {
+    console.error('Promo codes list error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+router.post('/promo-codes', async (req, res) => {
+  try {
+    const { code, discount_type, discount_value, max_uses, min_order, expires_at } = req.body;
+    if (!code || !discount_value) return res.status(400).json({ error: 'Kodi dhe vlera e zbritjes janë të detyrueshme' });
+    if (!['percent', 'fixed'].includes(discount_type)) return res.status(400).json({ error: 'Lloji duhet të jetë percent ose fixed' });
+    const numVal = parseFloat(discount_value);
+    if (!Number.isFinite(numVal) || numVal <= 0) return res.status(400).json({ error: 'Vlera duhet të jetë numër pozitiv' });
+    if (discount_type === 'percent' && numVal > 100) return res.status(400).json({ error: 'Përqindja nuk mund të jetë mbi 100' });
+
+    const result = await db.query(`
+      INSERT INTO promo_codes (code, discount_type, discount_value, max_uses, min_order, expires_at)
+      VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
+    `, [
+      String(code).trim().toUpperCase().slice(0, 50),
+      discount_type,
+      numVal,
+      max_uses ? parseInt(max_uses) : null,
+      parseFloat(min_order) || 0,
+      expires_at || null,
+    ]);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'Ky kod ekziston tashmë' });
+    console.error('Promo code create error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+router.patch('/promo-codes/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const { active, max_uses, expires_at } = req.body;
+    if (active !== undefined) await db.query('UPDATE promo_codes SET active = $1 WHERE id = $2', [active ? 1 : 0, id]);
+    if (max_uses !== undefined) await db.query('UPDATE promo_codes SET max_uses = $1 WHERE id = $2', [max_uses ? parseInt(max_uses) : null, id]);
+    if (expires_at !== undefined) await db.query('UPDATE promo_codes SET expires_at = $1 WHERE id = $2', [expires_at || null, id]);
+    const promo = (await db.query('SELECT * FROM promo_codes WHERE id = $1', [id])).rows[0];
+    if (!promo) return res.status(404).json({ error: 'Kodi nuk u gjet' });
+    res.json(promo);
+  } catch (err) {
+    console.error('Promo code update error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+router.delete('/promo-codes/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    await db.query('DELETE FROM promo_codes WHERE id = $1', [id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Promo code delete error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
 module.exports = router;

@@ -6,7 +6,7 @@ let cacheExpiry = 0;
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
 // Fallback rates if API is down
-const FALLBACK_RATES = { EUR: 0.92, ALL: 100.5 };
+const FALLBACK_RATES = { EUR: 0.92, ALL: 100.5, GBP: 0.79 };
 
 /**
  * Fetch real-time exchange rates from USD base
@@ -23,6 +23,7 @@ async function getRates() {
       cachedRates = {
         EUR: res.data.rates.EUR || FALLBACK_RATES.EUR,
         ALL: res.data.rates.ALL || FALLBACK_RATES.ALL,
+        GBP: res.data.rates.GBP || FALLBACK_RATES.GBP,
         updatedAt: new Date().toISOString(),
       };
       cacheExpiry = Date.now() + CACHE_DURATION;

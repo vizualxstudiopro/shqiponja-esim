@@ -49,7 +49,21 @@ function createApp() {
   app.get('/api/rates', async (_req, res) => {
     const rates = await getRates();
     const allRate = await eurToAllRate();
-    res.json({ eur_to_all: allRate, updated_at: rates.updatedAt });
+    // EUR is base, compute cross-rates from USD-based data
+    const eurRate = rates.EUR || 0.92;
+    const usdRate = 1 / eurRate;
+    const gbpRate = (rates.GBP || 0.79) / eurRate;
+    res.json({
+      eur_to_all: allRate,
+      base: 'EUR',
+      rates: {
+        EUR: 1,
+        ALL: allRate,
+        USD: Math.round(usdRate * 10000) / 10000,
+        GBP: Math.round(gbpRate * 10000) / 10000,
+      },
+      updated_at: rates.updatedAt,
+    });
   });
 
   app.use('/api/auth', require('../routes/auth'));
@@ -59,6 +73,8 @@ function createApp() {
   app.use('/api/packages', require('../routes/packages'));
   app.use('/api/orders', require('../routes/orders'));
   app.use('/api/checkout', require('../routes/checkout'));
+  app.use('/api/promo', require('../routes/promo'));
+  app.use('/api/referrals', require('../routes/referrals'));
   app.use('/api/contact', require('../routes/contact'));
 
   app.get('/', (_req, res) => {

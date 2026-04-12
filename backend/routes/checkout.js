@@ -21,7 +21,7 @@ const lsEnabled = LS_API_KEY && LS_STORE_ID && LS_VARIANT_ID;
 
 // POST /api/checkout - Create Lemon Squeezy checkout
 router.post('/', apiLimiter, validateCheckout, async (req, res) => {
-  const { packageId, email, customerName, phone } = req.body;
+  const { packageId, email, customerName, phone, promoCode } = req.body;
   if (!packageId || !email) {
     return res.status(400).json({ error: 'packageId and email are required' });
   }
@@ -29,6 +29,32 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
   const pkg = (await db.query('SELECT * FROM packages WHERE id = $1', [packageId])).rows[0];
   if (!pkg) {
     return res.status(404).json({ error: 'Package not found' });
+  }
+
+  // Validate promo code if provided
+  let promo = null;
+  let discountAmount = 0;
+  let finalPrice = parseFloat(pkg.price);
+  if (promoCode) {
+    promo = (await db.query('SELECT * FROM promo_codes WHERE UPPER(code) = UPPER($1)', [String(promoCode).trim()])).rows[0];
+    if (promo && promo.active) {
+      const now = new Date();
+      const expired = promo.expires_at && new Date(promo.expires_at) < now;
+      const maxedOut = promo.max_uses && promo.used_count >= promo.max_uses;
+      const belowMin = promo.min_order && finalPrice < parseFloat(promo.min_order);
+      if (!expired && !maxedOut && !belowMin) {
+        if (promo.discount_type === 'percent') {
+          discountAmount = Math.round(finalPrice * (parseFloat(promo.discount_value) / 100) * 100) / 100;
+        } else {
+          discountAmount = Math.min(parseFloat(promo.discount_value), finalPrice);
+        }
+        finalPrice = Math.round((finalPrice - discountAmount) * 100) / 100;
+      } else {
+        promo = null; // Invalid promo, ignore silently
+      }
+    } else {
+      promo = null;
+    }
   }
 
   // Link user if authenticated
@@ -43,10 +69,15 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
 
   const accessToken = crypto.randomBytes(32).toString('hex');
   const result = await db.query(
-    'INSERT INTO orders (package_id, email, status, payment_status, user_id, access_token, customer_name, phone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
-    [packageId, email, 'pending', 'unpaid', userId, accessToken, customerName || null, phone || null]
+    'INSERT INTO orders (package_id, email, status, payment_status, user_id, access_token, customer_name, phone, promo_code_id, discount_amount, final_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id',
+    [packageId, email, 'pending', 'unpaid', userId, accessToken, customerName || null, phone || null, promo ? promo.id : null, discountAmount, finalPrice]
   );
   const orderId = result.rows[0].id;
+
+  // Increment promo code usage
+  if (promo) {
+    await db.query('UPDATE promo_codes SET used_count = used_count + 1 WHERE id = $1', [promo.id]);
+  }
 
   // If Lemon Squeezy is not configured, skip payment (dev mode)
   if (!lsEnabled) {
@@ -111,7 +142,7 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
 
   // Create Lemon Squeezy checkout session
   try {
-    const priceInCents = Math.round(pkg.price * 100);
+    const priceInCents = Math.round(finalPrice * 100);
 
     const { data: lsRes } = await axios.post(`${LS_API_URL}/checkouts`, {
       data: {

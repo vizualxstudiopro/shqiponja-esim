@@ -254,6 +254,82 @@ async function orderConfirmationTemplate({ orderId, packageFlag, packageName, pr
   `, 'Porosia jote u konfirmua');
 }
 
+function welcomeEmailTemplate(name) {
+  return baseLayout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Mirësevini, ${escapeHtml(name)}! 🎉</h2>
+    <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
+      Email-i juaj u verifikua me sukses! Tani mund të blini eSIM për udhëtimet tuaja.
+    </p>
+    <div class="card" style="background:#f8f8fa;border-radius:12px;padding:20px 24px;margin:0 0 24px">
+      <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b">Me Shqiponja eSIM mund të:</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="padding:4px 0;font-size:14px;color:#52525b">✅ Blini eSIM për mbi 200 vende</td></tr>
+        <tr><td style="padding:4px 0;font-size:14px;color:#52525b">✅ Aktivizim i menjëhershëm me QR kod</td></tr>
+        <tr><td style="padding:4px 0;font-size:14px;color:#52525b">✅ Çmime konkurruese pa tarifë roaming</td></tr>
+        <tr><td style="padding:4px 0;font-size:14px;color:#52525b">✅ Mbështetje 24/7 në shqip</td></tr>
+      </table>
+    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr><td align="center">
+        <a href="${FRONTEND_URL}/#packages" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Paketat</a>
+      </td></tr>
+    </table>
+  `, 'Mirësevini në Shqiponja eSIM!');
+}
+
+function paymentReceiptTemplate({ orderId, packageName, packageFlag, price, email, date }) {
+  const priceDisplay = price ? `€${Number(price).toFixed(2)}` : '';
+  const dateDisplay = date ? new Date(date).toLocaleDateString('sq-AL', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+  return baseLayout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Fatura e pagesës 🧾</h2>
+    <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
+      Faleminderit për pagesën tuaj. Ja fatura e porosisë:
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8fa;border-radius:12px;overflow:hidden;margin:0 0 24px">
+      <tr>
+        <td style="background:${BRAND_RED};padding:12px 20px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td><span style="font-size:14px;font-weight:700;color:#ffffff">FATURË</span></td>
+              <td align="right"><span style="font-size:13px;color:#ffffff;opacity:0.85">#INV-${String(orderId).padStart(5, '0')}</span></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding:6px 0;font-size:13px;color:#71717a">Paketa</td>
+              <td align="right" style="padding:6px 0;font-size:14px;font-weight:600;color:#18181b">${packageFlag || ''} ${escapeHtml(packageName || '')}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;font-size:13px;color:#71717a">Data</td>
+              <td align="right" style="padding:6px 0;font-size:14px;color:#18181b">${dateDisplay}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;font-size:13px;color:#71717a">Email</td>
+              <td align="right" style="padding:6px 0;font-size:14px;color:#18181b">${escapeHtml(email || '')}</td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding:12px 0 0"><hr style="border:none;border-top:1px solid #e4e4e7;margin:0" /></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;font-size:15px;font-weight:700;color:#18181b">Total</td>
+              <td align="right" style="padding:8px 0;font-size:18px;font-weight:800;color:${BRAND_RED}">${priceDisplay}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr><td align="center">
+        <a href="${FRONTEND_URL}/porosi/${orderId}" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Porosinë</a>
+      </td></tr>
+    </table>
+  `, 'Fatura e pagesës — Shqiponja eSIM');
+}
+
 function contactConfirmationTemplate(name, message) {
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">E morëm mesazhin tënd! 📩</h2>
@@ -299,6 +375,8 @@ module.exports = {
   verifyEmailTemplate,
   resetPasswordTemplate,
   orderConfirmationTemplate,
+  welcomeEmailTemplate,
+  paymentReceiptTemplate,
   contactConfirmationTemplate,
   contactAdminTemplate,
 };

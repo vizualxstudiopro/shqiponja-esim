@@ -62,7 +62,7 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
 router.get('/:id', orderLimiter, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const order = (await db.query(`
-    SELECT o.*, p.name AS package_name, p.flag AS package_flag
+    SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price AS package_price
     FROM orders o
     JOIN packages p ON p.id = o.package_id
     WHERE o.id = $1
