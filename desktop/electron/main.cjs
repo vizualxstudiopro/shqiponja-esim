@@ -2,6 +2,7 @@ const { app, BrowserWindow, shell } = require("electron");
 const path = require("path");
 
 const isDev = !app.isPackaged;
+const DEV_PORT = process.env.VITE_DEV_PORT || 5173;
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -30,7 +31,7 @@ function createWindow() {
   win.once("ready-to-show", () => win.show());
 
   if (isDev) {
-    win.loadURL("http://localhost:5173");
+    win.loadURL(`http://localhost:${DEV_PORT}`);
     win.webContents.openDevTools({ mode: "detach" });
   } else {
     win.loadFile(path.join(__dirname, "../dist/index.html"));

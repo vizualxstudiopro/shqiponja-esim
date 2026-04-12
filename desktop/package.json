@@ -7,7 +7,7 @@
   "license": "PRIVATE",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "dev": "concurrently -k \"vite --port 5173 --strictPort\" \"wait-on http://localhost:5173 && electron .\"",
     "start": "electron .",
     "build:renderer": "vite build",
     "build": "vite build && electron-builder --win",
