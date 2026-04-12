@@ -20,6 +20,9 @@ function createApp() {
     allowedOrigins.push(FRONTEND_URL.replace('://', '://www.'));
   }
 
+  // Allow Electron desktop app (dev mode)
+  allowedOrigins.push('http://localhost:5173');
+
   app.use(cors({
     origin(origin, callback) {
       if (!origin) return callback(null, true);
