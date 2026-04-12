@@ -40,7 +40,29 @@ router.get('/stats', async (req, res) => {
     ORDER BY month
   `)).rows;
 
-  res.json({ totalOrders, paidOrders, totalRevenue, totalUsers, totalPackages, monthlyRevenue, monthlyUsers });
+  // Daily revenue (last 30 days) for desktop dashboard chart
+  const dailyRevenue = (await db.query(`
+    SELECT to_char(o.created_at, 'YYYY-MM-DD') AS date,
+           COALESCE(SUM(p.price), 0)::float AS revenue,
+           COUNT(*)::int AS count
+    FROM orders o
+    JOIN packages p ON p.id = o.package_id
+    WHERE o.payment_status = 'paid'
+      AND o.created_at >= NOW() - INTERVAL '30 days'
+    GROUP BY to_char(o.created_at, 'YYYY-MM-DD')
+    ORDER BY date
+  `)).rows;
+
+  // Recent orders (last 10)
+  const recentOrders = (await db.query(`
+    SELECT o.id, o.email, o.status, o.payment_status, o.created_at,
+           p.name AS package_name, p.flag AS package_flag
+    FROM orders o
+    JOIN packages p ON p.id = o.package_id
+    ORDER BY o.created_at DESC LIMIT 10
+  `)).rows;
+
+  res.json({ totalOrders, paidOrders, totalRevenue, totalUsers, totalPackages, monthlyRevenue, monthlyUsers, dailyRevenue, recentOrders });
 });
 
 /* ─── USERS ─── */

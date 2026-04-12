@@ -101,7 +101,7 @@ export async function adminGetOrders(token: string, page = 1, filters?: { status
 }
 
 export async function adminUpdateOrderStatus(token: string, orderId: number, data: { status?: string; payment_status?: string }) {
-  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${orderId}`, {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${orderId}/status`, {
     method: "PATCH",
     headers: authHeaders(token),
     body: JSON.stringify(data),

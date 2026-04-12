@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
 import { login } from "@/lib/api";
 import { Zap, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
+import eagleImg from "@/assets/eagle.png";
 
 export default function Login() {
   const { setAuth } = useAuth();
@@ -45,9 +46,7 @@ export default function Login() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-shqiponja shadow-lg shadow-shqiponja/20">
-            <Zap className="h-7 w-7 text-white" />
-          </div>
+          <img src={eagleImg} alt="Shqiponja" className="h-20 w-20 object-contain" />
           <h1 className="mt-4 text-xl font-extrabold">Shqiponja eSIM</h1>
           <p className="mt-1 text-sm text-zinc-500">Admin Dashboard</p>
         </div>

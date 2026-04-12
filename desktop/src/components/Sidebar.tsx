@@ -8,8 +8,8 @@ import {
   Webhook,
   Settings,
   LogOut,
-  Zap,
 } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -33,9 +33,7 @@ export default function Sidebar() {
     <aside className="flex h-screen w-60 flex-col border-r border-zinc-800 bg-zinc-900">
       {/* Brand */}
       <div className="flex h-14 items-center gap-2.5 border-b border-zinc-800 px-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-shqiponja text-white">
-          <Zap className="h-4 w-4" />
-        </div>
+        <img src={logoImg} alt="Shqiponja" className="h-8 w-8 rounded-lg object-contain" />
         <span className="text-sm font-extrabold tracking-tight">
           Shqiponja <span className="font-normal text-zinc-400">eSIM</span>
         </span>
