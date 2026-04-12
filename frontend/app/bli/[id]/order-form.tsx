@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { checkout } from "@/lib/api";
+import { checkout, validatePromo } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
 import Link from "next/link";
 
@@ -15,10 +15,31 @@ export default function OrderForm({ packageId, price }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState<{ code: string; discountAmount: number; finalPrice: number } | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+
+  const displayPrice = promoApplied ? promoApplied.finalPrice : price;
+
+  async function handleApplyPromo() {
+    if (!promoCode.trim()) return;
+    setPromoError("");
+    setPromoLoading(true);
+    try {
+      const result = await validatePromo(promoCode.trim(), price);
+      setPromoApplied({ code: result.code, discountAmount: result.discountAmount, finalPrice: result.finalPrice });
+    } catch (err) {
+      setPromoError(err instanceof Error ? err.message : t("promo.invalid"));
+      setPromoApplied(null);
+    } finally {
+      setPromoLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,7 +66,8 @@ export default function OrderForm({ packageId, price }: Props) {
         packageId,
         email.trim(),
         name.trim(),
-        phone.trim() || undefined
+        phone.trim() || undefined,
+        promoApplied?.code
       );
 
       // Store order token in localStorage before redirecting (LS may strip query params)
@@ -135,6 +157,45 @@ export default function OrderForm({ packageId, price }: Props) {
         />
       </div>
 
+      {/* Promo Code */}
+      <div>
+        <label
+          htmlFor="promo"
+          className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+        >
+          {t("promo.label")}
+        </label>
+        <div className="mt-1.5 flex gap-2">
+          <input
+            id="promo"
+            type="text"
+            value={promoCode}
+            onChange={(e) => {
+              setPromoCode(e.target.value.toUpperCase());
+              if (promoApplied) { setPromoApplied(null); setPromoError(""); }
+            }}
+            placeholder={t("promo.placeholder")}
+            className="block flex-1 rounded-xl border border-zinc-300 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+          />
+          <button
+            type="button"
+            onClick={handleApplyPromo}
+            disabled={promoLoading || !promoCode.trim() || !!promoApplied}
+            className="rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            {promoLoading ? "..." : promoApplied ? "✓" : t("promo.apply")}
+          </button>
+        </div>
+        {promoError && (
+          <p className="mt-1 text-xs text-red-500">{promoError}</p>
+        )}
+        {promoApplied && (
+          <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+            {t("promo.applied")} — {t("promo.saved")} €{promoApplied.discountAmount.toFixed(2)}
+          </p>
+        )}
+      </div>
+
       {/* Terms checkbox */}
       <div className="flex items-start gap-3">
         <input
@@ -167,7 +228,7 @@ export default function OrderForm({ packageId, price }: Props) {
         disabled={loading || submitted}
         className="w-full rounded-xl bg-shqiponja py-3.5 text-base font-semibold text-white shadow-lg shadow-shqiponja/25 transition hover:bg-shqiponja-dark disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? t("buy.processing") : `${t("buy.pay")} €${Number(price).toFixed(2)}`}
+        {loading ? t("buy.processing") : `${t("buy.pay")} €${Number(displayPrice).toFixed(2)}`}
       </button>
     </form>
   );

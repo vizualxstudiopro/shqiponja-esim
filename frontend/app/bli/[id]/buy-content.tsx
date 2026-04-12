@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+
 import { useI18n } from "@/lib/i18n-context";
+import { useCurrency } from "@/lib/currency-context";
 import type { EsimPackage } from "@/lib/api";
-import { getExchangeRates } from "@/lib/api";
 import Navbar from "@/components/navbar";
 import OrderForm from "./order-form";
 import Link from "next/link";
@@ -62,11 +62,7 @@ function LockIcon() {
 
 export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
   const { t } = useI18n();
-  const [eurToAll, setEurToAll] = useState(109);
-
-  useEffect(() => {
-    getExchangeRates().then(r => setEurToAll(r.eur_to_all)).catch(() => {});
-  }, []);
+  const { formatPrice } = useCurrency();
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -139,10 +135,7 @@ export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
                 <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Total</span>
                 <div className="text-right">
                   <p className="text-2xl font-extrabold text-shqiponja">
-                    €{Number(pkg.price).toFixed(2)}
-                  </p>
-                  <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                    ~{Math.round(Number(pkg.price) * eurToAll)} Lek
+                    {formatPrice(Number(pkg.price))}
                   </p>
                 </div>
               </div>

@@ -4,10 +4,10 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   getPackages,
-  getExchangeRates,
   type EsimPackage,
 } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
+import { useCurrency } from "@/lib/currency-context";
 
 type Continent =
   | "global"
@@ -106,9 +106,9 @@ interface DerivedCountry {
 
 export default function PackageFinder() {
   const { t } = useI18n();
+  const { formatPrice } = useCurrency();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [allPackages, setAllPackages] = useState<EsimPackage[]>([]);
-  const [eurToAll, setEurToAll] = useState(109);
   const [loading, setLoading] = useState(true);
 
   const [selectedContinent, setSelectedContinent] = useState<Continent | null>(
@@ -118,11 +118,8 @@ export default function PackageFinder() {
   const [selectedCountryName, setSelectedCountryName] = useState("");
 
   useEffect(() => {
-    Promise.all([getPackages(), getExchangeRates()])
-      .then(([pkgs, rates]) => {
-        setAllPackages(pkgs);
-        setEurToAll(rates.eur_to_all);
-      })
+    getPackages()
+      .then((pkgs) => setAllPackages(pkgs))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -379,7 +376,7 @@ export default function PackageFinder() {
                   </p>
                   <p className="text-xs text-zinc-400">
                     {c.package_count} {t("finder.packages")} · {t("finder.from")}{" "}
-                    €{c.min_price.toFixed(2)}
+                    {formatPrice(c.min_price)}
                   </p>
                 </div>
                 <svg
@@ -432,10 +429,7 @@ export default function PackageFinder() {
                         {pkg.name}
                       </h3>
                       <span className="mt-2 text-2xl font-extrabold tracking-tight text-shqiponja">
-                        €{Number(pkg.price).toFixed(2)}
-                      </span>
-                      <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                        ~{Math.round(Number(pkg.price) * eurToAll)} Lek
+                        {formatPrice(Number(pkg.price))}
                       </span>
                     </div>
                     <div className="mt-4 space-y-2 text-sm text-zinc-500">
@@ -482,10 +476,7 @@ export default function PackageFinder() {
                 ))}
               </div>
 
-              {/* Exchange rate note */}
-              <p className="mt-6 text-center text-xs text-zinc-400 dark:text-zinc-500">
-                {t("packages.rateNote")} 1 EUR = {eurToAll.toFixed(2)} ALL
-              </p>
+
             </>
           ) : (
             <div className="flex flex-col items-center gap-3 py-10 text-center">

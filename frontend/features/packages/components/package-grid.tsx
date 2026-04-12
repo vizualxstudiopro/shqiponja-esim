@@ -2,8 +2,9 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
-import { getPackages, searchPackages, getExchangeRates, type EsimPackage } from "@/lib/api";
+import { getPackages, searchPackages, type EsimPackage } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
+import { useCurrency } from "@/lib/currency-context";
 
 type Tab = "popular" | "balkans" | "europe" | "asia" | "middle_east" | "africa" | "americas" | "oceania" | "global";
 
@@ -73,6 +74,7 @@ const TAB_CONFIG: { key: Tab; icon: React.ReactNode; filterKey?: string }[] = [
 
 export default function PackageGrid() {
   const { t } = useI18n();
+  const { formatPrice, currency } = useCurrency();
   const [tab, setTab] = useState<Tab>("popular");
   const [search, setSearch] = useState("");
   const [packages, setPackages] = useState<EsimPackage[]>([]);
@@ -80,15 +82,11 @@ export default function PackageGrid() {
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [eurToAll, setEurToAll] = useState(109);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
-    Promise.all([getPackages(), getExchangeRates()])
-      .then(([data, rates]) => {
-        setPackages(data);
-        setEurToAll(rates.eur_to_all);
-      })
+    getPackages()
+      .then((data) => setPackages(data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
@@ -277,10 +275,7 @@ export default function PackageGrid() {
                     {pkg.name}
                   </h3>
                   <span className="mt-2 text-2xl font-extrabold tracking-tight text-shqiponja">
-                    €{Number(pkg.price).toFixed(2)}
-                  </span>
-                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                    ~{Math.round(Number(pkg.price) * eurToAll)} Lek
+                    {formatPrice(Number(pkg.price))}
                   </span>
                 </div>
 
@@ -311,10 +306,10 @@ export default function PackageGrid() {
         </>
       )}
 
-      {/* Exchange rate note */}
-      {!loading && !error && displayPackages.length > 0 && (
+      {/* Currency info */}
+      {!loading && !error && displayPackages.length > 0 && currency !== "EUR" && (
         <p className="mt-6 text-center text-xs text-zinc-400 dark:text-zinc-500">
-          {t("packages.rateNote")} 1 EUR = {eurToAll.toFixed(2)} ALL
+          {t("packages.rateNote")} ({currency})
         </p>
       )}
 

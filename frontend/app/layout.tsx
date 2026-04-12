@@ -5,6 +5,8 @@ import { AuthProvider } from "@/lib/auth-context";
 import { I18nProvider } from "@/lib/i18n-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { ToastProvider } from "@/lib/toast-context";
+import { CurrencyProvider } from "@/lib/currency-context";
+import CookieConsent from "@/components/cookie-consent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -100,7 +102,12 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <I18nProvider>
-              <ToastProvider>{children}</ToastProvider>
+              <CurrencyProvider>
+                <ToastProvider>
+                  {children}
+                  <CookieConsent />
+                </ToastProvider>
+              </CurrencyProvider>
             </I18nProvider>
           </AuthProvider>
         </ThemeProvider>

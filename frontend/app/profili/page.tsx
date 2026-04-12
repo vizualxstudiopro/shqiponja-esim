@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { useToast } from "@/lib/toast-context";
 import { useRouter } from "next/navigation";
-import { getMyOrders, updateProfile, changePassword, resendVerification, type Order } from "@/lib/api";
+import { getMyOrders, updateProfile, changePassword, resendVerification, getMyReferral, type Order, type ReferralStats } from "@/lib/api";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
 
@@ -16,6 +16,8 @@ export default function ProfilePage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [referral, setReferral] = useState<ReferralStats | null>(null);
+  const [copied, setCopied] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [editingPassword, setEditingPassword] = useState(false);
   const [savingName, setSavingName] = useState(false);
@@ -31,6 +33,9 @@ export default function ProfilePage() {
       getMyOrders(token)
         .then(setOrders)
         .finally(() => setLoading(false));
+      getMyReferral(token)
+        .then(setReferral)
+        .catch(() => {});
     }
   }, [user, token, authLoading, router]);
 
@@ -145,6 +150,47 @@ export default function ProfilePage() {
             </button>
           </div>
         </div>
+
+        {/* Referral Section */}
+        {referral && (
+          <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
+            <h2 className="text-lg font-extrabold flex items-center gap-2">
+              🎁 {t("referral.title")}
+            </h2>
+            <p className="mt-1 text-sm text-zinc-500">{t("referral.subtitle")}</p>
+
+            <div className="mt-4 flex items-center gap-3">
+              <div className="flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 font-mono text-sm font-semibold dark:border-zinc-600 dark:bg-zinc-700">
+                {referral.referralCode}
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(referral.referralLink);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="rounded-lg bg-shqiponja px-4 py-2.5 text-sm font-semibold text-white hover:bg-shqiponja-dark transition"
+              >
+                {copied ? "✓ " + t("referral.copied") : t("referral.copyLink")}
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-zinc-50 p-4 text-center dark:bg-zinc-700/50">
+                <p className="text-2xl font-extrabold text-shqiponja">{referral.stats.totalReferred}</p>
+                <p className="mt-1 text-xs text-zinc-500">{t("referral.invited")}</p>
+              </div>
+              <div className="rounded-xl bg-zinc-50 p-4 text-center dark:bg-zinc-700/50">
+                <p className="text-2xl font-extrabold text-green-600">{referral.stats.completedReferrals}</p>
+                <p className="mt-1 text-xs text-zinc-500">{t("referral.completed")}</p>
+              </div>
+              <div className="rounded-xl bg-zinc-50 p-4 text-center dark:bg-zinc-700/50">
+                <p className="text-2xl font-extrabold text-shqiponja">€{referral.stats.totalEarnings.toFixed(2)}</p>
+                <p className="mt-1 text-xs text-zinc-500">{t("referral.earned")}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Edit Name Modal */}
         {editingName && (

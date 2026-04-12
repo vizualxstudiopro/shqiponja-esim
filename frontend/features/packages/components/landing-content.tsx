@@ -670,6 +670,53 @@ export default function LandingContent() {
         </div>
       </section>
 
+      {/* ══════════ TESTIMONIALS ══════════ */}
+      <section className="bg-zinc-50 py-20 dark:bg-zinc-900">
+        <div className="mx-auto max-w-7xl px-6">
+          <h2 className="text-center text-3xl font-extrabold tracking-tight sm:text-4xl">
+            {t("testimonials.title")}
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-zinc-500">
+            {t("testimonials.subtitle")}
+          </p>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {([
+              { name: "Arben K.", location: "🇦🇱 Tiranë", rating: 5, textKey: "testimonials.review1" as const },
+              { name: "Elira M.", location: "🇽🇰 Prishtinë", rating: 5, textKey: "testimonials.review2" as const },
+              { name: "Dritan B.", location: "🇩🇪 München", rating: 5, textKey: "testimonials.review3" as const },
+              { name: "Blerta H.", location: "🇨🇭 Zürich", rating: 4, textKey: "testimonials.review4" as const },
+              { name: "Faton R.", location: "🇮🇹 Milano", rating: 5, textKey: "testimonials.review5" as const },
+              { name: "Liridona S.", location: "🇬🇧 London", rating: 5, textKey: "testimonials.review6" as const },
+            ]).map((review, i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-zinc-200 bg-white p-6 transition-all duration-300 hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-800"
+              >
+                <div className="flex items-center gap-1 text-amber-400">
+                  {Array.from({ length: 5 }).map((_, s) => (
+                    <svg key={s} className={`h-4 w-4 ${s < review.rating ? "fill-current" : "fill-zinc-200 dark:fill-zinc-600"}`} viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                  &ldquo;{t(review.textKey)}&rdquo;
+                </p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-shqiponja/10 text-sm font-bold text-shqiponja">
+                    {review.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">{review.name}</p>
+                    <p className="text-xs text-zinc-400">{review.location}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ══════════ FOOTER ══════════ */}
       <footer className="border-t border-zinc-100 bg-white py-12 dark:bg-zinc-950 dark:border-zinc-800">
         <div className="mx-auto max-w-7xl px-6">

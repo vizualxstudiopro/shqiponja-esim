@@ -31,11 +31,14 @@ export interface Order {
   created_at: string;
   package_name: string;
   package_flag: string;
+  package_price?: number;
   airalo_order_id?: string;
   iccid?: string;
   esim_status?: string;
   qr_code_url?: string;
   activation_code?: string;
+  customer_name?: string;
+  phone?: string;
 }
 
 const API_URL =
@@ -114,16 +117,18 @@ export async function searchPackages(q: string): Promise<EsimPackage[]> {
 
 export interface ExchangeRates {
   eur_to_all: number;
+  base: string;
+  rates: Record<string, number>;
   updated_at: string | null;
 }
 
 export async function getExchangeRates(): Promise<ExchangeRates> {
   try {
     const res = await fetchWithTimeout(`${API_URL}/api/rates`, { cache: "no-store" });
-    if (!res.ok) return { eur_to_all: 109, updated_at: null };
+    if (!res.ok) return { eur_to_all: 109, base: "EUR", rates: { EUR: 1, ALL: 109, USD: 1.09, GBP: 0.86 }, updated_at: null };
     return res.json();
   } catch {
-    return { eur_to_all: 109, updated_at: null };
+    return { eur_to_all: 109, base: "EUR", rates: { EUR: 1, ALL: 109, USD: 1.09, GBP: 0.86 }, updated_at: null };
   }
 }
 
@@ -175,7 +180,8 @@ export async function checkout(
   packageId: number,
   email: string,
   customerName?: string,
-  phone?: string
+  phone?: string,
+  promoCode?: string
 ): Promise<CheckoutResponse> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
@@ -185,10 +191,32 @@ export async function checkout(
   const res = await fetchWithTimeout(`${API_URL}/api/checkout`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ packageId, email, customerName, phone }),
+    body: JSON.stringify({ packageId, email, customerName, phone, promoCode }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Checkout failed" }));
+    throw new Error(err.error);
+  }
+  return res.json();
+}
+
+export interface PromoResult {
+  valid: boolean;
+  code: string;
+  discountType: string;
+  discountValue: number;
+  discountAmount: number;
+  finalPrice: number;
+}
+
+export async function validatePromo(code: string, packagePrice: number): Promise<PromoResult> {
+  const res = await fetchWithTimeout(`${API_URL}/api/promo/validate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, packagePrice }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Invalid promo code" }));
     throw new Error(err.error);
   }
   return res.json();
@@ -211,6 +239,31 @@ export async function getOrderById(id: number, token?: string): Promise<Order | 
     });
     if (!res.ok) return null;
     return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export interface UsageData {
+  total: number;
+  remaining: number;
+  used: number;
+  unit: string;
+  expired_at?: string;
+  status?: string;
+}
+
+export async function getOrderUsage(id: number): Promise<UsageData | null> {
+  try {
+    const headers: Record<string, string> = {};
+    if (typeof window !== "undefined") {
+      const jwt = localStorage.getItem("token");
+      if (jwt) headers["Authorization"] = `Bearer ${jwt}`;
+    }
+    const res = await fetchWithTimeout(`${API_URL}/api/orders/${id}/usage`, { headers });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.usage || null;
   } catch {
     return null;
   }
@@ -670,5 +723,33 @@ export async function adminGetOrderDetail(token: string, id: number): Promise<Or
 export async function adminResendEsim(token: string, orderId: number): Promise<{ ok: boolean; message: string }> {
   const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${orderId}/resend-esim`, { method: "POST", headers: authHeaders(token) });
   if (!res.ok) { const e = await res.json().catch(() => ({ error: "Ridërgimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+/* ─── Referrals ─── */
+
+export interface ReferralStats {
+  referralCode: string;
+  referralLink: string;
+  stats: {
+    totalReferred: number;
+    completedReferrals: number;
+    totalEarnings: number;
+  };
+}
+
+export async function getMyReferral(token: string): Promise<ReferralStats> {
+  const res = await fetchWithTimeout(`${API_URL}/api/referrals/my`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function applyReferralCode(token: string, referralCode: string): Promise<{ ok: boolean; message: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/referrals/apply`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ referralCode }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Aplikimi dështoi" })); throw new Error(e.error); }
   return res.json();
 }

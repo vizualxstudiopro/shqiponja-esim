@@ -8,6 +8,8 @@ const translations = {
     "nav.register": "Regjistrohu",
     "nav.logout": "Dil",
     "nav.profile": "Profili",
+    "nav.install": "Instalimi",
+    "nav.blog": "Blog",
     "nav.admin": "Admin",
 
     // Hero
@@ -34,6 +36,16 @@ const translations = {
     "trust.airalo": "Partner Zyrtar i Airalo",
     "trust.airaloDesc": "Jemi partner i certifikuar i Airalo — platforma më e madhe e eSIM në botë.",
     "footer.airaloPartner": "Partner Zyrtar i Airalo",
+
+    // Testimonials
+    "testimonials.title": "Çfarë thonë klientët tanë",
+    "testimonials.subtitle": "Mijëra udhëtarë na besojnë për internet pa ndërprerje kudo në botë.",
+    "testimonials.review1": "E aktivizova eSIM-in para se të nisja fluturimin për në Greqi. Sapo mbërrita, interneti ishte gati. Fantastike!",
+    "testimonials.review2": "Çmimet janë shumë të mira krahasuar me roaming-un. Tani e përdor çdo herë kur udhëtoj.",
+    "testimonials.review3": "Si shqiptar në diasporë, kjo është zgjidhja perfekte kur kthehem në Shqipëri. Rekomandoj 100%.",
+    "testimonials.review4": "Mbështetja në shqip bën diferencën e madhe. Kisha një problem dhe ma zgjidhën brenda minutave.",
+    "testimonials.review5": "E përdora në Itali për 2 javë — shpejtësia ishte e shkëlqyer dhe kurrë nuk mbeta pa internet.",
+    "testimonials.review6": "Procesi ishte i thjeshtë: bleva, skanova QR kodin, dhe u lidha. Nuk ka nevojë për SIM fizike!",
 
     // Operators
     "operators.title": "Mbështetur nga operatorët ndërkombëtarë",
@@ -248,6 +260,15 @@ const translations = {
     "profile.nameUpdated": "Emri u përditësua me sukses",
     "profile.passwordChanged": "Fjalëkalimi u ndryshua me sukses",
 
+    // Referral
+    "referral.title": "Fto Miqtë",
+    "referral.subtitle": "Ndajeni kodin tuaj me miqtë dhe fitoni zbritje për çdo blerje të tyre.",
+    "referral.copyLink": "Kopjo Linkun",
+    "referral.copied": "U kopjua!",
+    "referral.invited": "Të ftuar",
+    "referral.completed": "Të kompletuar",
+    "referral.earned": "Fituar",
+
     // 404
     "notFound.title": "Faqja nuk u gjet",
     "notFound.subtitle": "Faqja që po kërkon nuk ekziston ose është zhvendosur.",
@@ -406,6 +427,19 @@ const translations = {
     "buy.orderSummary": "Përmbledhja e Porosisë",
     "buy.securePayment": "Pagesë e sigurt",
     "buy.backToPackages": "← Kthehu te paketat",
+    "promo.label": "Kod Zbritjeje",
+    "promo.placeholder": "p.sh. SHQIPONJA20",
+    "promo.apply": "Apliko",
+    "promo.applied": "Kodi u aplikua!",
+    "promo.saved": "Kurseve",
+    "promo.invalid": "Ky kod nuk është i vlefshëm",
+    "blog.title": "Blog",
+    "blog.subtitle": "Artikuj dhe udhëzues rreth eSIM, udhëtimit, dhe teknologjisë.",
+    "blog.notFound": "Artikulli nuk u gjet",
+    "blog.backToBlog": "Kthehu te Blog",
+    "blog.cta": "Gati për të provën eSIM? Shikoni paketat tona.",
+    "blog.viewPackages": "Shiko Paketat",
+    "blog.related": "Artikuj të ngjashëm",
 
     // Order confirmation page
     "order.title": "Porosia u Regjistrua!",
@@ -421,6 +455,9 @@ const translations = {
     "order.scanQr": "Skanoje këtë QR kod me cilësimet e telefonit tënd për ta aktivizuar eSIM-in.",
     "order.qrPending": "QR Kodi do të shfaqet këtu pasi pagesa të konfirmohet",
     "order.backHome": "← Kthehu në Faqen Kryesore",
+    "order.downloadInvoice": "Shkarko Faturën",
+    "order.dataUsage": "Përdorimi i të Dhënave",
+    "order.used": "Përdorur",
     "order.loading": "Duke ngarkuar porosinë...",
     "order.notFound": "Porosia nuk u gjet",
 
@@ -429,6 +466,40 @@ const translations = {
     "profile.emailNotVerified": "Email i pa-verifikuar",
     "profile.resendVerification": "Ridërgo verifikimin",
     "profile.verificationSent": "Email-i i verifikimit u dërgua!",
+
+    // Cookie consent
+    "cookie.title": "Përdorimi i cookie-ve",
+    "cookie.description": "Përdorim cookie për autentifikim, preferencat e gjuhës dhe analitikë. Nuk përdorim cookie për reklama.",
+    "cookie.accept": "Pranoj",
+    "cookie.decline": "Refuzoj",
+    "cookie.learnMore": "Mëso më shumë",
+
+    // eSIM Installation Guide
+    "install.badge": "Guida e Instalimit",
+    "install.title": "Si të instaloni eSIM-in",
+    "install.subtitle": "Ndiqni hapat e thjeshtë më poshtë për të aktivizuar eSIM-in tuaj në iPhone ose Android.",
+    "install.iphone.step1": "Hapni email-in tuaj dhe gjeni porosinë me QR kodin e eSIM-it.",
+    "install.iphone.step2": "Shkoni te Cilësimet → Celulare (ose Të Dhënat Mobile) → Shto Plan Celulare.",
+    "install.iphone.step3": "Skanoni QR kodin me kamerën e telefonit. Sigurohuni që jeni të lidhur me Wi-Fi.",
+    "install.iphone.step4": "Klikoni \"Vazhdo\" kur t'ju pyesë — zgjidhni \"Sekondare\" ose \"Travel\" si etiketë.",
+    "install.iphone.step5": "Aktivizoni \"Roaming i të Dhënave\" → Cilësimet → Celulare → eSIM-i juaj → Roaming.",
+    "install.iphone.step6": "Zgjidhni eSIM-in si linjë për Të Dhënat Celulare. Gati! Keni internet.",
+    "install.android.step1": "Hapni email-in tuaj dhe gjeni porosinë me QR kodin e eSIM-it.",
+    "install.android.step2": "Shkoni te Cilësimet → Rrjeti & Interneti → SIM-et → Shto eSIM (ose + Shto).",
+    "install.android.step3": "Zgjidhni \"Skano QR kodin\" dhe skanoni kodin nga email-i. Duhet Wi-Fi.",
+    "install.android.step4": "Konfirmoni shkarkim-in e profilit të eSIM-it duke klikuar \"Vazhdo\" ose \"Shkarko\".",
+    "install.android.step5": "Aktivizoni eSIM-in e re → Cilësimet → Rrjeti & Interneti → SIM-et → Aktivizo Roaming.",
+    "install.android.step6": "Zgjidhni eSIM-in si linjë për të dhënat mobile. Gati! Interneti është aktiv.",
+    "install.tipsTitle": "Këshilla të Rëndësishme",
+    "install.tip1": "Sigurohuni që telefoni është i lidhur me Wi-Fi gjatë instalimit.",
+    "install.tip2": "Mos e fshini eSIM-in pasi ta keni instaluar — nuk mund ta ri-përdorni QR kodin.",
+    "install.tip3": "Aktivizoni gjithmonë \"Roaming i të Dhënave\" për eSIM-in.",
+    "install.tip4": "eSIM-i mund të instalohet përpara udhëtimit — aktivizoni kur të mbërrini.",
+    "install.troubleTitle": "Probleme me Instalimin?",
+    "install.trouble1": "Sigurohuni që pajisja juaj mbështet eSIM (iPhone XS+, Samsung S20+, Pixel 3+).",
+    "install.trouble2": "Kontrolloni që telefoni nuk është i bllokuar nga operatori (carrier-locked).",
+    "install.trouble3": "QR kodi duhet të skanohet vetëm 1 herë — nuk mund të ri-përdoret.",
+    "install.trouble4": "Nëse nuk funksionon, kontaktoni mbështetjen tonë përmes faqes së kontaktit.",
   },
   en: {
     // Navbar
@@ -439,6 +510,8 @@ const translations = {
     "nav.register": "Sign Up",
     "nav.logout": "Log Out",
     "nav.profile": "Profile",
+    "nav.install": "Install Guide",
+    "nav.blog": "Blog",
     "nav.admin": "Admin",
 
     // Hero
@@ -466,6 +539,16 @@ const translations = {
     "trust.airalo": "Official Airalo Partner",
     "trust.airaloDesc": "We are a certified partner of Airalo — the world's largest eSIM platform.",
     "footer.airaloPartner": "Official Airalo Partner",
+
+    // Testimonials
+    "testimonials.title": "What our customers say",
+    "testimonials.subtitle": "Thousands of travelers trust us for seamless internet worldwide.",
+    "testimonials.review1": "I activated the eSIM before my flight to Greece. As soon as I landed, the internet was ready. Fantastic!",
+    "testimonials.review2": "The prices are much better compared to roaming. Now I use it every time I travel.",
+    "testimonials.review3": "As an Albanian in the diaspora, this is the perfect solution when I visit home. 100% recommend.",
+    "testimonials.review4": "Support in Albanian makes a huge difference. I had an issue and they solved it within minutes.",
+    "testimonials.review5": "I used it in Italy for 2 weeks — the speed was excellent and I never ran out of internet.",
+    "testimonials.review6": "The process was simple: bought it, scanned the QR code, and connected. No need for a physical SIM!",
 
     // Operators
     "operators.title": "Supported by international operators",
@@ -680,6 +763,15 @@ const translations = {
     "profile.nameUpdated": "Name updated successfully",
     "profile.passwordChanged": "Password changed successfully",
 
+    // Referral
+    "referral.title": "Invite Friends",
+    "referral.subtitle": "Share your code with friends and earn discounts for every purchase they make.",
+    "referral.copyLink": "Copy Link",
+    "referral.copied": "Copied!",
+    "referral.invited": "Invited",
+    "referral.completed": "Completed",
+    "referral.earned": "Earned",
+
     // 404
     "notFound.title": "Page not found",
     "notFound.subtitle": "The page you're looking for doesn't exist or has been moved.",
@@ -838,6 +930,19 @@ const translations = {
     "buy.orderSummary": "Order Summary",
     "buy.securePayment": "Secure payment",
     "buy.backToPackages": "← Back to packages",
+    "promo.label": "Promo Code",
+    "promo.placeholder": "e.g. SHQIPONJA20",
+    "promo.apply": "Apply",
+    "promo.applied": "Code applied!",
+    "promo.saved": "You saved",
+    "promo.invalid": "This code is not valid",
+    "blog.title": "Blog",
+    "blog.subtitle": "Articles and guides about eSIM, travel, and technology.",
+    "blog.notFound": "Article not found",
+    "blog.backToBlog": "Back to Blog",
+    "blog.cta": "Ready to try eSIM? Check out our packages.",
+    "blog.viewPackages": "View Packages",
+    "blog.related": "Related articles",
 
     // Order confirmation page
     "order.title": "Order Confirmed!",
@@ -853,6 +958,9 @@ const translations = {
     "order.scanQr": "Scan this QR code with your phone settings to activate the eSIM.",
     "order.qrPending": "QR Code will appear here once payment is confirmed",
     "order.backHome": "← Back to Home",
+    "order.downloadInvoice": "Download Invoice",
+    "order.dataUsage": "Data Usage",
+    "order.used": "Used",
     "order.loading": "Loading order...",
     "order.notFound": "Order not found",
 
@@ -861,6 +969,40 @@ const translations = {
     "profile.emailNotVerified": "Email not verified",
     "profile.resendVerification": "Resend verification",
     "profile.verificationSent": "Verification email sent!",
+
+    // Cookie consent
+    "cookie.title": "Cookie usage",
+    "cookie.description": "We use cookies for authentication, language preferences and analytics. We do not use cookies for advertising.",
+    "cookie.accept": "Accept",
+    "cookie.decline": "Decline",
+    "cookie.learnMore": "Learn more",
+
+    // eSIM Installation Guide
+    "install.badge": "Installation Guide",
+    "install.title": "How to install your eSIM",
+    "install.subtitle": "Follow the simple steps below to activate your eSIM on iPhone or Android.",
+    "install.iphone.step1": "Open your email and find the order with the eSIM QR code.",
+    "install.iphone.step2": "Go to Settings → Cellular (or Mobile Data) → Add Cellular Plan.",
+    "install.iphone.step3": "Scan the QR code with your phone camera. Make sure you are connected to Wi-Fi.",
+    "install.iphone.step4": "Tap \"Continue\" when prompted — choose \"Secondary\" or \"Travel\" as the label.",
+    "install.iphone.step5": "Enable \"Data Roaming\" → Settings → Cellular → Your eSIM → Roaming.",
+    "install.iphone.step6": "Select the eSIM as the line for Cellular Data. Done! You have internet.",
+    "install.android.step1": "Open your email and find the order with the eSIM QR code.",
+    "install.android.step2": "Go to Settings → Network & Internet → SIMs → Add eSIM (or + Add).",
+    "install.android.step3": "Choose \"Scan QR code\" and scan the code from the email. Wi-Fi is required.",
+    "install.android.step4": "Confirm the eSIM profile download by tapping \"Continue\" or \"Download\".",
+    "install.android.step5": "Enable the new eSIM → Settings → Network & Internet → SIMs → Enable Roaming.",
+    "install.android.step6": "Select the eSIM as the mobile data line. Done! Internet is active.",
+    "install.tipsTitle": "Important Tips",
+    "install.tip1": "Make sure the phone is connected to Wi-Fi during installation.",
+    "install.tip2": "Do not delete the eSIM once installed — you cannot reuse the QR code.",
+    "install.tip3": "Always enable \"Data Roaming\" for the eSIM.",
+    "install.tip4": "The eSIM can be installed before travel — activate it when you arrive.",
+    "install.troubleTitle": "Installation Problems?",
+    "install.trouble1": "Make sure your device supports eSIM (iPhone XS+, Samsung S20+, Pixel 3+).",
+    "install.trouble2": "Check that the phone is not carrier-locked.",
+    "install.trouble3": "The QR code can only be scanned once — it cannot be reused.",
+    "install.trouble4": "If it doesn't work, contact our support through the contact page.",
   },
 } as const;
 

@@ -2,7 +2,9 @@
 
 import { useI18n } from "@/lib/i18n-context";
 import type { Order } from "@/lib/api";
-import { getOrderById } from "@/lib/api";
+import { getOrderById, getOrderUsage } from "@/lib/api";
+import type { UsageData } from "@/lib/api";
+import { generateInvoicePDF } from "@/lib/generate-invoice";
 import QrCodeDisplay from "@/components/qr-code";
 import Navbar from "@/components/navbar";
 import Link from "next/link";
@@ -12,6 +14,7 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
   const { t, locale } = useI18n();
   const [order, setOrder] = useState(initialOrder);
   const [loading, setLoading] = useState(!initialOrder);
+  const [usage, setUsage] = useState<UsageData | null>(null);
   const [failed, setFailed] = useState(false);
 
   // Resolve token: URL param first, then localStorage fallback
@@ -62,6 +65,12 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
     }, 3000);
     return () => clearInterval(interval);
   }, [orderId, order?.status, order?.qr_data, order?.qr_code_url, token, order]);
+
+  // Fetch data usage when order has ICCID
+  useEffect(() => {
+    if (!order?.iccid || order.status !== "completed") return;
+    getOrderUsage(orderId).then(setUsage).catch(() => {});
+  }, [orderId, order?.iccid, order?.status]);
 
   if (loading) {
     return (
@@ -184,6 +193,45 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
             )}
           </div>
         </div>
+
+        {/* Download Invoice */}
+        {order.payment_status === "paid" && (
+          <button
+            onClick={() => generateInvoicePDF(order, locale)}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-zinc-200 px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 transition dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            {t("order.downloadInvoice")}
+          </button>
+        )}
+
+        {/* Data Usage */}
+        {usage && (
+          <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6 text-left dark:border-zinc-700 dark:bg-zinc-800">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
+              {t("order.dataUsage")}
+            </h3>
+            <div className="mt-4">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-zinc-500">{t("order.used")}</span>
+                <span className="font-semibold">
+                  {typeof usage.used === "number" ? `${(usage.used / 1024).toFixed(1)} MB` : "—"} / {typeof usage.total === "number" ? `${(usage.total / 1024 / 1024).toFixed(1)} GB` : "—"}
+                </span>
+              </div>
+              <div className="h-3 rounded-full bg-zinc-100 dark:bg-zinc-700 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-shqiponja transition-all"
+                  style={{ width: `${usage.total ? Math.min(100, ((usage.used || 0) / usage.total) * 100) : 0}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-zinc-400">
+                {typeof usage.remaining === "number" ? `${(usage.remaining / 1024 / 1024).toFixed(2)} GB ${locale === "sq" ? "mbetur" : "remaining"}` : ""}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Apple direct install link */}
         {order.activation_code && (
