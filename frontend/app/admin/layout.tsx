@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { useEffect, useState, type ReactNode } from "react";
 import Logo from "@/components/logo";
-import { LayoutDashboard, Package, Receipt, Users, ShieldCheck, ArrowLeft, X, Menu, UsersRound, Webhook, Settings, Tag, UserPlus } from "lucide-react";
+import { LayoutDashboard, Package, Receipt, Users, ShieldCheck, ArrowLeft, X, Menu, UsersRound, Webhook, Settings, Tag, UserPlus, RefreshCw } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -14,6 +14,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [spinning, setSpinning] = useState(false);
+
+  function handleRefresh() {
+    setSpinning(true);
+    window.location.reload();
+  }
 
   const links = [
     { href: "/admin", label: t("admin.dashboard"), icon: LayoutDashboard },
@@ -80,6 +86,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         })}
       </nav>
       <div className="border-t border-zinc-100 p-4 dark:border-zinc-800">
+        <button
+          onClick={handleRefresh}
+          className="mb-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-500 transition hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+        >
+          <RefreshCw className={`h-4 w-4 ${spinning ? "animate-spin" : ""}`} />
+          {t("admin.refresh")}
+        </button>
         <Link href="/" className="flex items-center gap-2 text-sm text-zinc-500 hover:text-shqiponja transition dark:text-zinc-400">
           <ArrowLeft className="h-4 w-4" />
           {t("admin.backToSite")}
@@ -121,6 +134,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <Menu className="h-[22px] w-[22px]" />
             </button>
             <span className="text-sm font-bold flex items-center gap-1.5"><Logo size={28} variant="icon" /> Admin</span>
+            <button
+              onClick={handleRefresh}
+              className="ml-auto rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              aria-label="Rifresko"
+            >
+              <RefreshCw className={`h-[18px] w-[18px] ${spinning ? "animate-spin" : ""}`} />
+            </button>
           </header>
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
