@@ -1,0 +1,50 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n-context";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
+
+export default function RefundPage() {
+  const { t } = useI18n();
+
+  return (
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <Navbar />
+      <div className="mx-auto max-w-3xl px-6 py-16">
+        <h1 className="text-3xl font-extrabold">{t("refund.title")}</h1>
+        <p className="mt-2 text-sm text-zinc-500">{t("refund.lastUpdated")}</p>
+        <p className="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{t("refund.intro")}</p>
+
+        <div className="mt-8 space-y-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+          <section>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("refund.s1.title")}</h2>
+            <p className="mt-2">{t("refund.s1.text")}</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>{t("refund.s1.item1")}</li>
+              <li>{t("refund.s1.item2")}</li>
+              <li>{t("refund.s1.item3")}</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("refund.s2.title")}</h2>
+            <p className="mt-2">{t("refund.s2.text")}</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>{t("refund.s2.item1")}</li>
+              <li>{t("refund.s2.item2")}</li>
+              <li>{t("refund.s2.item3")}</li>
+              <li>{t("refund.s2.item4")}</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("refund.s3.title")}</h2>
+            <p className="mt-2">{t("refund.s3.text")}</p>
+            <p className="mt-2">{t("refund.s3.processing")}</p>
+          </section>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}
