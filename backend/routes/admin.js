@@ -654,4 +654,85 @@ router.delete('/promo-codes/:id', async (req, res) => {
   }
 });
 
+/* ─── REFERRALS ─── */
+router.get('/referrals', async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = 20;
+    const offset = (page - 1) * limit;
+    const statusFilter = req.query.status || '';
+
+    let where = '';
+    const params = [];
+    if (statusFilter) {
+      params.push(statusFilter);
+      where = `WHERE r.status = $${params.length}`;
+    }
+
+    const totalRes = await db.query(`SELECT COUNT(*) AS cnt FROM referrals r ${where}`, params);
+    const total = parseInt(totalRes.rows[0].cnt);
+
+    const referrals = (await db.query(`
+      SELECT r.*,
+             u1.name AS referrer_name, u1.email AS referrer_email, u1.referral_code AS referrer_code,
+             u2.name AS referred_name, u2.email AS referred_email
+      FROM referrals r
+      LEFT JOIN users u1 ON u1.id = r.referrer_id
+      LEFT JOIN users u2 ON u2.id = r.referred_id
+      ${where}
+      ORDER BY r.created_at DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `, [...params, limit, offset])).rows;
+
+    const summaryRes = await db.query(`
+      SELECT COUNT(*) AS total,
+             COUNT(*) FILTER (WHERE status = 'completed') AS completed,
+             COALESCE(SUM(reward_value) FILTER (WHERE status = 'completed'), 0) AS rewards
+      FROM referrals
+    `);
+    const s = summaryRes.rows[0];
+
+    res.json({
+      referrals: referrals.map(r => ({ ...r, reward_value: parseFloat(r.reward_value) || 0 })),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit) || 1,
+      summary: {
+        totalReferrals: parseInt(s.total),
+        completed: parseInt(s.completed),
+        totalRewards: parseFloat(s.rewards),
+      },
+    });
+  } catch (err) {
+    console.error('Admin referrals list error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+router.patch('/referrals/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const { status } = req.body;
+    if (!['pending', 'completed', 'cancelled'].includes(status)) {
+      return res.status(400).json({ error: 'Statusi duhet të jetë pending, completed, ose cancelled' });
+    }
+    await db.query('UPDATE referrals SET status = $1 WHERE id = $2', [status, id]);
+    const referral = (await db.query(`
+      SELECT r.*,
+             u1.name AS referrer_name, u1.email AS referrer_email, u1.referral_code AS referrer_code,
+             u2.name AS referred_name, u2.email AS referred_email
+      FROM referrals r
+      LEFT JOIN users u1 ON u1.id = r.referrer_id
+      LEFT JOIN users u2 ON u2.id = r.referred_id
+      WHERE r.id = $1
+    `, [id])).rows[0];
+    if (!referral) return res.status(404).json({ error: 'Referimi nuk u gjet' });
+    res.json({ ...referral, reward_value: parseFloat(referral.reward_value) || 0 });
+  } catch (err) {
+    console.error('Admin referral update error:', err);
+    res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
 module.exports = router;

@@ -728,6 +728,86 @@ export async function adminResendEsim(token: string, orderId: number): Promise<{
 
 /* ─── Referrals ─── */
 
+/* ─── Admin: Promo Codes ─── */
+
+export interface PromoCode {
+  id: number;
+  code: string;
+  discount_type: 'percent' | 'fixed';
+  discount_value: number;
+  max_uses: number | null;
+  used_count: number;
+  min_order: number;
+  active: number;
+  expires_at: string | null;
+  created_at: string;
+}
+
+export async function adminGetPromoCodes(token: string): Promise<PromoCode[]> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/promo-codes`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminCreatePromoCode(token: string, data: { code: string; discount_type: string; discount_value: number; max_uses?: number | null; min_order?: number; expires_at?: string | null }): Promise<PromoCode> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/promo-codes`, { method: "POST", headers: authHeaders(token), body: JSON.stringify(data) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Gabim" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export async function adminUpdatePromoCode(token: string, id: number, data: { active?: boolean; max_uses?: number | null; expires_at?: string | null }): Promise<PromoCode> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/promo-codes/${id}`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify(data) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Gabim" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export async function adminDeletePromoCode(token: string, id: number): Promise<void> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/promo-codes/${id}`, { method: "DELETE", headers: authHeaders(token) });
+  if (!res.ok) throw new Error("Fshirja dështoi");
+}
+
+/* ─── Admin: Referrals ─── */
+
+export interface AdminReferral {
+  id: number;
+  referrer_id: number;
+  referrer_name: string;
+  referrer_email: string;
+  referrer_code: string;
+  referred_id: number;
+  referred_name: string;
+  referred_email: string;
+  order_id: number | null;
+  reward_type: string;
+  reward_value: number;
+  status: string;
+  created_at: string;
+}
+
+export interface AdminReferralStats {
+  referrals: AdminReferral[];
+  total: number;
+  page: number;
+  totalPages: number;
+  summary: { totalReferrals: number; completed: number; totalRewards: number };
+}
+
+export async function adminGetReferrals(token: string, page = 1, status = ''): Promise<AdminReferralStats> {
+  const params = new URLSearchParams({ page: String(page) });
+  if (status) params.set('status', status);
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/referrals?${params}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminUpdateReferralStatus(token: string, id: number, status: string): Promise<AdminReferral> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/referrals/${id}`, { method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ status }) });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Gabim" })); throw new Error(e.error); }
+  return res.json();
+}
+
+/* ─── Referrals ─── */
+
 export interface ReferralStats {
   referralCode: string;
   referralLink: string;
