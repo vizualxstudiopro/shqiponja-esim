@@ -18,11 +18,13 @@ export default function PromoCodes() {
     code: "", discount_type: "percent", discount_value: "", max_uses: "", min_order: "", expires_at: "",
   });
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
 
   const fetchCodes = useCallback(() => {
     if (!token) return;
     setLoading(true);
-    adminGetPromoCodes(token).then(setCodes).catch(() => {}).finally(() => setLoading(false));
+    setError("");
+    adminGetPromoCodes(token).then(setCodes).catch((err) => setError(err.message)).finally(() => setLoading(false));
   }, [token]);
 
   useEffect(() => { fetchCodes(); }, [fetchCodes]);
@@ -43,7 +45,10 @@ export default function PromoCodes() {
       setCodes((prev) => [newCode, ...prev]);
       setForm({ code: "", discount_type: "percent", discount_value: "", max_uses: "", min_order: "", expires_at: "" });
       setShowCreate(false);
-    } catch {}
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Krijimi dështoi");
+    }
     setCreating(false);
   }
 
@@ -52,7 +57,9 @@ export default function PromoCodes() {
     try {
       const updated = await adminUpdatePromoCode(token, p.id, { active: !p.active });
       setCodes((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
-    } catch {}
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ndryshimi dështoi");
+    }
   }
 
   async function handleDelete(id: number) {
@@ -60,7 +67,9 @@ export default function PromoCodes() {
     try {
       await adminDeletePromoCode(token, id);
       setCodes((prev) => prev.filter((c) => c.id !== id));
-    } catch {}
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Fshirja dështoi");
+    }
   }
 
   return (
@@ -78,6 +87,14 @@ export default function PromoCodes() {
           <Plus className="h-4 w-4" /> Shto Kod
         </button>
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="mb-4 flex items-center justify-between rounded-lg border border-red-800 bg-red-900/30 px-4 py-3 text-sm text-red-300">
+          <span>{error}</span>
+          <button onClick={() => setError("")} className="text-red-400 hover:text-red-200"><X className="h-4 w-4" /></button>
+        </div>
+      )}
 
       {/* Create modal */}
       {showCreate && (
