@@ -19,8 +19,10 @@ async function startServer() {
     const runSync = async () => {
       try {
         const synced = await packagesRoute.syncPackagesFromAiralo();
+        app.locals.lastSync = { at: new Date().toISOString(), count: synced, error: null };
         console.log(`[AIRALO CRON] ${synced} packages synced at ${new Date().toISOString()}`);
       } catch (err) {
+        app.locals.lastSync = { at: new Date().toISOString(), count: 0, error: err.message };
         console.error('[AIRALO CRON ERROR]', err.message);
       }
     };

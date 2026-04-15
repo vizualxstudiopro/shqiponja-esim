@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { adminGetStats } from "@/lib/api";
-import { ShoppingCart, CreditCard, Euro, Users, Package, type LucideIcon } from "lucide-react";
+import { adminGetStats, getHealthStatus, type SyncStatus } from "@/lib/api";
+import { ShoppingCart, CreditCard, Euro, Users, Package, RefreshCw, type LucideIcon } from "lucide-react";
 
 interface Stats {
   totalOrders: number;
@@ -39,13 +39,25 @@ function BarChart({ data, valueKey, label, color, noDataLabel }: { data: { month
   );
 }
 
+function timeAgo(isoDate: string): string {
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "tani";
+  if (mins < 60) return `${mins} min më parë`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} orë më parë`;
+  return `${Math.floor(hrs / 24)} ditë më parë`;
+}
+
 export default function AdminDashboard() {
   const { token } = useAuth();
   const { t } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
 
   useEffect(() => {
     if (token) adminGetStats(token).then(setStats).catch(() => {});
+    getHealthStatus().then((h) => setSyncStatus(h.lastSync)).catch(() => {});
   }, [token]);
 
   if (!stats) {
@@ -62,8 +74,22 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold">{t("admin.dashboard")}</h1>
-      <p className="mt-1 text-sm text-zinc-500">{t("admin.summary")}</p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold">{t("admin.dashboard")}</h1>
+          <p className="mt-1 text-sm text-zinc-500">{t("admin.summary")}</p>
+        </div>
+        {syncStatus && (
+          <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${syncStatus.error ? "border-red-300 bg-red-50 text-red-600 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400" : "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"}`}>
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>
+              Sinkronizimi: <strong>{timeAgo(syncStatus.at)}</strong>
+              {!syncStatus.error && ` · ${syncStatus.count} paketa`}
+              {syncStatus.error && ` · Gabim: ${syncStatus.error}`}
+            </span>
+          </div>
+        )}
+      </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         {cards.map((c) => {

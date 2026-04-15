@@ -64,6 +64,13 @@ export async function adminGetStats(token: string): Promise<AdminStats> {
   return res.json();
 }
 
+export interface SyncStatus { at: string; count: number; error: string | null }
+export async function getHealthStatus(): Promise<{ status: string; uptime: number; build: string; lastSync: SyncStatus | null }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/health`);
+  if (!res.ok) throw new Error("Health fetch failed");
+  return res.json();
+}
+
 // ─── Orders ───────────────────────────────────────
 export interface Order {
   id: number;
@@ -317,7 +324,10 @@ export interface PromoCode {
 
 export async function adminGetPromoCodes(token: string): Promise<PromoCode[]> {
   const res = await fetchWithTimeout(`${API_URL}/api/admin/promo-codes`, { headers: authHeaders(token) });
-  if (!res.ok) throw new Error("Promo codes fetch failed");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+    throw new Error(err.error || `Promo codes fetch failed (${res.status})`);
+  }
   return res.json();
 }
 

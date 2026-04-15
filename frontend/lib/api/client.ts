@@ -431,6 +431,13 @@ export async function adminGetStats(token: string) {
   return res.json() as Promise<{ totalOrders: number; paidOrders: number; totalRevenue: number; totalUsers: number; totalPackages: number; monthlyRevenue: { month: string; revenue: number; orders: number }[]; monthlyUsers: { month: string; users: number }[] }>;
 }
 
+export interface SyncStatus { at: string; count: number; error: string | null }
+export async function getHealthStatus(): Promise<{ status: string; uptime: number; build: string; lastSync: SyncStatus | null }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/health`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Health fetch failed");
+  return res.json();
+}
+
 export interface PaginatedUsers { users: User[]; total: number; page: number; totalPages: number }
 export async function adminGetUsers(token: string, page = 1, q = ''): Promise<PaginatedUsers> {
   const params = new URLSearchParams({ page: String(page) });

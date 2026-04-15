@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { adminGetStats, type AdminStats } from "@/lib/api";
+import { adminGetStats, getHealthStatus, type AdminStats, type SyncStatus } from "@/lib/api";
 import KpiCard from "@/components/KpiCard";
 import StatusBadge from "@/components/StatusBadge";
-import { Receipt, Users, Euro, ShoppingCart, TrendingUp } from "lucide-react";
+import { Receipt, Users, Euro, ShoppingCart, TrendingUp, RefreshCw } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -14,9 +14,20 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+function timeAgo(isoDate: string): string {
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "tani";
+  if (mins < 60) return `${mins} min më parë`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} orë më parë`;
+  return `${Math.floor(hrs / 24)} ditë më parë`;
+}
+
 export default function Dashboard() {
   const { token } = useAuth();
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +36,7 @@ export default function Dashboard() {
       .then(setStats)
       .catch(() => {})
       .finally(() => setLoading(false));
+    getHealthStatus().then((h) => setSyncStatus(h.lastSync)).catch(() => {});
   }, [token]);
 
   if (loading)
@@ -43,9 +55,21 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-extrabold">Dashboard</h1>
-        <p className="text-sm text-zinc-500">Përmbledhja e platformës</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-extrabold">Dashboard</h1>
+          <p className="text-sm text-zinc-500">Përmbledhja e platformës</p>
+        </div>
+        {syncStatus && (
+          <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${syncStatus.error ? "border-red-800 bg-red-900/30 text-red-400" : "border-zinc-700 bg-zinc-800 text-zinc-300"}`}>
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>
+              Sinkronizimi: <strong>{timeAgo(syncStatus.at)}</strong>
+              {!syncStatus.error && ` · ${syncStatus.count} paketa`}
+              {syncStatus.error && ` · Gabim: ${syncStatus.error}`}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* KPI Cards */}
