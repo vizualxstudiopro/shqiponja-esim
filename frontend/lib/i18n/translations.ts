@@ -172,6 +172,7 @@ const translations = {
 
     // Footer
     "footer.rights": "© 2026 Shqiponja eSIM. Të gjitha të drejtat e rezervuara.",
+    "footer.operatedBy": "operohet nga",
     "footer.terms": "Kushtet e Përdorimit",
     "footer.privacy": "Privatësia",
     "footer.contact": "Kontakti",
@@ -735,6 +736,7 @@ const translations = {
 
     // Footer
     "footer.rights": "© 2026 Shqiponja eSIM. All rights reserved.",
+    "footer.operatedBy": "is operated by",
     "footer.terms": "Terms of Use",
     "footer.privacy": "Privacy",
     "footer.contact": "Contact",

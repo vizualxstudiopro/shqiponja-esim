@@ -107,6 +107,9 @@ export default function Footer() {
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
             {t("footer.rights")}
           </p>
+          <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
+            shqiponjaesim.com {t("footer.operatedBy")} MANDI &amp; BES-2022 SHPK
+          </p>
         </div>
       </div>
     </footer>
