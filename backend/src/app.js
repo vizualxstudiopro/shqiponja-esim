@@ -43,7 +43,7 @@ function createApp() {
   app.use(express.urlencoded({ extended: true }));
 
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime(), build: '2026-04-08-v12' });
+    res.json({ status: 'ok', uptime: process.uptime(), build: '2026-04-15-v13' });
   });
 
   app.get('/api/rates', async (_req, res) => {
