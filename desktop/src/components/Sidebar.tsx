@@ -8,6 +8,9 @@ import {
   Webhook,
   Settings,
   LogOut,
+  Tag,
+  UserPlus,
+  RefreshCw,
 } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
@@ -16,6 +19,8 @@ const links = [
   { to: "/orders", label: "Porositë", icon: Receipt },
   { to: "/customers", label: "Klientët", icon: UsersRound },
   { to: "/packages", label: "Paketat", icon: Package },
+  { to: "/promo-codes", label: "Promo Kodet", icon: Tag },
+  { to: "/referrals", label: "Referimet", icon: UserPlus },
   { to: "/webhooks", label: "Webhook Log", icon: Webhook },
   { to: "/settings", label: "Konfigurimet", icon: Settings },
 ];
@@ -74,6 +79,13 @@ export default function Sidebar() {
             <p className="truncate text-[10px] text-zinc-500">{user?.email}</p>
           </div>
         </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 transition"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Rifresko
+        </button>
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-zinc-500 hover:bg-zinc-800 hover:text-red-400 transition"

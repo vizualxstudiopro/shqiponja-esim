@@ -6,6 +6,8 @@ import Dashboard from "@/pages/Dashboard";
 import Orders from "@/pages/Orders";
 import Customers from "@/pages/Customers";
 import Packages from "@/pages/Packages";
+import PromoCodes from "@/pages/PromoCodes";
+import Referrals from "@/pages/Referrals";
 import WebhookLogs from "@/pages/WebhookLogs";
 import Settings from "@/pages/Settings";
 
@@ -32,6 +34,8 @@ export default function App() {
         <Route path="orders" element={<Orders />} />
         <Route path="customers" element={<Customers />} />
         <Route path="packages" element={<Packages />} />
+        <Route path="promo-codes" element={<PromoCodes />} />
+        <Route path="referrals" element={<Referrals />} />
         <Route path="webhooks" element={<WebhookLogs />} />
         <Route path="settings" element={<Settings />} />
       </Route>
