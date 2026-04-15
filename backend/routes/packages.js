@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const NodeCache = require('node-cache');
 const db = require('../db');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const airalo = require('../lib/airaloService');
 const { usdToEur } = require('../lib/exchangeRates');
+
+// Cache package queries for 2 hours (7200s), check expired keys every 5 min
+const cache = new NodeCache({ stdTTL: 7200, checkperiod: 300 });
 
 // ── Country → geographic category mapping ──
 const BALKANS = new Set(['AL','XK','MK','ME','RS','BA','HR','BG','RO','GR','SI','TR','CY']);
@@ -47,6 +51,9 @@ function normalizePackage(p) {
 // GET /api/packages - List all eSIM packages
 router.get('/', async (req, res) => {
   const { country, region, type } = req.query;
+  const cacheKey = `packages:${country||''}:${region||''}:${type||''}:${req.query.category||''}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return res.json(cached);
 
   let sql = 'SELECT * FROM packages WHERE visible = 1';
   const params = [];
@@ -81,12 +88,17 @@ router.get('/', async (req, res) => {
   sql += ' ORDER BY region, price';
 
   const packages = (await db.query(sql, params)).rows;
-  res.json(packages.map(normalizePackage));
+  const result = packages.map(normalizePackage);
+  cache.set(cacheKey, result);
+  res.json(result);
 });
 
 // GET /api/packages/countries - Unique countries grouped by category (continent)
 router.get('/countries', async (req, res) => {
   try {
+    const cached = cache.get('countries');
+    if (cached) return res.json(cached);
+
     const rows = (await db.query(`
       SELECT DISTINCT country_code, category,
         SPLIT_PART(MIN(name), ' — ', 1) AS country_name,
@@ -124,7 +136,9 @@ router.get('/countries', async (req, res) => {
         AND category = 'global'
     `)).rows[0]?.cnt || 0;
 
-    res.json({ countries: grouped, global_count: globalCount });
+    const result = { countries: grouped, global_count: globalCount };
+    cache.set('countries', result);
+    res.json(result);
   } catch (err) {
     console.error('Countries endpoint error:', err);
     res.status(500).json({ error: 'Server error' });
@@ -150,15 +164,23 @@ router.get('/search', async (req, res) => {
 
 // GET /api/packages/featured - Get highlighted packages for landing page
 router.get('/featured', async (req, res) => {
+  const cached = cache.get('featured');
+  if (cached) return res.json(cached);
+
   const packages = (await db.query(
     "SELECT * FROM packages WHERE visible = 1 AND highlight = 1 AND (package_type IS NULL OR package_type = 'sim') ORDER BY region, price LIMIT 12"
   )).rows;
-  res.json(packages.map(normalizePackage));
+  const result = packages.map(normalizePackage);
+  cache.set('featured', result);
+  res.json(result);
 });
 
 // GET /api/packages/destinations - Unique destinations grouped by country with min price
 router.get('/destinations', async (req, res) => {
   try {
+    const cached = cache.get('destinations');
+    if (cached) return res.json(cached);
+
     const rows = (await db.query(`
       SELECT
         COALESCE(country_code, region) AS destination_id,
@@ -187,10 +209,12 @@ router.get('/destinations', async (req, res) => {
     const nameMap = {};
     for (const n of names) nameMap[n.destination_id] = n.destination_name;
 
-    res.json(rows.map(r => ({
+    const result = rows.map(r => ({
       ...r,
       name: nameMap[r.destination_id] || r.region || r.destination_id
-    })));
+    }));
+    cache.set('destinations', result);
+    res.json(result);
   } catch (err) {
     console.error('Destinations error:', err);
     res.status(500).json({ error: 'Gabim serveri' });
@@ -272,6 +296,8 @@ async function syncPackagesFromAiralo() {
     page++;
   }
 
+  // Invalidate all package caches after sync
+  cache.flushAll();
   return synced;
 }
 

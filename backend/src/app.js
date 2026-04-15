@@ -43,7 +43,7 @@ function createApp() {
   app.use(express.urlencoded({ extended: true }));
 
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime(), build: '2026-04-15-v14', lastSync: app.locals.lastSync || null });
+    res.json({ status: 'ok', uptime: process.uptime(), build: '2026-04-15-v15', lastSync: app.locals.lastSync || null });
   });
 
   app.get('/api/rates', async (_req, res) => {
@@ -76,6 +76,7 @@ function createApp() {
   app.use('/api/promo', require('../routes/promo'));
   app.use('/api/referrals', require('../routes/referrals'));
   app.use('/api/contact', require('../routes/contact'));
+  app.use('/api/compatibility', require('../routes/compatibility'));
 
   app.get('/', (_req, res) => {
     res.json({ message: 'Shqiponja eSIM API' });
