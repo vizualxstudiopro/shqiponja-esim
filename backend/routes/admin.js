@@ -578,6 +578,7 @@ router.post('/orders/:id/resend-esim', async (req, res) => {
         qrCodeUrl: order.qr_code_url,
       }),
       logLabel: 'RESEND eSIM',
+      senderType: 'noreply',
     });
     res.json({ ok: true, message: 'eSIM u ridërgua me sukses' });
   } catch (err) {

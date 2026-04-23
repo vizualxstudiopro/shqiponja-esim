@@ -21,10 +21,10 @@ export default function Footer() {
               Kukës, Albania
             </p>
             <a
-              href="mailto:suport@shqiponjaesim.com"
+              href="mailto:info@shqiponjaesim.com"
               className="inline-block text-xs text-shqiponja hover:underline"
             >
-              suport@shqiponjaesim.com
+              info@shqiponjaesim.com
             </a>
           </div>
 

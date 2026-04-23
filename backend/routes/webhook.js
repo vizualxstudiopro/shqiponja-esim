@@ -133,6 +133,7 @@ router.post('/', async (req, res) => {
               qrCodeUrl: null,
             }),
             logLabel: 'ORDER EMAIL (awaiting eSIM)',
+            senderType: 'noreply',
           }).catch(err => {
             console.error('Order confirmation delivery failed:', err);
           });
@@ -150,6 +151,7 @@ router.post('/', async (req, res) => {
               qrCodeUrl: updatedOrder.qr_code_url,
             }),
             logLabel: 'ORDER EMAIL',
+            senderType: 'noreply',
           }).catch(err => {
             console.error('Order confirmation delivery failed:', err);
           });
@@ -167,6 +169,8 @@ router.post('/', async (req, res) => {
               date: new Date(),
             }),
             logLabel: 'PAYMENT RECEIPT',
+            senderType: 'invoice',
+            replyTo: 'invoice@shqiponjaesim.com',
           }).catch(err => {
             console.error('Payment receipt delivery failed:', err);
           });

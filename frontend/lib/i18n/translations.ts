@@ -197,7 +197,7 @@ const translations = {
     "refund.s2.item3": "Keni ndërruar mendje pasi eSIM-i është instaluar.",
     "refund.s2.item4": "Keni fshirë ose hequr profilin eSIM nga pajisja juaj pas instalimit.",
     "refund.s3.title": "3. Si të Kërkoni Rimbursim",
-    "refund.s3.text": "Për të kërkuar rimbursim, ju lutem kontaktoni ekipin tonë të mbështetjes në suport@shqiponjaesim.com me ID-në e Porosisë tuaj dhe një përshkrim të detajuar të problemit. Ekipi ynë do të verifikojë statusin e aktivizimit të eSIM-it me ofruesin tonë të rrjetit përpara miratimit të rimbursimit.",
+    "refund.s3.text": "Për të kërkuar rimbursim, ju lutem kontaktoni ekipin tonë të mbështetjes në info@shqiponjaesim.com me ID-në e Porosisë tuaj dhe një përshkrim të detajuar të problemit. Ekipi ynë do të verifikojë statusin e aktivizimit të eSIM-it me ofruesin tonë të rrjetit përpara miratimit të rimbursimit.",
     "refund.s3.processing": "Rimbursimet e miratuara do të procesohen përmes metodës origjinale të pagesës brenda 5-10 ditëve pune.",
 
     // Auth
@@ -761,7 +761,7 @@ const translations = {
     "refund.s2.item3": "You have changed your mind after the eSIM has been installed.",
     "refund.s2.item4": "You have deleted or removed the eSIM profile from your device after installation.",
     "refund.s3.title": "3. How to Request a Refund",
-    "refund.s3.text": "To request a refund, please contact our support team at suport@shqiponjaesim.com with your Order ID and a detailed description of the issue. Our team will verify the activation status of the eSIM with our network provider before approving the refund.",
+    "refund.s3.text": "To request a refund, please contact our support team at info@shqiponjaesim.com with your Order ID and a detailed description of the issue. Our team will verify the activation status of the eSIM with our network provider before approving the refund.",
     "refund.s3.processing": "Approved refunds will be processed back to the original method of payment within 5-10 business days.",
 
     // Auth

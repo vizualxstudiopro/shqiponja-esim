@@ -9,12 +9,39 @@ if (!BREVO_API_KEY) {
   );
 }
 
-function parseSender() {
-  const raw = process.env.SMTP_FROM || "suport@shqiponjaesim.com";
+const BRAND_NAME = process.env.EMAIL_BRAND_NAME || "Shqiponja eSIM";
+
+const EMAIL_PROFILES = {
+  hello:
+    process.env.EMAIL_HELLO_FROM ||
+    `${BRAND_NAME} <hello@shqiponjaesim.com>`,
+  noreply:
+    process.env.EMAIL_NOREPLY_FROM ||
+    `${BRAND_NAME} <noreply@shqiponjaesim.com>`,
+  info:
+    process.env.EMAIL_INFO_FROM ||
+    `${BRAND_NAME} <info@shqiponjaesim.com>`,
+  invoice:
+    process.env.EMAIL_INVOICE_FROM ||
+    `${BRAND_NAME} <invoice@shqiponjaesim.com>`,
+  support:
+    process.env.EMAIL_SUPPORT_FROM ||
+    `${BRAND_NAME} <suport@shqiponjaesim.com>`,
+};
+
+function parseSender(rawFrom) {
+  const raw = rawFrom || EMAIL_PROFILES.noreply;
   const m = raw.match(/^(.+?)\s*<(.+)>$/);
   return m
     ? { name: m[1].trim(), email: m[2].trim() }
-    : { name: "Shqiponja eSIM", email: raw.trim() };
+    : { name: BRAND_NAME, email: raw.trim() };
+}
+
+function resolveSender(senderType, fromEmail) {
+  if (fromEmail) {
+    return parseSender(fromEmail);
+  }
+  return parseSender(EMAIL_PROFILES[senderType] || EMAIL_PROFILES.noreply);
 }
 
 function brevoPost(path, body) {
@@ -66,7 +93,7 @@ async function sendTemplateEmail(toEmail, templateId, params = {}) {
     return null;
   }
 
-  const sender = parseSender();
+  const sender = resolveSender("noreply");
   const response = await brevoPost("/v3/smtp/email", {
     sender,
     to: [{ email: toEmail }],
@@ -79,15 +106,18 @@ async function sendTemplateEmail(toEmail, templateId, params = {}) {
   return response;
 }
 
-async function sendBrevoRawEmail(toEmail, subject, html) {
+async function sendBrevoRawEmail(toEmail, subject, html, sender, replyTo) {
   if (!BREVO_API_KEY) return null;
-  const sender = parseSender();
-  const response = await brevoPost("/v3/smtp/email", {
+  const body = {
     sender,
     to: [{ email: toEmail }],
     subject,
     htmlContent: html,
-  });
+  };
+  if (replyTo) {
+    body.replyTo = { email: replyTo };
+  }
+  const response = await brevoPost("/v3/smtp/email", body);
   return response;
 }
 
@@ -99,39 +129,63 @@ async function sendTransactionalEmail({
   params = {},
   logLabel = "EMAIL",
   retries = 2,
+  senderType = "noreply",
+  fromEmail,
+  replyTo,
 }) {
+  const sender = resolveSender(senderType, fromEmail);
   let lastErr;
+
   for (let attempt = 0; attempt <= retries; attempt++) {
     if (attempt > 0) {
       const delay = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
-      await new Promise(r => setTimeout(r, delay));
+      await new Promise((r) => setTimeout(r, delay));
       console.log(`[${logLabel}] Retry ${attempt}/${retries} for ${toEmail}...`);
     }
 
     // 1. Try Brevo REST API first
     if (BREVO_API_KEY) {
       try {
-        const response = await sendBrevoRawEmail(toEmail, subject, html);
-        console.log(`[${logLabel}] Sent via Brevo API to ${toEmail} (messageId: ${response?.messageId})`);
+        const response = await sendBrevoRawEmail(
+          toEmail,
+          subject,
+          html,
+          sender,
+          replyTo
+        );
+        console.log(
+          `[${logLabel}] Sent via Brevo API to ${toEmail} (messageId: ${response?.messageId})`
+        );
         return { provider: "brevo-api", info: response };
       } catch (brevoErr) {
         lastErr = brevoErr;
-        console.error(`[${logLabel}] Brevo API error:`, brevoErr && brevoErr.message ? brevoErr.message : brevoErr);
+        console.error(
+          `[${logLabel}] Brevo API error:`,
+          brevoErr && brevoErr.message ? brevoErr.message : brevoErr
+        );
       }
     }
 
     // 2. Fallback: SMTP
     try {
-      const smtpInfo = await sendMail(toEmail, subject, html);
+      const smtpInfo = await sendMail(toEmail, subject, html, {
+        from: `${sender.name} <${sender.email}>`,
+        replyTo,
+      });
       console.log(`[${logLabel}] Sent via SMTP to ${toEmail}`);
       return { provider: "smtp", info: smtpInfo };
     } catch (smtpErr) {
       lastErr = smtpErr;
-      console.error(`[${logLabel}] SMTP error:`, smtpErr && smtpErr.message ? smtpErr.message : smtpErr);
+      console.error(
+        `[${logLabel}] SMTP error:`,
+        smtpErr && smtpErr.message ? smtpErr.message : smtpErr
+      );
     }
   }
 
-  throw new Error(`[${logLabel}] All email delivery methods failed after ${retries + 1} attempts`);
+  throw new Error(
+    `[${logLabel}] All email delivery methods failed after ${retries + 1} attempts`
+  );
 }
 
-module.exports = { sendTemplateEmail, sendTransactionalEmail };
+module.exports = { sendTemplateEmail, sendTransactionalEmail, EMAIL_PROFILES };

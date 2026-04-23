@@ -5,7 +5,7 @@ const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = process.env.SMTP_PORT || 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-const SMTP_FROM = process.env.SMTP_FROM || 'Shqiponja eSIM <suport@shqiponjaesim.com>';
+const SMTP_FROM = process.env.SMTP_FROM || 'Shqiponja eSIM <noreply@shqiponjaesim.com>';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://shqiponjaesim.com';
 
 function escapeHtml(str) {
@@ -27,14 +27,15 @@ if (SMTP_HOST && SMTP_USER) {
   });
 }
 
-async function sendMail(to, subject, html) {
+async function sendMail(to, subject, html, options = {}) {
   if (!transporter) {
     throw new Error('SMTP not configured');
   }
 
   try {
     return await transporter.sendMail({
-      from: process.env.SMTP_FROM || SMTP_FROM,
+      from: options.from || process.env.SMTP_FROM || SMTP_FROM,
+      replyTo: options.replyTo,
       to,
       subject,
       html,

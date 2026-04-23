@@ -55,6 +55,7 @@ router.post('/register', authLimiter, validateRegister, async (req, res) => {
     subject: 'Verifiko email-in tënd — Shqiponja eSIM',
     html: verifyEmailTemplate(name, verifyUrl),
     logLabel: 'VERIFY EMAIL',
+    senderType: 'noreply',
   }).catch(err => console.error('Verification email error:', err));
 
   res.status(201).json({ user, token });
@@ -128,6 +129,8 @@ router.post('/verify', async (req, res) => {
       subject: 'Mirësevini në Shqiponja eSIM! 🎉',
       html: welcomeEmailTemplate(fullUser.name),
       logLabel: 'WELCOME EMAIL',
+      senderType: 'hello',
+      replyTo: 'info@shqiponjaesim.com',
     }).catch(err => console.error('Welcome email error:', err));
   }
 
@@ -149,6 +152,7 @@ router.post('/resend-verify', authMiddleware, async (req, res) => {
     subject: 'Verifiko email-in tënd — Shqiponja eSIM',
     html: verifyEmailTemplate(user.name, verifyUrl),
     logLabel: 'RESEND VERIFY EMAIL',
+    senderType: 'noreply',
   }).catch(err => console.error('Resend verification email error:', err));
 
   res.json({ message: 'Email-i i verifikimit u dërgua' });
@@ -185,6 +189,7 @@ router.post('/forgot-password', authLimiter, async (req, res) => {
     subject: 'Rivendos fjalëkalimin — Shqiponja eSIM',
     html: resetPasswordTemplate(user.name || email.split('@')[0], resetUrl),
     logLabel: 'PASSWORD RESET EMAIL',
+    senderType: 'noreply',
   }).catch(err => {
     console.error('Password reset delivery failed:', err);
   });

@@ -5,7 +5,7 @@ const { contactLimiter } = require('../middleware/rate-limit');
 const { sanitizeString } = require('../middleware/validate');
 
 const router = express.Router();
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'suport@shqiponjaesim.com';
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || process.env.INFO_EMAIL || 'info@shqiponjaesim.com';
 
 // POST /api/contact
 router.post('/', contactLimiter, async (req, res) => {
@@ -31,16 +31,20 @@ router.post('/', contactLimiter, async (req, res) => {
     subject: 'Konfirmim kontakti — Shqiponja eSIM',
     html: contactConfirmationTemplate(name, message),
     logLabel: 'CONTACT CUSTOMER EMAIL',
+    senderType: 'info',
+    replyTo: 'info@shqiponjaesim.com',
   }).catch(err => {
     console.error('Contact confirmation delivery failed:', err);
     throw err;
   });
 
   const supportPromise = sendTransactionalEmail({
-    toEmail: SUPPORT_EMAIL,
+    toEmail: CONTACT_EMAIL,
     subject: `Kontakt nga ${escapeHtml(name)} — Shqiponja eSIM`,
     html: contactAdminTemplate(name, email, message),
     logLabel: 'CONTACT ADMIN EMAIL',
+    senderType: 'info',
+    replyTo: email,
   }).catch(err => {
     console.error('Admin contact delivery failed:', err);
     throw err;
