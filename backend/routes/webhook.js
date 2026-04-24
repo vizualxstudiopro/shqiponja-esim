@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const router = express.Router();
 const db = require('../db');
 const { sendTransactionalEmail } = require('../lib/emailService');
-const { orderConfirmationTemplate, paymentReceiptTemplate } = require('../lib/email');
+const { orderConfirmationTemplate, paymentReceiptTemplate, generateInvoicePdfBuffer } = require('../lib/email');
 const airalo = require('../lib/airaloService');
 
 const LS_WEBHOOK_SECRET = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
@@ -157,6 +157,15 @@ router.post('/', async (req, res) => {
           });
 
           // Send payment receipt email
+          const invoicePdfBuffer = await generateInvoicePdfBuffer({
+            orderId,
+            packageName: updatedOrder.package_name,
+            packageFlag: updatedOrder.package_flag,
+            price: updatedOrder.price,
+            email: customerEmail,
+            date: new Date(),
+          });
+
           sendTransactionalEmail({
             toEmail: customerEmail,
             subject: 'Fatura e pagesës — Shqiponja eSIM 🧾',
@@ -171,6 +180,13 @@ router.post('/', async (req, res) => {
             logLabel: 'PAYMENT RECEIPT',
             senderType: 'invoice',
             replyTo: 'invoice@shqiponjaesim.com',
+            attachments: [
+              {
+                filename: `invoice-${String(orderId).padStart(5, '0')}.pdf`,
+                content: invoicePdfBuffer,
+                contentType: 'application/pdf',
+              },
+            ],
           }).catch(err => {
             console.error('Payment receipt delivery failed:', err);
           });

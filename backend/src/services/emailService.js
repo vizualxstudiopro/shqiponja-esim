@@ -72,7 +72,7 @@ function brevoPost(path, body) {
               err.body = json;
               reject(err);
             }
-          } catch (e) {
+          } catch {
             reject(new Error(`Brevo API parse error: ${chunks}`));
           }
         });
@@ -84,10 +84,26 @@ function brevoPost(path, body) {
   });
 }
 
+function toBrevoAttachments(attachments = []) {
+  if (!Array.isArray(attachments) || attachments.length === 0) return undefined;
+  return attachments
+    .map((item) => {
+      if (!item || !item.filename || !item.content) return null;
+      const buffer = Buffer.isBuffer(item.content)
+        ? item.content
+        : Buffer.from(String(item.content), "utf8");
+      return {
+        name: item.filename,
+        content: buffer.toString("base64"),
+      };
+    })
+    .filter(Boolean);
+}
+
 async function sendTemplateEmail(toEmail, templateId, params = {}) {
   if (!BREVO_API_KEY) {
     console.log(
-      `[DEV EMAIL] Template #${templateId} → ${toEmail}`,
+      `[DEV EMAIL] Template #${templateId} -> ${toEmail}`,
       JSON.stringify(params)
     );
     return null;
@@ -101,12 +117,12 @@ async function sendTemplateEmail(toEmail, templateId, params = {}) {
     params,
   });
   console.log(
-    `[EMAIL] Template #${templateId} → ${toEmail} — dërguar me sukses (messageId: ${response.messageId})`
+    `[EMAIL] Template #${templateId} -> ${toEmail} sent (messageId: ${response.messageId})`
   );
   return response;
 }
 
-async function sendBrevoRawEmail(toEmail, subject, html, sender, replyTo) {
+async function sendBrevoRawEmail(toEmail, subject, html, sender, replyTo, attachments) {
   if (!BREVO_API_KEY) return null;
   const body = {
     sender,
@@ -117,8 +133,11 @@ async function sendBrevoRawEmail(toEmail, subject, html, sender, replyTo) {
   if (replyTo) {
     body.replyTo = { email: replyTo };
   }
-  const response = await brevoPost("/v3/smtp/email", body);
-  return response;
+  const brevoAttachments = toBrevoAttachments(attachments);
+  if (brevoAttachments?.length) {
+    body.attachment = brevoAttachments;
+  }
+  return brevoPost("/v3/smtp/email", body);
 }
 
 async function sendTransactionalEmail({
@@ -132,18 +151,18 @@ async function sendTransactionalEmail({
   senderType = "noreply",
   fromEmail,
   replyTo,
+  attachments,
 }) {
   const sender = resolveSender(senderType, fromEmail);
   let lastErr;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     if (attempt > 0) {
-      const delay = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
+      const delay = 1000 * Math.pow(2, attempt - 1);
       await new Promise((r) => setTimeout(r, delay));
       console.log(`[${logLabel}] Retry ${attempt}/${retries} for ${toEmail}...`);
     }
 
-    // 1. Try Brevo REST API first
     if (BREVO_API_KEY) {
       try {
         const response = await sendBrevoRawEmail(
@@ -151,7 +170,8 @@ async function sendTransactionalEmail({
           subject,
           html,
           sender,
-          replyTo
+          replyTo,
+          attachments
         );
         console.log(
           `[${logLabel}] Sent via Brevo API to ${toEmail} (messageId: ${response?.messageId})`
@@ -166,11 +186,11 @@ async function sendTransactionalEmail({
       }
     }
 
-    // 2. Fallback: SMTP
     try {
       const smtpInfo = await sendMail(toEmail, subject, html, {
         from: `${sender.name} <${sender.email}>`,
         replyTo,
+        attachments,
       });
       console.log(`[${logLabel}] Sent via SMTP to ${toEmail}`);
       return { provider: "smtp", info: smtpInfo };

@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const QRCode = require('qrcode');
+const PDFDocument = require('pdfkit');
 
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = process.env.SMTP_PORT || 587;
@@ -18,7 +19,7 @@ if (SMTP_HOST && SMTP_USER) {
   transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 587,
+    secure: Number(SMTP_PORT) === 465,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
     tls: { rejectUnauthorized: false },
     connectionTimeout: 5000,
@@ -36,6 +37,7 @@ async function sendMail(to, subject, html, options = {}) {
     return await transporter.sendMail({
       from: options.from || process.env.SMTP_FROM || SMTP_FROM,
       replyTo: options.replyTo,
+      attachments: options.attachments,
       to,
       subject,
       html,
@@ -331,6 +333,87 @@ function paymentReceiptTemplate({ orderId, packageName, packageFlag, price, emai
   `, 'Fatura e pagesës — Shqiponja eSIM');
 }
 
+function formatCurrency(value) {
+  const amount = Number(value || 0);
+  return `EUR ${amount.toFixed(2)}`;
+}
+
+async function generateInvoicePdfBuffer({ orderId, packageName, packageFlag, price, email, date }) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', margin: 48 });
+    const chunks = [];
+
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const invoiceNo = `INV-${String(orderId || 0).padStart(5, '0')}`;
+    const issueDate = date ? new Date(date) : new Date();
+    const issueDateDisplay = issueDate.toISOString().slice(0, 10);
+    const total = Number(price || 0);
+
+    // Header band
+    doc.save();
+    doc.rect(0, 0, doc.page.width, 120).fill(BRAND_RED);
+    doc.restore();
+
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(28).text('Shqiponja eSIM', 48, 42);
+    doc.font('Helvetica').fontSize(11).text('Digital Connectivity Invoice', 48, 76);
+
+    // Invoice meta
+    doc.fillColor('#111827').font('Helvetica-Bold').fontSize(11).text('INVOICE', 430, 40, { align: 'right' });
+    doc.font('Helvetica').fontSize(10).fillColor('#374151');
+    doc.text(invoiceNo, 430, 58, { align: 'right' });
+    doc.text(`Date: ${issueDateDisplay}`, 430, 74, { align: 'right' });
+
+    // Bill to card
+    doc.roundedRect(48, 145, 499, 78, 10).fill('#f9fafb');
+    doc.fillColor('#111827').font('Helvetica-Bold').fontSize(11).text('Bill To', 64, 160);
+    doc.fillColor('#374151').font('Helvetica').fontSize(10).text(email || '-', 64, 180);
+
+    // Table header
+    const startY = 260;
+    doc.fillColor('#6b7280').font('Helvetica-Bold').fontSize(9);
+    doc.text('Description', 48, startY);
+    doc.text('Qty', 350, startY, { width: 40, align: 'center' });
+    doc.text('Unit Price', 400, startY, { width: 70, align: 'right' });
+    doc.text('Total', 480, startY, { width: 67, align: 'right' });
+
+    doc.moveTo(48, startY + 14).lineTo(547, startY + 14).strokeColor('#e5e7eb').stroke();
+
+    // Single item row
+    const desc = `${packageFlag || ''} ${packageName || 'eSIM Package'}`.trim();
+    const rowY = startY + 26;
+    doc.fillColor('#111827').font('Helvetica').fontSize(11);
+    doc.text(desc, 48, rowY, { width: 285 });
+    doc.text('1', 350, rowY, { width: 40, align: 'center' });
+    doc.text(formatCurrency(total), 400, rowY, { width: 70, align: 'right' });
+    doc.text(formatCurrency(total), 480, rowY, { width: 67, align: 'right' });
+
+    doc.moveTo(48, rowY + 28).lineTo(547, rowY + 28).strokeColor('#e5e7eb').stroke();
+
+    // Total block
+    const totalY = rowY + 50;
+    doc.font('Helvetica').fontSize(11).fillColor('#374151');
+    doc.text('Subtotal', 410, totalY, { width: 70, align: 'right' });
+    doc.text(formatCurrency(total), 480, totalY, { width: 67, align: 'right' });
+
+    doc.text('VAT', 410, totalY + 18, { width: 70, align: 'right' });
+    doc.text('EUR 0.00', 480, totalY + 18, { width: 67, align: 'right' });
+
+    doc.font('Helvetica-Bold').fontSize(13).fillColor('#111827');
+    doc.text('Grand Total', 390, totalY + 44, { width: 90, align: 'right' });
+    doc.fillColor(BRAND_RED).text(formatCurrency(total), 480, totalY + 44, { width: 67, align: 'right' });
+
+    // Footer note
+    doc.fillColor('#6b7280').font('Helvetica').fontSize(9);
+    doc.text('Thank you for choosing Shqiponja eSIM.', 48, 700);
+    doc.text('This is an electronically generated invoice and does not require a signature.', 48, 714);
+
+    doc.end();
+  });
+}
+
 function contactConfirmationTemplate(name, message) {
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">E morëm mesazhin tënd! 📩</h2>
@@ -378,6 +461,7 @@ module.exports = {
   orderConfirmationTemplate,
   welcomeEmailTemplate,
   paymentReceiptTemplate,
+  generateInvoicePdfBuffer,
   contactConfirmationTemplate,
   contactAdminTemplate,
 };
