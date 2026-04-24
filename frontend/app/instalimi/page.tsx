@@ -84,7 +84,7 @@ const scenes = [
     title: "5. Fluturo i Lirë",
     description: "Sapo të zbresësh, telefoni do të lidhet automatikisht me rrjetin lokal. Gati!",
     icon: (
-      <div className="text-[#e8333a] scale-150">
+      <div className="text-shqiponja scale-150">
         <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="3">
           <polyline points="20 6 9 17 4 12" />
         </svg>
@@ -120,7 +120,7 @@ export default function InstallGuidePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white font-sans">
+    <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 font-sans">
       <Navbar />
 
       <div className="flex items-center justify-center p-4 md:p-10 pt-24">
@@ -129,30 +129,30 @@ export default function InstallGuidePage() {
           {/* KOLONA E MAJTË */}
           <div className="lg:col-span-5 space-y-8">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#e8333a]/30 bg-[#e8333a]/10 mb-6">
-                <span className="w-2 h-2 rounded-full bg-[#e8333a] animate-pulse"></span>
-                <span className="text-[10px] font-bold text-[#e8333a] uppercase tracking-widest">Udhëzuesi Interaktiv</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-shqiponja/30 bg-shqiponja/10 mb-6">
+                <span className="w-2 h-2 rounded-full bg-shqiponja animate-pulse"></span>
+                <span className="text-[10px] font-bold text-shqiponja uppercase tracking-widest">Udhëzuesi Interaktiv</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
                 Instalimi në <br />
-                <span className="text-[#e8333a]">5 hapa të thjeshtë.</span>
+                <span className="text-shqiponja">5 hapa të thjeshtë.</span>
               </h1>
-              <p className="text-gray-400 text-lg">
+              <p className="text-zinc-600 dark:text-zinc-400 text-lg">
                 Ndiq këtë animacion për të parë se si të lidhesh me internetin kudo në botë pa humbur kohë.
               </p>
             </div>
 
             {/* Device Toggle */}
-            <div className="flex gap-4 p-1 bg-white/5 rounded-2xl w-fit border border-white/10">
+            <div className="flex gap-4 p-1 bg-white rounded-2xl w-fit border border-zinc-200 shadow-sm dark:bg-zinc-900/70 dark:border-zinc-800">
               <button
                 onClick={() => setDevice("iphone")}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${device === "iphone" ? "bg-[#e8333a] text-white shadow-lg" : "text-gray-500 hover:text-white"}`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${device === "iphone" ? "bg-shqiponja text-white shadow-lg" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"}`}
               >
                 <IphoneIcon /> iPhone
               </button>
               <button
                 onClick={() => setDevice("android")}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${device === "android" ? "bg-[#e8333a] text-white shadow-lg" : "text-gray-500 hover:text-white"}`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${device === "android" ? "bg-shqiponja text-white shadow-lg" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"}`}
               >
                 <AndroidIcon /> Android
               </button>
@@ -164,9 +164,9 @@ export default function InstallGuidePage() {
                 <button
                   key={idx}
                   onClick={() => handleManualNav(idx)}
-                  className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left ${currentScene === idx ? "bg-white/10 border-[#e8333a]/50" : "bg-transparent border-transparent opacity-40 hover:opacity-100"}`}
+                  className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left ${currentScene === idx ? "bg-white border-shqiponja/40 shadow-sm dark:bg-zinc-900/80" : "bg-transparent border-transparent opacity-60 hover:opacity-100"}`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${currentScene === idx ? "bg-[#e8333a]" : "bg-white/10"}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${currentScene === idx ? "bg-shqiponja text-white" : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"}`}>
                     {idx + 1}
                   </div>
                   <span className="font-bold text-sm uppercase tracking-wider">{scene.title}</span>
@@ -177,7 +177,7 @@ export default function InstallGuidePage() {
 
           {/* KOLONA E DJATHTË: Telefoni */}
           <div className="lg:col-span-7 flex justify-center relative">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#e8333a]/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-shqiponja/10 rounded-full blur-3xl pointer-events-none"></div>
 
             <div className="relative w-[320px] h-[650px] bg-[#000000] rounded-[60px] border-[8px] border-[#1c1c1e] shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-8 bg-[#1c1c1e] rounded-b-3xl z-50"></div>
@@ -187,7 +187,7 @@ export default function InstallGuidePage() {
                   {scenes.map((_, idx) => (
                     <div key={idx} className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#e8333a] transition-all duration-100"
+                        className="h-full bg-shqiponja transition-all duration-100"
                         style={{ width: idx === currentScene ? `${progress}%` : idx < currentScene ? "100%" : "0%" }}
                       />
                     </div>
@@ -195,11 +195,11 @@ export default function InstallGuidePage() {
                 </div>
 
                 <div key={currentScene} className="animate-in fade-in zoom-in duration-500 flex flex-col items-center">
-                  <div className="w-24 h-24 mb-10 bg-white/5 rounded-[40px] flex items-center justify-center text-[#e8333a] border border-white/5 shadow-inner">
+                  <div className="w-24 h-24 mb-10 bg-white/5 rounded-[40px] flex items-center justify-center text-shqiponja border border-white/5 shadow-inner">
                     {scenes[currentScene].icon}
                   </div>
                   <h3 className="text-xl font-bold mb-4 tracking-tight">{scenes[currentScene].title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed mb-10 px-4">
+                  <p className="text-zinc-400 text-sm leading-relaxed mb-10 px-4">
                     {device === "iphone" && currentScene === 2
                       ? "Shko te Settings > Cellular > Add eSIM."
                       : device === "android" && currentScene === 2
@@ -209,12 +209,20 @@ export default function InstallGuidePage() {
                   <div className="w-full bg-[#121212] border border-white/5 rounded-2xl p-4 text-left">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] text-gray-500 uppercase font-bold">{scenes[currentScene].action}</span>
-                      <div className="w-2 h-2 rounded-full bg-[#e8333a] animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-shqiponja animate-pulse"></div>
                     </div>
                     <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#e8333a]/40" style={{ width: `${progress}%` }}></div>
+                      <div className="h-full bg-shqiponja/40" style={{ width: `${progress}%` }}></div>
                     </div>
                   </div>
+                </div>
+
+                {/* Efekt xhami mbi ekran */}
+                <div className="pointer-events-none absolute inset-[8px] rounded-[52px] overflow-hidden z-40">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/18 via-transparent to-transparent"></div>
+                  <div className="absolute -left-20 top-16 h-56 w-32 rotate-12 bg-white/10 blur-2xl"></div>
+                  <div className="glass-shimmer absolute -left-1/3 top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                  <div className="absolute inset-0 border border-white/10 rounded-[52px]"></div>
                 </div>
               </div>
 
@@ -237,6 +245,33 @@ export default function InstallGuidePage() {
 
         </div>
       </div>
+
+      <style jsx>{`
+        .glass-shimmer {
+          animation: glassShimmer 6s ease-in-out infinite;
+        }
+
+        @keyframes glassShimmer {
+          0% {
+            transform: translateX(-130%) skewX(-12deg);
+            opacity: 0;
+          }
+          18% {
+            opacity: 0.45;
+          }
+          42% {
+            opacity: 0.2;
+          }
+          55% {
+            transform: translateX(380%) skewX(-12deg);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(380%) skewX(-12deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }
