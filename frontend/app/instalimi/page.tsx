@@ -260,11 +260,11 @@ export default function InstallGuidePage() {
                 </div>
 
                 {/* Efekt xhami mbi ekran */}
-                <div className="pointer-events-none absolute inset-[8px] rounded-[52px] overflow-hidden z-40">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/18 via-transparent to-transparent"></div>
-                  <div className="absolute -left-20 top-16 h-56 w-32 rotate-12 bg-white/10 blur-2xl"></div>
-                  <div className="glass-shimmer absolute -left-1/3 top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-                  <div className="absolute inset-0 border border-white/10 rounded-[52px]"></div>
+                <div className="glass-overlay pointer-events-none absolute inset-[8px] rounded-[52px] overflow-hidden z-40">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent"></div>
+                  <div className="absolute -left-20 top-16 h-56 w-32 rotate-12 bg-white/8 blur-xl"></div>
+                  <div className="glass-shimmer absolute -left-1/2 top-0 h-full w-1/2 bg-gradient-to-r from-transparent via-white/15 to-transparent"></div>
+                  <div className="absolute inset-0 border border-white/8 rounded-[52px]"></div>
                 </div>
                 <div className="p-5 bg-[#0a0a0f] border-t border-white/5 text-center">
                   <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Shqiponja eSIM Network</span>
@@ -288,9 +288,21 @@ export default function InstallGuidePage() {
       </div>
 
       <style jsx>{`
+        .glass-overlay {
+          will-change: transform;
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          perspective: 1000px;
+        }
+
         .phone-tilt {
           transform-style: preserve-3d;
           transform: perspective(1300px) rotateY(-14deg) rotateX(5deg);
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+          -webkit-font-smoothing: antialiased;
         }
 
         @media (max-width: 1024px) {
@@ -307,11 +319,15 @@ export default function InstallGuidePage() {
 
         .glass-shimmer {
           animation: glassShimmer 6s ease-in-out infinite;
+          will-change: transform;
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+          transform: translate3d(0, 0, 0);
         }
 
         @keyframes glassShimmer {
           0% {
-            transform: translateX(-130%) skewX(-12deg);
+            transform: translate3d(-140%, 0, 0);
             opacity: 0;
           }
           18% {
@@ -321,11 +337,11 @@ export default function InstallGuidePage() {
             opacity: 0.2;
           }
           55% {
-            transform: translateX(380%) skewX(-12deg);
+            transform: translate3d(400%, 0, 0);
             opacity: 0;
           }
           100% {
-            transform: translateX(380%) skewX(-12deg);
+            transform: translate3d(400%, 0, 0);
             opacity: 0;
           }
         }
