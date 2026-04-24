@@ -179,11 +179,38 @@ export default function InstallGuidePage() {
           <div className="lg:col-span-7 flex justify-center relative">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-shqiponja/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div className="relative w-[320px] h-[650px] bg-[#000000] rounded-[60px] border-[8px] border-[#1c1c1e] shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-8 bg-[#1c1c1e] rounded-b-3xl z-50"></div>
+            <div className="phone-tilt relative">
+              <div className="relative w-[320px] h-[650px] bg-[#000000] rounded-[60px] border-[8px] border-[#1c1c1e] shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-8 bg-[#1c1c1e] rounded-b-3xl z-50"></div>
 
-              <div className="flex-grow flex flex-col p-8 pt-20 text-center items-center justify-center">
-                <div className="absolute top-12 left-8 right-8 flex gap-1">
+                <div className="flex-grow flex flex-col px-5 pt-14 pb-5 relative">
+                  <div className="rounded-2xl bg-[#101115] border border-white/10 px-3 py-2 mb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-zinc-500">Shqiponja eSIM</p>
+                        <p className="text-xs font-semibold text-zinc-100">Instalimi</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                        <span className="text-[10px] text-zinc-400">Online</span>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <span className="rounded-full bg-shqiponja/20 px-2 py-1 text-[9px] font-semibold text-shqiponja">Paketa</span>
+                      <span className="rounded-full bg-white/5 px-2 py-1 text-[9px] font-semibold text-zinc-400">Instalimi</span>
+                      <span className="rounded-full bg-white/5 px-2 py-1 text-[9px] font-semibold text-zinc-400">Profili</span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#121317] border border-white/10 p-3 mb-3">
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Destinacioni</p>
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className="text-sm font-semibold text-zinc-100">Europe 10GB / 30 ditë</p>
+                      <span className="text-sm font-bold text-shqiponja">€24.90</span>
+                    </div>
+                  </div>
+
+                  <div className="absolute top-[122px] left-5 right-5 flex gap-1 z-20">
                   {scenes.map((_, idx) => (
                     <div key={idx} className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
                       <div
@@ -194,26 +221,41 @@ export default function InstallGuidePage() {
                   ))}
                 </div>
 
-                <div key={currentScene} className="animate-in fade-in zoom-in duration-500 flex flex-col items-center">
-                  <div className="w-24 h-24 mb-10 bg-white/5 rounded-[40px] flex items-center justify-center text-shqiponja border border-white/5 shadow-inner">
-                    {scenes[currentScene].icon}
+                  <div key={currentScene} className="animate-in fade-in zoom-in duration-500 flex flex-col items-center text-center mt-12">
+                    <div className="w-20 h-20 mb-5 bg-white/5 rounded-[28px] flex items-center justify-center text-shqiponja border border-white/5 shadow-inner">
+                      {scenes[currentScene].icon}
+                    </div>
+                    <h3 className="text-base font-bold mb-2 tracking-tight text-zinc-100">{scenes[currentScene].title}</h3>
+                    <p className="text-zinc-400 text-xs leading-relaxed mb-5 px-2">
+                      {device === "iphone" && currentScene === 2
+                        ? "Shko te Settings > Cellular > Add eSIM."
+                        : device === "android" && currentScene === 2
+                        ? "Hap Settings > SIM Manager > Add eSIM."
+                        : scenes[currentScene].description}
+                    </p>
+                    <div className="w-full bg-[#121212] border border-white/5 rounded-2xl p-3 text-left">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-gray-500 uppercase font-bold">{scenes[currentScene].action}</span>
+                        <div className="w-2 h-2 rounded-full bg-shqiponja animate-pulse"></div>
+                      </div>
+                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-shqiponja/40" style={{ width: `${progress}%` }}></div>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold mb-4 tracking-tight">{scenes[currentScene].title}</h3>
-                  <p className="text-zinc-400 text-sm leading-relaxed mb-10 px-4">
-                    {device === "iphone" && currentScene === 2
-                      ? "Shko te Settings > Cellular > Add eSIM."
-                      : device === "android" && currentScene === 2
-                      ? "Hap Settings > SIM Manager > Add eSIM."
-                      : scenes[currentScene].description}
-                  </p>
-                  <div className="w-full bg-[#121212] border border-white/5 rounded-2xl p-4 text-left">
+
+                  <div className="mt-auto rounded-2xl bg-[#121317] border border-white/10 p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] text-gray-500 uppercase font-bold">{scenes[currentScene].action}</span>
-                      <div className="w-2 h-2 rounded-full bg-shqiponja animate-pulse"></div>
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Porosia jote</p>
+                      <span className="text-[10px] font-semibold text-emerald-400">Aktive</span>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-shqiponja/40" style={{ width: `${progress}%` }}></div>
+                    <div className="flex items-center justify-between text-xs mb-2">
+                      <span className="text-zinc-400">Data</span>
+                      <span className="text-zinc-200 font-medium">7.5GB / 10GB</span>
                     </div>
+                    <button className="w-full rounded-xl bg-shqiponja text-white text-xs font-semibold py-2">
+                      Shiko QR dhe Udhëzimet
+                    </button>
                   </div>
                 </div>
 
@@ -224,10 +266,9 @@ export default function InstallGuidePage() {
                   <div className="glass-shimmer absolute -left-1/3 top-0 h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                   <div className="absolute inset-0 border border-white/10 rounded-[52px]"></div>
                 </div>
-              </div>
-
-              <div className="p-8 bg-[#0a0a0f] border-t border-white/5 text-center">
-                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Shqiponja eSIM Network</span>
+                <div className="p-5 bg-[#0a0a0f] border-t border-white/5 text-center">
+                  <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Shqiponja eSIM Network</span>
+                </div>
               </div>
             </div>
 
@@ -247,6 +288,23 @@ export default function InstallGuidePage() {
       </div>
 
       <style jsx>{`
+        .phone-tilt {
+          transform-style: preserve-3d;
+          transform: perspective(1300px) rotateY(-14deg) rotateX(5deg);
+        }
+
+        @media (max-width: 1024px) {
+          .phone-tilt {
+            transform: perspective(1000px) rotateY(-8deg) rotateX(3deg);
+          }
+        }
+
+        @media (max-width: 768px) {
+          .phone-tilt {
+            transform: none;
+          }
+        }
+
         .glass-shimmer {
           animation: glassShimmer 6s ease-in-out infinite;
         }
