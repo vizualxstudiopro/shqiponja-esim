@@ -334,6 +334,47 @@ export default function LandingContent() {
     { num: "03", titleKey: "how.step3.title" as const, descKey: "how.step3.desc" as const },
   ];
 
+  const installPreviewSteps = [
+    "Bli paketën dhe hap email-in e konfirmimit.",
+    "Skano QR kodin nga Settings > Cellular/SIM.",
+    "Aktivizo Data Roaming kur mbërrin në destinacion.",
+  ];
+
+  const installPhoneStates = [
+    {
+      badge: "Order Ready",
+      title: "Europe 10GB / 30 ditë",
+      action: "Konfirmimi me email",
+      button: "Shiko email-in",
+      cards: ["Data: 10GB", "Roaming: OFF", "Signal: --", "Country: --"],
+    },
+    {
+      badge: "QR Ready",
+      title: "Skano eSIM tani",
+      action: "Instalimi",
+      button: "Shiko QR Kodin",
+      cards: ["Data: 10GB", "Roaming: OFF", "Signal: 4G", "Country: AL"],
+    },
+    {
+      badge: "Connected",
+      title: "Paketa aktive",
+      action: "Network live",
+      button: "Hap panelin",
+      cards: ["Data: 7.5GB", "Roaming: ON", "Signal: 4G", "Country: IT"],
+    },
+  ];
+
+  const [activeInstallStep, setActiveInstallStep] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveInstallStep((prev) => (prev + 1) % installPreviewSteps.length);
+    }, 2800);
+    return () => clearInterval(timer);
+  }, [installPreviewSteps.length]);
+
+  const activePhoneState = installPhoneStates[activeInstallStep];
+
   return (
     <>
       {/* ══════════ HERO ══════════ */}
@@ -602,13 +643,16 @@ export default function LandingContent() {
             </p>
 
             <div className="mt-6 space-y-3">
-              {[
-                "Bli paketën dhe hap email-in e konfirmimit.",
-                "Skano QR kodin nga Settings > Cellular/SIM.",
-                "Aktivizo Data Roaming kur mbërrin në destinacion.",
-              ].map((item, i) => (
-                <div key={item} className="flex items-start gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-shqiponja text-xs font-bold text-white">
+              {installPreviewSteps.map((item, i) => (
+                <div
+                  key={item}
+                  className={`flex items-start gap-3 rounded-xl border p-4 transition-all duration-300 ${
+                    activeInstallStep === i
+                      ? "border-shqiponja/40 bg-shqiponja/5 dark:bg-shqiponja/10"
+                      : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800"
+                  }`}
+                >
+                  <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${activeInstallStep === i ? "bg-shqiponja" : "bg-zinc-400"}`}>
                     {i + 1}
                   </span>
                   <p className="text-sm text-zinc-600 dark:text-zinc-300">{item}</p>
@@ -637,33 +681,36 @@ export default function LandingContent() {
                 <div className="rounded-2xl border border-white/10 bg-zinc-900/90 p-3">
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400">Shqiponja eSIM</p>
-                    <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">Active</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${activeInstallStep === 2 ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-300"}`}>
+                      {activePhoneState.badge}
+                    </span>
                   </div>
-                  <p className="mt-2 text-sm font-bold text-zinc-100">Europe 10GB / 30 ditë</p>
+                  <p className="mt-2 text-sm font-bold text-zinc-100">{activePhoneState.title}</p>
                 </div>
 
                 <div className="mt-3 rounded-2xl border border-white/10 bg-zinc-900/80 p-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Instalimi</span>
-                    <span className="h-2 w-2 rounded-full bg-shqiponja" />
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">{activePhoneState.action}</span>
+                    <span className={`h-2 w-2 rounded-full ${activeInstallStep === 2 ? "bg-emerald-400" : "bg-shqiponja"}`} />
                   </div>
                   <div className="space-y-2">
-                    <div className="h-2 rounded-full bg-white/10" />
-                    <div className="h-2 w-4/5 rounded-full bg-white/10" />
-                    <div className="h-2 w-2/3 rounded-full bg-white/10" />
+                    <div className={`h-2 rounded-full transition-all duration-500 ${activeInstallStep >= 0 ? "bg-shqiponja/50" : "bg-white/10"}`} />
+                    <div className={`h-2 w-4/5 rounded-full transition-all duration-500 ${activeInstallStep >= 1 ? "bg-shqiponja/50" : "bg-white/10"}`} />
+                    <div className={`h-2 w-2/3 rounded-full transition-all duration-500 ${activeInstallStep >= 2 ? "bg-emerald-500/50" : "bg-white/10"}`} />
                   </div>
                   <div className="mt-4 rounded-xl bg-shqiponja px-3 py-2 text-center text-xs font-semibold text-white">
-                    Shiko QR Kodin
+                    {activePhoneState.button}
                   </div>
                 </div>
 
                 <div className="mt-3 flex-1 rounded-2xl border border-white/10 bg-zinc-900/80 p-3">
                   <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Status i rrjetit</p>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300">Data: 7.5GB</div>
-                    <div className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300">Roaming: ON</div>
-                    <div className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300">Signal: 4G</div>
-                    <div className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300">Country: IT</div>
+                    {activePhoneState.cards.map((card) => (
+                      <div key={card} className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300 transition-colors duration-300">
+                        {card}
+                      </div>
+                    ))}
                   </div>
                 </div>
 
