@@ -8,7 +8,8 @@ import { generateInvoicePDF } from "@/lib/generate-invoice";
 import QrCodeDisplay from "@/components/qr-code";
 import Navbar from "@/components/navbar";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { trackPurchase } from "@/lib/analytics";
 
 export default function OrderPageContent({ order: initialOrder, token: urlToken, orderId }: { order: Order | null; token?: string; orderId: number }) {
   const { t, locale } = useI18n();
@@ -16,6 +17,7 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
   const [loading, setLoading] = useState(!initialOrder);
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [failed, setFailed] = useState(false);
+  const purchaseTracked = useRef(false);
 
   // Resolve token: URL param first, then localStorage fallback
   const [token] = useState(() => {
@@ -71,6 +73,19 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
     if (!order?.iccid || order.status !== "completed") return;
     getOrderUsage(orderId).then(setUsage).catch(() => {});
   }, [orderId, order?.iccid, order?.status]);
+
+  // Fire purchase analytics event once when order reaches completed state
+  useEffect(() => {
+    if (order?.status === "completed" && !purchaseTracked.current) {
+      purchaseTracked.current = true;
+      trackPurchase({
+        orderId: order.id,
+        value: order.package_price ?? 0,
+        currency: "EUR",
+        packageName: order.package_name,
+      });
+    }
+  }, [order?.status, order?.id, order?.package_price, order?.package_name]);
 
   if (loading) {
     return (

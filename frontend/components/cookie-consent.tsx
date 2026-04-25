@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n-context";
 import Link from "next/link";
+import { grantConsent, revokeConsent } from "@/lib/analytics";
 
 const COOKIE_KEY = "shqiponja-cookie-consent";
 
@@ -25,6 +26,7 @@ export default function CookieConsent() {
       localStorage.setItem(COOKIE_KEY, "accepted");
     } catch {}
     setVisible(false);
+    grantConsent();
   }
 
   function decline() {
@@ -32,12 +34,7 @@ export default function CookieConsent() {
       localStorage.setItem(COOKIE_KEY, "declined");
     } catch {}
     setVisible(false);
-    // Disable GA if user declines
-    if (typeof window !== "undefined") {
-      (window as unknown as Record<string, unknown>)[
-        `ga-disable-G-LQ8N3VHELT`
-      ] = true;
-    }
+    revokeConsent();
   }
 
   if (!visible) return null;

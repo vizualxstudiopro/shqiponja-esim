@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { ToastProvider } from "@/lib/toast-context";
 import { CurrencyProvider } from "@/lib/currency-context";
 import CookieConsent from "@/components/cookie-consent";
+import AnalyticsBootstrap from "@/components/analytics-bootstrap";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -70,7 +71,7 @@ export default function RootLayout({
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-LQ8N3VHELT" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-LQ8N3VHELT');`,
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied'});gtag('js',new Date());gtag('config','G-LQ8N3VHELT',{send_page_view:false});`,
           }}
         />
         <script
@@ -106,6 +107,7 @@ export default function RootLayout({
                 <ToastProvider>
                   {children}
                   <CookieConsent />
+                  <AnalyticsBootstrap />
                 </ToastProvider>
               </CurrencyProvider>
             </I18nProvider>

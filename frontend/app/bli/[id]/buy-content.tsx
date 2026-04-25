@@ -86,7 +86,7 @@ export default function BuyPageContent({ pkg }: { pkg: EsimPackage }) {
                 {t("buy.fillOrderSub")}
               </p>
 
-              <OrderForm packageId={pkg.id} price={pkg.price} />
+              <OrderForm packageId={pkg.id} price={pkg.price} packageName={pkg.name} />
             </div>
 
             {/* Trust / secure payment */}

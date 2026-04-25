@@ -4,13 +4,15 @@ import { useState } from "react";
 import { checkout, validatePromo } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
 import Link from "next/link";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 interface Props {
   packageId: number;
   price: number;
+  packageName: string;
 }
 
-export default function OrderForm({ packageId, price }: Props) {
+export default function OrderForm({ packageId, price, packageName }: Props) {
   const { t } = useI18n();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -61,6 +63,7 @@ export default function OrderForm({ packageId, price }: Props) {
 
     setSubmitted(true);
     setLoading(true);
+    trackBeginCheckout({ value: displayPrice, currency: "EUR", packageName });
     try {
       const result = await checkout(
         packageId,
