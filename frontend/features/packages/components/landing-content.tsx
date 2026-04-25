@@ -587,6 +587,96 @@ export default function LandingContent() {
         </div>
       </section>
 
+      {/* ══════════ INSTALL PREVIEW (ALT) ══════════ */}
+      <section className="bg-zinc-50 py-16 lg:py-20 dark:bg-zinc-900">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-6 lg:grid-cols-2">
+          <div>
+            <span className="inline-block rounded-full bg-shqiponja/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-shqiponja">
+              Udhëzues i shpejtë
+            </span>
+            <h3 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">
+              Instalimi në telefon, hap pas hapi
+            </h3>
+            <p className="mt-3 max-w-xl text-zinc-500 dark:text-zinc-400">
+              Pasi pajisja del kompatibile, ndiq këtë flow të shkurtër për aktivizim. Është version i shpejtë i udhëzuesit me pamje reale.
+            </p>
+
+            <div className="mt-6 space-y-3">
+              {[
+                "Bli paketën dhe hap email-in e konfirmimit.",
+                "Skano QR kodin nga Settings > Cellular/SIM.",
+                "Aktivizo Data Roaming kur mbërrin në destinacion.",
+              ].map((item, i) => (
+                <div key={item} className="flex items-start gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-shqiponja text-xs font-bold text-white">
+                    {i + 1}
+                  </span>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-300">{item}</p>
+                </div>
+              ))}
+            </div>
+
+            <a
+              href="/instalimi"
+              className="mt-6 inline-flex items-center rounded-full bg-shqiponja px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-shqiponja/20 transition hover:bg-shqiponja-dark"
+            >
+              Hap guidën e plotë
+            </a>
+          </div>
+
+          <div className="relative mx-auto w-fit">
+            <div className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-shqiponja/10 blur-3xl" />
+
+            <div
+              className="relative h-[610px] w-[300px] overflow-hidden rounded-[48px] border-[7px] border-zinc-900 bg-zinc-950 shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
+              style={{ transform: "perspective(1200px) rotateY(-12deg) rotateX(4deg)" }}
+            >
+              <div className="absolute left-1/2 top-0 z-20 h-7 w-28 -translate-x-1/2 rounded-b-3xl bg-zinc-900" />
+
+              <div className="relative flex h-full flex-col p-4 pt-10">
+                <div className="rounded-2xl border border-white/10 bg-zinc-900/90 p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400">Shqiponja eSIM</p>
+                    <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">Active</span>
+                  </div>
+                  <p className="mt-2 text-sm font-bold text-zinc-100">Europe 10GB / 30 ditë</p>
+                </div>
+
+                <div className="mt-3 rounded-2xl border border-white/10 bg-zinc-900/80 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Instalimi</span>
+                    <span className="h-2 w-2 rounded-full bg-shqiponja" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-2 rounded-full bg-white/10" />
+                    <div className="h-2 w-4/5 rounded-full bg-white/10" />
+                    <div className="h-2 w-2/3 rounded-full bg-white/10" />
+                  </div>
+                  <div className="mt-4 rounded-xl bg-shqiponja px-3 py-2 text-center text-xs font-semibold text-white">
+                    Shiko QR Kodin
+                  </div>
+                </div>
+
+                <div className="mt-3 flex-1 rounded-2xl border border-white/10 bg-zinc-900/80 p-3">
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">Status i rrjetit</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300">Data: 7.5GB</div>
+                    <div className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300">Roaming: ON</div>
+                    <div className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300">Signal: 4G</div>
+                    <div className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-300">Country: IT</div>
+                  </div>
+                </div>
+
+                <div className="pointer-events-none absolute inset-[7px] rounded-[40px] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent" />
+                  <div className="absolute -left-24 top-12 h-52 w-28 rotate-12 bg-white/10 blur-2xl" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ══════════ SHOW ALL DEVICES MODAL ══════════ */}
       {showAllModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowAllModal(false)}>
