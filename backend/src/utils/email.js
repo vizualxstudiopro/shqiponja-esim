@@ -55,6 +55,45 @@ async function sendMail(to, subject, html, options = {}) {
 
 const BRAND_RED = '#C8102E';
 const BRAND_DARK = '#9B0D23';
+const EAGLE_PERSONAS = {
+  enkela: { name: 'Enkela', role: 'Mireseardhja', emoji: '👋' },
+  bato: { name: 'Bato', role: 'Siguri & fjalekalim', emoji: '🔐' },
+  glauku: { name: 'Glauku', role: 'Udherrefyes blerjeje', emoji: '🧭' },
+  agroni: { name: 'Agroni', role: 'Live Support', emoji: '💬' },
+};
+
+function personaAvatarDataUri(name) {
+  const initial = (name || '?').charAt(0).toUpperCase();
+  const svg = `<svg width="96" height="96" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1f2937"/><stop offset="100%" stop-color="#111827"/></linearGradient></defs><rect width="96" height="96" rx="48" fill="url(#g)"/><circle cx="48" cy="48" r="36" fill="#C8102E" opacity="0.22"/><text x="50%" y="50%" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#C8102E" text-anchor="middle" dominant-baseline="middle">${initial}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function eagleGuideCard(personaKey, message) {
+  const persona = EAGLE_PERSONAS[personaKey];
+  if (!persona) return '';
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px;background:#fff7f8;border:1px solid #ffd4da;border-radius:12px;overflow:hidden">
+      <tr>
+        <td style="padding:14px 16px">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td width="56" valign="top" style="padding-right:10px">
+                <img src="${personaAvatarDataUri(persona.name)}" width="48" height="48" alt="${persona.name}" style="display:block;border-radius:9999px" />
+              </td>
+              <td valign="top">
+          <p style="margin:0 0 6px;font-size:12px;color:#9f1239;font-weight:700;text-transform:uppercase;letter-spacing:0.4px">
+            ${persona.emoji} ${persona.name} • ${persona.role}
+          </p>
+          <p style="margin:0;font-size:14px;line-height:1.5;color:#3f3f46">${escapeHtml(message)}</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `;
+}
 
 /**
  * Base email layout wrapper — all emails go through this
@@ -135,6 +174,7 @@ ${preheader ? `<div style="display:none;font-size:1px;color:#f4f4f5;line-height:
 function verifyEmailTemplate(name, verifyUrl) {
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Mirë se vjen, ${escapeHtml(name)}! 👋</h2>
+    ${eagleGuideCard('enkela', 'Une jam Enkela. Te ndihmoj ta nisesh udhetimin ne pak sekonda.')}
     <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
       Faleminderit që u regjistrove në Shqiponja eSIM. Kliko butonin më poshtë për ta verifikuar adresën tënde email.
     </p>
@@ -151,6 +191,7 @@ function verifyEmailTemplate(name, verifyUrl) {
 function resetPasswordTemplate(name, resetUrl) {
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Rivendos fjalëkalimin 🔐</h2>
+    ${eagleGuideCard('bato', 'Une jam Bato. Ndiq hapat me poshte dhe vendos nje fjalekalim te ri e te sigurt.')}
     <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
       Përshëndetje, ${escapeHtml(name)}! Morëm kërkesën tënde për rivendosjen e fjalëkalimit. Kliko butonin më poshtë (i vlefshëm për 1 orë).
     </p>
@@ -178,6 +219,7 @@ async function orderConfirmationTemplate({ orderId, packageFlag, packageName, pr
   }
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Porosia u konfirmua! ✅</h2>
+    ${eagleGuideCard('glauku', 'Une jam Glauku. Me ndjek ne 3 hapa dhe eSIM aktivizohet menjehere pasi mberrin.')}
     <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
       Faleminderit për blerjen. Ja detajet e porosisë tënde:
     </p>
@@ -254,12 +296,16 @@ async function orderConfirmationTemplate({ orderId, packageFlag, packageName, pr
         <a href="${FRONTEND_URL}/porosi/${orderId}" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Porosinë</a>
       </td></tr>
     </table>
+    <p style="margin:14px 0 0;font-size:13px;color:#71717a;text-align:center">
+      ${EAGLE_PERSONAS.agroni.emoji} ${EAGLE_PERSONAS.agroni.name} eshte online per live suport: <a href="${FRONTEND_URL}/kontakti" style="color:${BRAND_RED};font-weight:600;text-decoration:none">Hap Live Chat</a>
+    </p>
   `, 'Porosia jote u konfirmua');
 }
 
 function welcomeEmailTemplate(name) {
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Mirësevini, ${escapeHtml(name)}! 🎉</h2>
+    ${eagleGuideCard('enkela', 'Une jam Enkela. Te shoqeroj ne onboarding dhe aktivizimin e paketes tende te pare.')}
     <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
       Email-i juaj u verifikua me sukses! Tani mund të blini eSIM për udhëtimet tuaja.
     </p>
@@ -285,6 +331,7 @@ function paymentReceiptTemplate({ orderId, packageName, packageFlag, price, emai
   const dateDisplay = date ? new Date(date).toLocaleDateString('sq-AL', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Fatura e pagesës 🧾</h2>
+    ${eagleGuideCard('glauku', 'Ruaje kete fature. Per aktivizimin e paketes, mund te hysh te faqja e porosise kurdohere.')}
     <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
       Faleminderit për pagesën tuaj. Ja fatura e porosisë:
     </p>
@@ -417,6 +464,7 @@ async function generateInvoicePdfBuffer({ orderId, packageName, packageFlag, pri
 function contactConfirmationTemplate(name, message) {
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">E morëm mesazhin tënd! 📩</h2>
+    ${eagleGuideCard('agroni', 'Une jam Agroni. Te kthejme pergjigje sa me shpejt; live chat eshte aktiv ne faqe.')}
     <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
       Përshëndetje, ${escapeHtml(name)}! Faleminderit që na kontaktove. Do të të përgjigjemi sa më shpejt.
     </p>
@@ -430,6 +478,7 @@ function contactConfirmationTemplate(name, message) {
 function contactAdminTemplate(name, email, message) {
   return baseLayout(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Mesazh i ri nga kontakti 📬</h2>
+    ${eagleGuideCard('agroni', 'Mesazh i ri ne inbox. Jepi prioritet nese perdoruesi kerkon aktivizim ose problem me fjalekalim.')}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8fa;border-radius:12px;overflow:hidden;margin:0 0 16px">
       <tr>
         <td style="padding:20px 24px">

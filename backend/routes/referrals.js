@@ -33,9 +33,20 @@ router.get('/my', authMiddleware, async (req, res) => {
       "SELECT COUNT(*) AS cnt FROM referrals WHERE referrer_id = $1 AND status = 'completed'", [user.id]
     )).rows[0].cnt;
 
-    const totalEarnings = (await db.query(
-      "SELECT COALESCE(SUM(reward_value), 0) AS total FROM referrals WHERE referrer_id = $1 AND status = 'completed'", [user.id]
+    const totalRewardsGb = (await db.query(
+      "SELECT COALESCE(SUM(reward_amount), 0) AS total FROM referral_rewards WHERE user_id = $1 AND reward_kind = 'data_gb' AND status = 'granted'", [user.id]
     )).rows[0].total;
+
+    const rewardEntries = (await db.query(
+      `SELECT rr.id, rr.reward_amount, rr.reward_kind, rr.status, rr.note, rr.created_at, rr.order_id,
+              r.referrer_id, r.referred_id
+       FROM referral_rewards rr
+       JOIN referrals r ON r.id = rr.referral_id
+       WHERE rr.user_id = $1
+       ORDER BY rr.created_at DESC
+       LIMIT 20`,
+      [user.id]
+    )).rows;
 
     res.json({
       referralCode,
@@ -43,12 +54,58 @@ router.get('/my', authMiddleware, async (req, res) => {
       stats: {
         totalReferred: parseInt(totalReferred),
         completedReferrals: parseInt(completedReferrals),
-        totalEarnings: parseFloat(totalEarnings),
+        totalEarnings: parseFloat(totalRewardsGb),
+        totalRewardsGb: parseFloat(totalRewardsGb),
       },
+      rewards: rewardEntries.map((entry) => ({
+        id: entry.id,
+        amount: parseFloat(entry.reward_amount) || 0,
+        kind: entry.reward_kind,
+        status: entry.status,
+        note: entry.note,
+        orderId: entry.order_id,
+        createdAt: entry.created_at,
+        direction: entry.referrer_id === user.id ? 'referrer' : 'friend',
+      })),
     });
   } catch (err) {
     console.error('Referral stats error:', err);
     res.status(500).json({ error: 'Gabim gjatë marrjes së të dhënave' });
+  }
+});
+
+// GET /api/referrals/rewards — Lightweight rewards-only endpoint
+router.get('/rewards', authMiddleware, async (req, res) => {
+  try {
+    const rewards = (await db.query(
+      `SELECT id, reward_amount, reward_kind, status, note, order_id, created_at
+       FROM referral_rewards
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [req.user.id]
+    )).rows;
+
+    const total = (await db.query(
+      "SELECT COALESCE(SUM(reward_amount), 0) AS total FROM referral_rewards WHERE user_id = $1 AND reward_kind = 'data_gb' AND status = 'granted'",
+      [req.user.id]
+    )).rows[0].total;
+
+    res.json({
+      totalRewardsGb: parseFloat(total) || 0,
+      rewards: rewards.map((entry) => ({
+        id: entry.id,
+        amount: parseFloat(entry.reward_amount) || 0,
+        kind: entry.reward_kind,
+        status: entry.status,
+        note: entry.note,
+        orderId: entry.order_id,
+        createdAt: entry.created_at,
+      })),
+    });
+  } catch (err) {
+    console.error('Referral rewards error:', err);
+    res.status(500).json({ error: 'Gabim gjate marrjes se rewards' });
   }
 });
 

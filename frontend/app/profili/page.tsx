@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { getMyOrders, updateProfile, changePassword, resendVerification, getMyReferral, type Order, type ReferralStats } from "@/lib/api";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
+import DigitalPassport from "@/components/digital-passport";
 
 export default function ProfilePage() {
   const { user, token, loading: authLoading, setUser } = useAuth();
@@ -185,12 +186,14 @@ export default function ProfilePage() {
                 <p className="mt-1 text-xs text-zinc-500">{t("referral.completed")}</p>
               </div>
               <div className="rounded-xl bg-zinc-50 p-4 text-center dark:bg-zinc-700/50">
-                <p className="text-2xl font-extrabold text-shqiponja">€{referral.stats.totalEarnings.toFixed(2)}</p>
-                <p className="mt-1 text-xs text-zinc-500">{t("referral.earned")}</p>
+                <p className="text-2xl font-extrabold text-shqiponja">+{(referral.stats.totalRewardsGb ?? referral.stats.totalEarnings).toFixed(1)} GB</p>
+                <p className="mt-1 text-xs text-zinc-500">Reward i fituar</p>
               </div>
             </div>
           </div>
         )}
+
+        <DigitalPassport orders={orders} />
 
         {/* Edit Name Modal */}
         {editingName && (

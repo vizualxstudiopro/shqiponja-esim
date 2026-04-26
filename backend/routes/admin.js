@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const { processReferralRewardForOrder } = require('../src/services/referralRewards');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 
 // All admin routes require auth + admin role
@@ -165,6 +166,11 @@ router.patch('/orders/:id/status', async (req, res) => {
   }
   if (status) await db.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
   if (payment_status) await db.query('UPDATE orders SET payment_status = $1 WHERE id = $2', [payment_status, id]);
+
+  if (payment_status === 'paid') {
+    await processReferralRewardForOrder(id);
+  }
+
   const order = (await db.query(`
     SELECT o.*, p.name AS package_name, p.flag AS package_flag
     FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1

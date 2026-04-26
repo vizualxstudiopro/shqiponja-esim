@@ -5,6 +5,7 @@ const db = require('../db');
 const { sendTransactionalEmail } = require('../lib/emailService');
 const { orderConfirmationTemplate, paymentReceiptTemplate, generateInvoicePdfBuffer } = require('../lib/email');
 const airalo = require('../lib/airaloService');
+const { processReferralRewardForOrder } = require('../src/services/referralRewards');
 
 const LS_WEBHOOK_SECRET = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
 
@@ -109,6 +110,8 @@ router.post('/', async (req, res) => {
         airaloOrderId, iccid, iccid ? 'active' : (esimProvisioningAttempted ? 'provisioning_failed' : null),
         qrCodeUrl, activationCode, lsOrderId, Number(orderId)]);
       console.log(`✔ Webhook: Order #${orderId} marked as paid, status: ${orderStatus} (LS order: ${lsOrderId})`);
+
+      await processReferralRewardForOrder(Number(orderId));
 
       // Send confirmation email
       const updatedOrder = (await db.query(`

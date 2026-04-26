@@ -167,6 +167,36 @@ async function migrate() {
     )
   `);
 
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS referral_rewards (
+      id              SERIAL PRIMARY KEY,
+      referral_id     INTEGER NOT NULL REFERENCES referrals(id),
+      user_id         INTEGER NOT NULL REFERENCES users(id),
+      order_id        INTEGER REFERENCES orders(id),
+      reward_kind     TEXT    NOT NULL DEFAULT 'data_gb',
+      reward_amount   REAL    NOT NULL DEFAULT 3,
+      status          TEXT    NOT NULL DEFAULT 'granted',
+      note            TEXT,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS avatar_assets (
+      id              SERIAL PRIMARY KEY,
+      persona_key     TEXT    NOT NULL UNIQUE,
+      name            TEXT    NOT NULL,
+      role            TEXT,
+      region          TEXT,
+      prompt          TEXT,
+      image_data      TEXT    NOT NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await db.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_referral_rewards_unique_grant ON referral_rewards(referral_id, user_id, order_id)`);
+
   // Performance indexes
   await db.query(`
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

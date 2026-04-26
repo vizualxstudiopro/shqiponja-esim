@@ -822,7 +822,18 @@ export interface ReferralStats {
     totalReferred: number;
     completedReferrals: number;
     totalEarnings: number;
+    totalRewardsGb?: number;
   };
+  rewards?: Array<{
+    id: number;
+    amount: number;
+    kind: string;
+    status: string;
+    note?: string;
+    orderId?: number;
+    createdAt: string;
+    direction?: "referrer" | "friend";
+  }>;
 }
 
 export async function getMyReferral(token: string): Promise<ReferralStats> {
@@ -839,4 +850,78 @@ export async function applyReferralCode(token: string, referralCode: string): Pr
   });
   if (!res.ok) { const e = await res.json().catch(() => ({ error: "Aplikimi dështoi" })); throw new Error(e.error); }
   return res.json();
+}
+
+/* ─── Compatibility ─── */
+
+export interface CompatibleDeviceMatch {
+  brand: string;
+  model: string;
+}
+
+export interface CompatibilityCheckResponse {
+  compatible: boolean;
+  query: string;
+  confidence: number;
+  matches: CompatibleDeviceMatch[];
+  cached?: boolean;
+}
+
+export async function getCompatibilityBrands(): Promise<string[]> {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/compatibility/brands`, { cache: "force-cache" });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function getCompatibilityDevices(brand: string): Promise<string[]> {
+  if (!brand.trim()) return [];
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/compatibility/devices?brand=${encodeURIComponent(brand.trim())}`, {
+      cache: "force-cache",
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function checkDeviceCompatibility(query: string): Promise<CompatibilityCheckResponse> {
+  const q = query.trim();
+  if (!q) return { compatible: false, query, confidence: 0, matches: [] };
+
+  const res = await fetchWithTimeout(`${API_URL}/api/compatibility/check?q=${encodeURIComponent(q)}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    return { compatible: false, query, confidence: 0, matches: [] };
+  }
+  return res.json();
+}
+
+/* ─── Avatars ─── */
+
+export interface EagleAvatarAsset {
+  key: string;
+  name: string;
+  role: string;
+  region: string;
+  useCase: string;
+  prompt: string;
+  imageData: string;
+}
+
+export async function getAvatarTeam(): Promise<EagleAvatarAsset[]> {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/avatars/team`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data.items) ? data.items : [];
+  } catch {
+    return [];
+  }
 }

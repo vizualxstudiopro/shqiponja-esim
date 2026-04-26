@@ -75,6 +75,7 @@ function createApp() {
   app.use('/api/referrals', require('../routes/referrals'));
   app.use('/api/contact', require('../routes/contact'));
   app.use('/api/compatibility', require('../routes/compatibility'));
+  app.use('/api/avatars', require('../routes/avatars'));
 
   app.get('/', (_req, res) => {
     res.json({ message: 'Shqiponja eSIM API' });
