@@ -11,6 +11,7 @@ const avatarCache = {
 };
 
 const AVATAR_CACHE_MS = 5 * 60 * 1000;
+const PROVIDER_ENABLED = String(process.env.AVATAR_PROVIDER_ENABLED || 'false').toLowerCase() === 'true';
 const GEMINI_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
 
 function makeSvgDataUri(name, accent) {
@@ -21,7 +22,7 @@ function makeSvgDataUri(name, accent) {
 }
 
 async function generateImageFromProvider(prompt) {
-  if (!GEMINI_KEY) return null;
+  if (!PROVIDER_ENABLED || !GEMINI_KEY) return null;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_KEY}`;
   const res = await fetch(url, {
@@ -92,7 +93,7 @@ router.get('/team', async (_req, res) => {
   try {
     const items = await ensureAvatarAssets(false);
     res.set('Cache-Control', 'public, max-age=120');
-    res.json({ items, generatedWithProvider: Boolean(GEMINI_KEY) });
+    res.json({ items, generatedWithProvider: Boolean(PROVIDER_ENABLED && GEMINI_KEY) });
   } catch (err) {
     console.error('[AVATARS] Team fetch error:', err.message);
     res.status(500).json({ error: 'Gabim gjate marrjes se avatarave' });
@@ -102,7 +103,7 @@ router.get('/team', async (_req, res) => {
 router.post('/refresh', authMiddleware, adminOnly, async (_req, res) => {
   try {
     const items = await ensureAvatarAssets(true);
-    res.json({ ok: true, count: items.length, generatedWithProvider: Boolean(GEMINI_KEY) });
+    res.json({ ok: true, count: items.length, generatedWithProvider: Boolean(PROVIDER_ENABLED && GEMINI_KEY) });
   } catch (err) {
     console.error('[AVATARS] Refresh error:', err.message);
     res.status(500).json({ error: 'Gabim gjate rifreskimit te avatarave' });
