@@ -1,0 +1,12 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.shqiponjaesim.com" }],
+      "destination": "https://shqiponjaesim.com/:path*",
+      "permanent": true
+    }
+  ]
+}

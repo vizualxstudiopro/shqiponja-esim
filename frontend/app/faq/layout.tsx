@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pyetje të Shpeshta (FAQ)",
   description: "Gjej përgjigje për pyetjet më të shpeshta rreth paketave eSIM, aktivizimit, çmimeve dhe mbulimit global të Shqiponja eSIM.",
+  alternates: { canonical: "https://shqiponjaesim.com/faq" },
 };
 
 const faqJsonLd = {
