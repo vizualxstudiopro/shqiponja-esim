@@ -184,7 +184,7 @@ const translations = {
     // Refund Policy
     "refund.title": "Politika e Rimbursimit dhe Kthimit",
     "refund.lastUpdated": "Data: Prill 2026",
-    "refund.intro": "Në Shqiponja eSIM (operuar nga Mandi & Bes 2022 SHPK), përpiqemi të ofrojmë shërbime të shkëlqyera dixhitale të telekomunikacionit. Meqenëse produktet tona janë dixhitale (profile eSIM), politika jonë e rimbursimit ndjek rreptësisht udhëzimet për mallrat dixhitale.",
+    "refund.intro": "Në Shqiponja eSIM (operuar nga VALA TECH 2026 LLC), përpiqemi të ofrojmë shërbime të shkëlqyera dixhitale të telekomunikacionit. Meqenëse produktet tona janë dixhitale (profile eSIM), politika jonë e rimbursimit ndjek rreptësisht udhëzimet për mallrat dixhitale.",
     "refund.s1.title": "1. Kualifikimi për Rimbursim",
     "refund.s1.text": "Ju kualifikoheni për rimbursim të plotë VETËM në kushtet e mëposhtme:",
     "refund.s1.item1": "QR kodi i eSIM-it NUK është skanuar, instaluar, ose aktivizuar në pajisjen tuaj.",
@@ -735,8 +735,8 @@ const translations = {
     "cta.btn": "View Packages →",
 
     // Footer
-    "footer.rights": "© 2026 Shqiponja eSIM. All rights reserved.",
-    "footer.operatedBy": "is operated by",
+    "footer.rights": "© 2026 Shqiponja eSIM. Operated by VALA TECH 2026 LLC. All rights reserved.",
+    "footer.operatedBy": "Operated by",
     "footer.terms": "Terms of Use",
     "footer.privacy": "Privacy",
     "footer.contact": "Contact",
@@ -748,7 +748,7 @@ const translations = {
     // Refund Policy
     "refund.title": "Refund and Returns Policy",
     "refund.lastUpdated": "Effective Date: April 2026",
-    "refund.intro": "At Shqiponja eSIM (operated by Mandi & Bes 2022 SHPK), we strive to provide excellent digital telecommunication services. Because our products are digital (eSIM profiles), our refund policy strictly follows the guidelines for digital goods.",
+    "refund.intro": "At Shqiponja eSIM (operated by VALA TECH 2026 LLC), we strive to provide excellent digital telecommunication services. Because our products are digital (eSIM profiles), our refund policy strictly follows the guidelines for digital goods.",
     "refund.s1.title": "1. Eligibility for Refund",
     "refund.s1.text": "You are eligible for a full refund ONLY under the following conditions:",
     "refund.s1.item1": "The eSIM QR code has NOT been scanned, installed, or activated on your device.",

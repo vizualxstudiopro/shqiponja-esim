@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useI18n } from "@/lib/i18n-context";
 
 export default function Footer() {
@@ -13,18 +14,32 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Company info */}
           <div className="space-y-3">
-            <p className="text-sm font-bold text-zinc-900 dark:text-white">Shqiponja eSIM</p>
+            <Image
+              src="/VALA TECH 2026 LLC LOGO PA SFOND.svg"
+              alt="Vala Tech 2026 LLC"
+              width={120}
+              height={48}
+              className="h-10 w-auto"
+            />
             <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-              Mandi &amp; Bes 2022 SHPK
+              VALA TECH 2026 LLC
             </p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              Kukës, Albania
+            <p className="text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
+              2232 Dell Range Blvd, Suite 303 1440<br />
+              Cheyenne, WY 82009<br />
+              United States
             </p>
             <a
-              href="mailto:info@shqiponjaesim.com"
+              href="tel:+13072262252"
+              className="block text-xs text-zinc-400 hover:text-shqiponja dark:text-zinc-500 transition"
+            >
+              +1 307 226 2252
+            </a>
+            <a
+              href="mailto:support@shqiponjaesim.com"
               className="inline-block text-xs text-shqiponja hover:underline"
             >
-              info@shqiponjaesim.com
+              support@shqiponjaesim.com
             </a>
           </div>
 
@@ -108,7 +123,7 @@ export default function Footer() {
             {t("footer.rights")}
           </p>
           <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
-            shqiponjaesim.com {t("footer.operatedBy")} MANDI &amp; BES-2022 SHPK
+            {t("footer.operatedBy")} VALA TECH 2026 LLC
           </p>
         </div>
       </div>
