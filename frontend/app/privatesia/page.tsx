@@ -18,6 +18,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-white">2. Si i përdorim të dhënat</h2>
             <p className="mt-2">Të dhënat përdoren për procesimin e porosive, dërgimin e eSIM, mbështetje ndaj klientit, parandalim abuzimi dhe përmirësim të platformës.</p>
+            <p className="mt-2"><strong>Baza ligjore për përpunimin:</strong> Përpunojmë të dhënat tuaja mbi bazën e ekzekutimit të kontratës kur blini një eSIM, interesit legjitim për parandalimin e mashtrimit dhe sigurinë e platformës, dhe pëlqimit tuaj për komunikime marketingu dhe cookies jo-esenciale.</p>
           </section>
           <section>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-white">3. Ruajtja dhe siguria</h2>
@@ -29,7 +30,7 @@ export default function PrivacyPage() {
           </section>
           <section>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-white">5. Kontakt</h2>
-            <p className="mt-2">Për pyetje rreth privatësisë: info@shqiponjaesim.com</p>
+            <p className="mt-2">Për pyetje rreth privatësisë: <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a></p>
           </section>
 
           <section>
@@ -44,12 +45,13 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Të Drejtat Tuaja GDPR</h2>
-            <p className="mt-2">Ju keni të drejtë për akses, korrigjim dhe fshirje të të dhënave tuaja personale. Për ushtrimin e këtyre të drejtave, na kontaktoni në info@shqiponjaesim.com.</p>
+            <p className="mt-2">Ju keni të drejtë për akses, korrigjim dhe fshirje të të dhënave tuaja personale. Për ushtrimin e këtyre të drejtave, na kontaktoni në <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a>.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Pagesat</h2>
             <p className="mt-2">Pagesat procesohen nga Stripe dhe PayPal. Ne nuk ruajmë të dhëna të kartave bankare në sistemet tona.</p>
+            <p className="mt-2">Nuk i shesim, japim me qira, ose ndajmë të dhënat tuaja personale me palë të treta për qëllime marketingu.</p>
           </section>
         </div>
       </div>

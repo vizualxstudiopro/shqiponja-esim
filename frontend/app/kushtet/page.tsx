@@ -37,11 +37,16 @@ export default function TermsPage() {
           </section>
 
           <section>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">6. Ligji i Aplikueshëm dhe Juridiksioni</h2>
+            <p className="mt-2">Këto Kushte Përdorimi rregullohen nga ligjet e Shtetit të Wyoming, SHBA. Çdo mosmarrëveshje do të zgjidhet ekskluzivisht në gjykatat shtetërore ose federale të vendosura në Cheyenne, Wyoming.</p>
+          </section>
+
+          <section>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Disclaimer për eSIM</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>eSIM është produkt dixhital, jo kartë fizike.</li>
               <li>Shërbimi është vetëm për të dhëna interneti, jo për thirrje/SMS tradicionale.</li>
-              <li>Klienti duhet të kontrollojë kompatibilitetin e pajisjes përpara blerjes.</li>
+              <li>Klienti duhet të kontrollojë kompatibilitetin e pajisjes <a href="/compatibility" className="text-shqiponja hover:underline">këtu</a> përpara blerjes.</li>
               <li>Nevojitet lidhje interneti për aktivizimin fillestar të eSIM-it.</li>
             </ul>
           </section>

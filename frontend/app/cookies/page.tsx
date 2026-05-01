@@ -45,7 +45,7 @@ export default function CookiesPage() {
 
         <section className="mt-8 space-y-2">
           <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Kontakt</h2>
-          <p>Email: info@shqiponjaesim.com</p>
+          <p>Email: <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a></p>
           <p>Adresa: VALA TECH 2026 LLC, 2232 Dell Range Blvd, Suite 303 1440, Cheyenne, WY 82009, USA</p>
         </section>
       </main>

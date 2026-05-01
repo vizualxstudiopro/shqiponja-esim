@@ -37,7 +37,7 @@ export default function ImprintPage() {
         <section className="mt-8 space-y-3">
           <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Zgjidhja e Mosmarrëveshjeve</h2>
           <p>
-            Për çdo ankesë ose mosmarrëveshje, ju lutem na kontaktoni në info@shqiponjaesim.com.
+            Për çdo ankesë ose mosmarrëveshje, ju lutem na kontaktoni në <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a>.
             Ne përgjigjemi brenda 48 orësh.
           </p>
         </section>

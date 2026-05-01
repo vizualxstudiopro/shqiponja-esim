@@ -6,7 +6,6 @@ import { I18nProvider } from "@/lib/i18n-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { ToastProvider } from "@/lib/toast-context";
 import { CurrencyProvider } from "@/lib/currency-context";
-import CookieConsent from "@/components/cookie-consent";
 import AnalyticsBootstrap from "@/components/analytics-bootstrap";
 import LiveChatVisibility from "@/components/live-chat-visibility";
 
@@ -89,6 +88,32 @@ export default function RootLayout({
           }}
         />
         <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: `{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "VALA TECH 2026 LLC",
+  "legalName": "VALA TECH 2026 LLC",
+  "url": "https://shqiponjaesim.com",
+  "telephone": "+13072262252",
+  "email": "info@shqiponjaesim.com",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "2232 Dell Range Blvd, Suite 303 1440",
+    "addressLocality": "Cheyenne",
+    "addressRegion": "WY",
+    "postalCode": "82009",
+    "addressCountry": "US"
+  },
+  "brand": {
+    "@type": "Brand",
+    "name": "Shqiponja eSIM"
+  }
+}`,
+          }}
+        />
+        <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('shqiponja-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
           }}
@@ -101,7 +126,6 @@ export default function RootLayout({
               <CurrencyProvider>
                 <ToastProvider>
                   {children}
-                  <CookieConsent />
                   <AnalyticsBootstrap />
                   <LiveChatVisibility />
                 </ToastProvider>
@@ -112,6 +136,41 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(d,w,c){w.BrevoConversationsID='69c42990ed5ccd0b86050335';w[c]=w[c]||function(){(w[c].q=w[c].q||[]).push(arguments)};var s=d.createElement('script');s.async=true;s.src='https://conversations-widget.brevo.com/brevo-conversations.js';if(d.head)d.head.appendChild(s)})(document,window,'BrevoConversations');`,
+          }}
+        />
+        <div
+          id="cookie-banner"
+          className="fixed bottom-0 w-full bg-gray-900 text-white p-4 z-50"
+          style={{ display: "none" }}
+        >
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm">Përdorim cookies për të përmirësuar shërbimin. Duke vazhduar, ju pranoni <a href="/cookies" className="underline">Cookie Policy</a>.</p>
+            <div className="flex gap-2">
+              <button onClick={() => {}} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm">Prano Të Gjitha</button>
+              <button onClick={() => {}} className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm">Refuzo Jo-Esencialet</button>
+            </div>
+          </div>
+        </div>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if (!localStorage.getItem('cookieConsent')) {
+  document.getElementById('cookie-banner').style.display = 'block';
+}
+function acceptCookies() {
+  localStorage.setItem('cookieConsent', 'accepted');
+  document.getElementById('cookie-banner').style.display = 'none';
+}
+function rejectCookies() {
+  localStorage.setItem('cookieConsent', 'rejected');
+  document.getElementById('cookie-banner').style.display = 'none';
+}
+(function(){
+  var banner=document.getElementById('cookie-banner');
+  if(!banner) return;
+  var buttons=banner.querySelectorAll('button');
+  if(buttons[0]) buttons[0].addEventListener('click', acceptCookies);
+  if(buttons[1]) buttons[1].addEventListener('click', rejectCookies);
+})();`,
           }}
         />
       </body>
