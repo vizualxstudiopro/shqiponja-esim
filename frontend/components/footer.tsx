@@ -37,10 +37,10 @@ export default function Footer() {
               +1 307 226 2252
             </a>
             <a
-              href="mailto:support@shqiponjaesim.com"
+              href="mailto:info@shqiponjaesim.com"
               className="inline-block text-xs text-shqiponja hover:underline"
             >
-              support@shqiponjaesim.com
+              info@shqiponjaesim.com
             </a>
           </div>
 
