@@ -36,10 +36,17 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() =>
-    typeof window === "undefined" ? null : localStorage.getItem("token")
-  );
-  const [loading, setLoading] = useState(() => (typeof window !== "undefined" && !!localStorage.getItem("token")));
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      setToken(savedToken);
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem("token");
@@ -58,6 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setToken(null);
         })
         .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, [token]);
 
