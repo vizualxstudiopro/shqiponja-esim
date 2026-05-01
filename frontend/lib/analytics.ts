@@ -10,6 +10,7 @@
 
 const GA_ID = "G-LQ8N3VHELT";
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "";
+const CONSENT_KEY = "cookieConsent";
 
 // ---------------------------------------------------------------------------
 // Type augmentation
@@ -47,6 +48,32 @@ function hasFbq(): boolean {
   return isClient() && typeof window.fbq === "function";
 }
 
+function hasGaScript(): boolean {
+  if (!isClient()) return false;
+  return !!document.querySelector(`script[src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"]`);
+}
+
+function loadGoogleAnalytics(): void {
+  if (!isClient()) return;
+
+  window.dataLayer = window.dataLayer || [];
+  if (!window.gtag) {
+    window.gtag = function gtag(...args: unknown[]) {
+      window.dataLayer.push(args);
+    };
+  }
+
+  if (!hasGaScript()) {
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    document.head.appendChild(script);
+  }
+
+  window.gtag("js", new Date());
+  window.gtag("config", GA_ID, { send_page_view: false });
+}
+
 // ---------------------------------------------------------------------------
 // Consent management
 // ---------------------------------------------------------------------------
@@ -54,6 +81,7 @@ function hasFbq(): boolean {
 /** Grant GA4 analytics consent and initialise Pixel (call on cookie accept). */
 export function grantConsent(): void {
   if (!isClient()) return;
+  loadGoogleAnalytics();
   if (hasGtag()) {
     window.gtag("consent", "update", {
       analytics_storage: "granted",
@@ -84,9 +112,9 @@ export function revokeConsent(): void {
 export function bootstrapFromStoredConsent(): void {
   if (!isClient()) return;
   try {
-    const stored = localStorage.getItem("shqiponja-cookie-consent");
+    const stored = localStorage.getItem(CONSENT_KEY) || localStorage.getItem("shqiponja-cookie-consent");
     if (stored === "accepted") grantConsent();
-    else if (stored === "declined") revokeConsent();
+    else if (stored === "rejected" || stored === "declined") revokeConsent();
   } catch {
     /* localStorage unavailable */
   }
