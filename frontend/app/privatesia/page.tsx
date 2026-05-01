@@ -1,55 +1,58 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n-context";
 import LegalPageShell from "@/components/legal-page-shell";
 
 export default function PrivacyPage() {
+  const { t } = useI18n();
+
   return (
     <LegalPageShell>
-        <h1 className="text-3xl font-extrabold">Politika e Privatësisë</h1>
-        <p className="mt-2 text-sm text-zinc-500">Përditësuar për herë të fundit: 1 Maj 2026</p>
+        <h1 className="text-3xl font-extrabold">{t("privacy.title")}</h1>
+        <p className="mt-2 text-sm text-zinc-500">{t("privacy.lastUpdated")}</p>
 
         <div className="mt-8 space-y-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
           <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">1. Të dhënat që mbledhim</h2>
-            <p className="mt-2">Mbledhim të dhëna bazë si emri, email-i, informacioni i porosisë dhe të dhëna teknike të nevojshme për funksionimin e shërbimit Shqiponja eSIM.</p>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.s1.title")}</h2>
+            <p className="mt-2">{t("privacy.s1.text")}</p>
           </section>
           <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">2. Si i përdorim të dhënat</h2>
-            <p className="mt-2">Të dhënat përdoren për procesimin e porosive, dërgimin e eSIM, mbështetje ndaj klientit, parandalim abuzimi dhe përmirësim të platformës.</p>
-            <p className="mt-2"><strong>Baza ligjore për përpunimin:</strong> Përpunojmë të dhënat tuaja mbi bazën e ekzekutimit të kontratës kur blini një eSIM, interesit legjitim për parandalimin e mashtrimit dhe sigurinë e platformës, dhe pëlqimit tuaj për komunikime marketingu dhe cookies jo-esenciale.</p>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.s2.title")}</h2>
+            <p className="mt-2">{t("privacy.s2.text")}</p>
+            <p className="mt-2"><strong>{t("privacy.s2.legal")}</strong></p>
           </section>
           <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">3. Ruajtja dhe siguria</h2>
-            <p className="mt-2">Aplikojmë masa teknike dhe organizative të arsyeshme për të mbrojtur të dhënat personale dhe për të kufizuar qasjen e paautorizuar.</p>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.s3.title")}</h2>
+            <p className="mt-2">{t("privacy.s3.text")}</p>
           </section>
           <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">4. Cookies</h2>
-            <p className="mt-2">Përdorim cookies esenciale, analitike dhe funksionale sipas zgjedhjes suaj të konsentit. Për detaje, shihni Cookie Policy.</p>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.s4.title")}</h2>
+            <p className="mt-2">{t("privacy.s4.text")}</p>
           </section>
           <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">5. Kontakt</h2>
-            <p className="mt-2">Për pyetje rreth privatësisë: <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a></p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Kontrolluesi i të Dhënave</h2>
-            <p className="mt-2">VALA TECH 2026 LLC, 2232 Dell Range Blvd, Suite 303 1440, Cheyenne, WY 82009, USA.</p>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.s5.title")}</h2>
+            <p className="mt-2"><a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a></p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Transferimi i të Dhënave</h2>
-            <p className="mt-2">Të dhënat personale mund të përpunohen dhe ruhen në Shtetet e Bashkuara të Amerikës (USA).</p>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.controller.title")}</h2>
+            <p className="mt-2">{t("privacy.controller.text")}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Të Drejtat Tuaja GDPR</h2>
-            <p className="mt-2">Ju keni të drejtë për akses, korrigjim dhe fshirje të të dhënave tuaja personale. Për ushtrimin e këtyre të drejtave, na kontaktoni në <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a>.</p>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.transfer.title")}</h2>
+            <p className="mt-2">{t("privacy.transfer.text")}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Pagesat</h2>
-            <p className="mt-2">Pagesat procesohen nga Stripe dhe PayPal. Ne nuk ruajmë të dhëna të kartave bankare në sistemet tona.</p>
-            <p className="mt-2">Nuk i shesim, japim me qira, ose ndajmë të dhënat tuaja personale me palë të treta për qëllime marketingu.</p>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.gdpr.title")}</h2>
+            <p className="mt-2">{t("privacy.gdpr.text")} <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a>.</p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.payments.title")}</h2>
+            <p className="mt-2">{t("privacy.payments.text")}</p>
+            <p className="mt-2">{t("privacy.payments.nosell")}</p>
           </section>
         </div>
     </LegalPageShell>

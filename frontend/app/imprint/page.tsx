@@ -1,26 +1,29 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n-context";
 import LegalPageShell from "@/components/legal-page-shell";
 
 export default function ImprintPage() {
+  const { t } = useI18n();
+
   return (
     <LegalPageShell contentClassName="mx-auto max-w-3xl px-6 py-16 text-zinc-700 dark:text-zinc-300">
-        <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white">Të Dhënat e Kompanisë (Imprint)</h1>
+        <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white">{t("imprint.title")}</h1>
 
         <section className="mt-8 space-y-3">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Informacioni Ligjor</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{t("imprint.legal.title")}</h2>
           <ul className="list-disc space-y-1 pl-5">
-            <li>Emri Ligjor: VALA TECH 2026 LLC</li>
-            <li>Forma: Limited Liability Company</li>
-            <li>Brand: Shqiponja eSIM</li>
-            <li>Përgjegjës: VALA TECH 2026 LLC</li>
-            <li>Shteti i Regjistrimit: Wyoming, USA</li>
+            <li>{t("imprint.legal.item1")}</li>
+            <li>{t("imprint.legal.item2")}</li>
+            <li>{t("imprint.legal.item3")}</li>
+            <li>{t("imprint.legal.item4")}</li>
+            <li>{t("imprint.legal.item5")}</li>
           </ul>
         </section>
 
         <section className="mt-8 space-y-3">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Adresa dhe Kontaktet</h2>
-          <p>Adresa: 2232 Dell Range Blvd, Suite 303 1440, Cheyenne, WY 82009, United States</p>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{t("imprint.contact.title")}</h2>
+          <p>{t("imprint.contact.address")}</p>
           <p>
             Email: <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a>
           </p>
@@ -33,10 +36,10 @@ export default function ImprintPage() {
         </section>
 
         <section className="mt-8 space-y-3">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Zgjidhja e Mosmarrëveshjeve</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{t("imprint.dispute.title")}</h2>
           <p>
-            Për çdo ankesë ose mosmarrëveshje, ju lutem na kontaktoni në <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a>.
-            Ne përgjigjemi brenda 48 orësh.
+            {t("imprint.dispute.text")} <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a>.
+            {" "}{t("imprint.dispute.suffix")}
           </p>
         </section>
     </LegalPageShell>

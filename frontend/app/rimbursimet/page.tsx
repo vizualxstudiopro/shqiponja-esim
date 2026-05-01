@@ -9,7 +9,7 @@ export default function RefundPage() {
   return (
     <LegalPageShell>
         <h1 className="text-3xl font-extrabold">{t("refund.title")}</h1>
-        <p className="mt-2 text-sm text-zinc-500">Përditësuar për herë të fundit: 1 Maj 2026</p>
+        <p className="mt-2 text-sm text-zinc-500">{t("refund.lastUpdated")}</p>
         <p className="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{t("refund.intro")}</p>
 
         <div className="mt-8 space-y-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">

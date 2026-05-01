@@ -1,37 +1,35 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n-context";
 import LegalPageShell from "@/components/legal-page-shell";
 
 export default function CookiesPage() {
+  const { t } = useI18n();
+
   return (
     <LegalPageShell contentClassName="mx-auto max-w-3xl px-6 py-16 text-zinc-700 dark:text-zinc-300">
-        <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white">Cookie Policy - Përditësuar 1 Maj 2026</h1>
+        <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white">{t("cookies.title")}</h1>
+        <p className="mt-2 text-sm text-zinc-500">{t("cookies.lastUpdated")}</p>
 
         <section className="mt-8 space-y-3">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Përdorimi i Cookies</h2>
-          <p>
-            VALA TECH 2026 LLC, operator i markës Shqiponja eSIM, përdor cookies për funksionimin e faqes,
-            matjen e performancës dhe përmirësimin e eksperiencës së përdoruesit.
-          </p>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{t("cookies.s1.title")}</h2>
+          <p>{t("cookies.s1.intro")}</p>
           <ul className="list-disc space-y-1 pl-5">
-            <li>Cookies esenciale për funksionimin bazë të platformës.</li>
-            <li>Cookies analitike nga Google Analytics.</li>
-            <li>Cookies marketingu nga Meta Pixel.</li>
-            <li>Cookies funksionale për chat dhe mbështetje klienti.</li>
+            <li>{t("cookies.s1.item1")}</li>
+            <li>{t("cookies.s1.item2")}</li>
+            <li>{t("cookies.s1.item3")}</li>
+            <li>{t("cookies.s1.item4")}</li>
           </ul>
         </section>
 
         <section className="mt-8 space-y-3">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Menaxhimi i Cookies</h2>
-          <p>
-            Ju mund të pranoni ose refuzoni cookies jo-esenciale përmes banner-it të cookies. Zgjedhja ruhet në
-            pajisjen tuaj dhe mund të ndryshohet duke fshirë të dhënat lokale të shfletuesit.
-          </p>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{t("cookies.s2.title")}</h2>
+          <p>{t("cookies.s2.text")}</p>
         </section>
 
         <section className="mt-8 space-y-3">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Palët e Treta</h2>
-          <p>Shërbimet e mëposhtme mund të vendosin ose lexojnë cookies sipas funksionalitetit të tyre:</p>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{t("cookies.s3.title")}</h2>
+          <p>{t("cookies.s3.text")}</p>
           <ul className="list-disc space-y-1 pl-5">
             <li>Stripe</li>
             <li>PayPal</li>
@@ -42,9 +40,9 @@ export default function CookiesPage() {
         </section>
 
         <section className="mt-8 space-y-2">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Kontakt</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{t("cookies.s4.title")}</h2>
           <p>Email: <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a></p>
-          <p>Adresa: VALA TECH 2026 LLC, 2232 Dell Range Blvd, Suite 303 1440, Cheyenne, WY 82009, USA</p>
+          <p>{t("cookies.contact.address")}</p>
         </section>
     </LegalPageShell>
   );
