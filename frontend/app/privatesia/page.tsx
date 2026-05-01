@@ -1,12 +1,10 @@
 "use client";
 
-import Navbar from "@/components/navbar";
+import LegalPageShell from "@/components/legal-page-shell";
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Navbar />
-      <div className="mx-auto max-w-3xl px-6 py-16">
+    <LegalPageShell>
         <h1 className="text-3xl font-extrabold">Politika e Privatësisë</h1>
         <p className="mt-2 text-sm text-zinc-500">Përditësuar për herë të fundit: 1 Maj 2026</p>
 
@@ -54,7 +52,6 @@ export default function PrivacyPage() {
             <p className="mt-2">Nuk i shesim, japim me qira, ose ndajmë të dhënat tuaja personale me palë të treta për qëllime marketingu.</p>
           </section>
         </div>
-      </div>
-    </div>
+    </LegalPageShell>
   );
 }

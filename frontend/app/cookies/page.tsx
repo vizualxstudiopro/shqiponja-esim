@@ -1,12 +1,10 @@
 "use client";
 
-import Navbar from "@/components/navbar";
+import LegalPageShell from "@/components/legal-page-shell";
 
 export default function CookiesPage() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Navbar />
-      <main className="mx-auto max-w-3xl px-6 py-16 text-zinc-700 dark:text-zinc-300">
+    <LegalPageShell contentClassName="mx-auto max-w-3xl px-6 py-16 text-zinc-700 dark:text-zinc-300">
         <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white">Cookie Policy - Përditësuar 1 Maj 2026</h1>
 
         <section className="mt-8 space-y-3">
@@ -48,7 +46,6 @@ export default function CookiesPage() {
           <p>Email: <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a></p>
           <p>Adresa: VALA TECH 2026 LLC, 2232 Dell Range Blvd, Suite 303 1440, Cheyenne, WY 82009, USA</p>
         </section>
-      </main>
-    </div>
+    </LegalPageShell>
   );
 }

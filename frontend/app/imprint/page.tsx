@@ -1,12 +1,10 @@
 "use client";
 
-import Navbar from "@/components/navbar";
+import LegalPageShell from "@/components/legal-page-shell";
 
 export default function ImprintPage() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Navbar />
-      <main className="mx-auto max-w-3xl px-6 py-16 text-zinc-700 dark:text-zinc-300">
+    <LegalPageShell contentClassName="mx-auto max-w-3xl px-6 py-16 text-zinc-700 dark:text-zinc-300">
         <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white">Të Dhënat e Kompanisë (Imprint)</h1>
 
         <section className="mt-8 space-y-3">
@@ -41,7 +39,6 @@ export default function ImprintPage() {
             Ne përgjigjemi brenda 48 orësh.
           </p>
         </section>
-      </main>
-    </div>
+    </LegalPageShell>
   );
 }

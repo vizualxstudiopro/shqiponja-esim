@@ -1,16 +1,13 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n-context";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import LegalPageShell from "@/components/legal-page-shell";
 
 export default function RefundPage() {
   const { t } = useI18n();
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Navbar />
-      <div className="mx-auto max-w-3xl px-6 py-16">
+    <LegalPageShell>
         <h1 className="text-3xl font-extrabold">{t("refund.title")}</h1>
         <p className="mt-2 text-sm text-zinc-500">Përditësuar për herë të fundit: 1 Maj 2026</p>
         <p className="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{t("refund.intro")}</p>
@@ -44,8 +41,6 @@ export default function RefundPage() {
             <p className="mt-2">{t("refund.s3.processing")}</p>
           </section>
         </div>
-      </div>
-      <Footer />
-    </div>
+    </LegalPageShell>
   );
 }
