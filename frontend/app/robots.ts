@@ -6,7 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/profili", "/porosi/", "/verifiko", "/rivendos-fjalekalimin"],
       },
     ],
     sitemap: "https://shqiponjaesim.com/sitemap.xml",
