@@ -17,12 +17,12 @@ export default function Footer() {
             <p className="text-sm font-bold text-zinc-900 dark:text-white">Shqiponja eSIM</p>
             <div className="space-y-1">
               <span className="block text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Operated by</span>
-              <Image
+              <img
                 src="/VALA TECH 2026 LLC LOGO PA SFOND.svg"
                 alt="Vala Tech 2026 LLC"
-                width={80}
-                height={32}
-                className="h-6 w-auto"
+                className="h-8 w-auto object-contain"
+                loading="lazy"
+                decoding="async"
               />
             </div>
             <p className="text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
