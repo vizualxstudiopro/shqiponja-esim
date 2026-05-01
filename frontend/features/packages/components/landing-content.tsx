@@ -554,7 +554,7 @@ export default function LandingContent() {
       </section>
 
       {/* ══════════ DEVICE COMPATIBILITY CHECK ══════════ */}
-      <section className="bg-white py-20 lg:py-28 dark:bg-zinc-950">
+      <section id="compatibility" className="bg-white py-20 lg:py-28 dark:bg-zinc-950">
         <div ref={compatRef} className="reveal mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-2xl text-center">
             <span className="inline-block rounded-full bg-shqiponja/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-shqiponja">

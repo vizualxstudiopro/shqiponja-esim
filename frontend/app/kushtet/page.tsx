@@ -44,7 +44,7 @@ export default function TermsPage() {
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>eSIM është produkt dixhital, jo kartë fizike.</li>
               <li>Shërbimi është vetëm për të dhëna interneti, jo për thirrje/SMS tradicionale.</li>
-              <li>Klienti duhet të kontrollojë kompatibilitetin e pajisjes <a href="/compatibility" className="text-shqiponja hover:underline">këtu</a> përpara blerjes.</li>
+              <li>Klienti duhet të kontrollojë kompatibilitetin e pajisjes <a href="/#compatibility" className="text-shqiponja hover:underline">këtu</a> përpara blerjes.</li>
               <li>Nevojitet lidhje interneti për aktivizimin fillestar të eSIM-it.</li>
             </ul>
           </section>
