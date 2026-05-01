@@ -18,9 +18,9 @@ export default function Footer() {
             <div className="space-y-1">
               <span className="block text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Operated by</span>
               <img
-                src="/VALA TECH 2026 LLC LOGO PA SFOND.svg"
+                src="/vala-tech-optimized.svg"
                 alt="Vala Tech 2026 LLC"
-                className="h-8 w-auto object-contain"
+                className="h-9 w-auto object-contain"
                 loading="lazy"
                 decoding="async"
               />
