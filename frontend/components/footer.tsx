@@ -14,16 +14,17 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Company info */}
           <div className="space-y-3">
-            <Image
-              src="/VALA TECH 2026 LLC LOGO PA SFOND.svg"
-              alt="Vala Tech 2026 LLC"
-              width={120}
-              height={48}
-              className="h-10 w-auto"
-            />
-            <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-              VALA TECH 2026 LLC
-            </p>
+            <p className="text-sm font-bold text-zinc-900 dark:text-white">Shqiponja eSIM</p>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Operated by</span>
+              <Image
+                src="/VALA TECH 2026 LLC LOGO PA SFOND.svg"
+                alt="Vala Tech 2026 LLC"
+                width={80}
+                height={32}
+                className="h-6 w-auto"
+              />
+            </div>
             <p className="text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
               2232 Dell Range Blvd, Suite 303 1440<br />
               Cheyenne, WY 82009<br />
