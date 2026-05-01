@@ -15,8 +15,8 @@ export default function Footer() {
           {/* Company info */}
           <div className="space-y-3">
             <p className="text-sm font-bold text-zinc-900 dark:text-white">Shqiponja eSIM</p>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Operated by</span>
+            <div className="space-y-1">
+              <span className="block text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Operated by</span>
               <Image
                 src="/VALA TECH 2026 LLC LOGO PA SFOND.svg"
                 alt="Vala Tech 2026 LLC"
