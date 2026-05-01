@@ -111,20 +111,26 @@ const HOST_COUNTRIES: HostCountry[] = [
 const WORLD_CUP_START = new Date("2026-06-11T00:00:00Z");
 
 function useCountdown() {
-  const [now, setNow] = useState(() => new Date());
+  const [nowMs, setNowMs] = useState<number | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
+    const tick = () => setNowMs(Date.now());
+    tick();
+    const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const diff = Math.max(0, WORLD_CUP_START.getTime() - now.getTime());
+  if (nowMs === null) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, isOver: false, ready: false };
+  }
+
+  const diff = Math.max(0, WORLD_CUP_START.getTime() - nowMs);
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
   const minutes = Math.floor((diff / (1000 * 60)) % 60);
   const seconds = Math.floor((diff / 1000) % 60);
 
-  return { days, hours, minutes, seconds, isOver: diff === 0 };
+  return { days, hours, minutes, seconds, isOver: diff === 0, ready: true };
 }
 
 function FlagIcon({ code }: { code: string }) {
@@ -207,7 +213,7 @@ export default function WorldCupSection() {
           </p>
 
           {/* Countdown Timer */}
-          {!countdown.isOver && (
+          {countdown.ready && !countdown.isOver && (
             <div className="mt-8 flex justify-center gap-3 sm:gap-5">
               {[
                 { val: countdown.days, label: t("worldcup.days") },
