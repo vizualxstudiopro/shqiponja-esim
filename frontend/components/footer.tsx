@@ -101,7 +101,7 @@ export default function Footer() {
             {/* Airalo badge */}
             <div className="mt-2 flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5 w-fit dark:border-zinc-600 dark:bg-zinc-800">
               <Image
-                src="/airalo-partner-white.svg"
+                src="/idk7pi9b2j_1777631151716.svg"
                 alt="Airalo"
                 width={132}
                 height={24}
