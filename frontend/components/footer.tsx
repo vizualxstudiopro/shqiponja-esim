@@ -32,14 +32,41 @@ export default function Footer() {
             </p>
             <a
               href="tel:+13072262252"
-              className="block text-xs text-zinc-400 hover:text-shqiponja dark:text-zinc-500 transition"
+              className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-shqiponja dark:text-zinc-500 transition"
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              >
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.34 1.78.65 2.62a2 2 0 0 1-.45 2.11L8.03 9.73a16 16 0 0 0 6.24 6.24l1.28-1.28a2 2 0 0 1 2.11-.45c.84.31 1.72.53 2.62.65A2 2 0 0 1 22 16.92z" />
+              </svg>
               +1 307 226 2252
             </a>
             <a
               href="mailto:info@shqiponjaesim.com"
-              className="inline-block text-xs text-shqiponja hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs text-shqiponja hover:underline"
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              >
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="m22 7-10 7L2 7" />
+              </svg>
               info@shqiponjaesim.com
             </a>
           </div>
