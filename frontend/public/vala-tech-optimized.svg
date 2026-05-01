@@ -1,30 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="96" viewBox="0 0 320 96" role="img" aria-labelledby="title desc">
-  <title id="title">Vala Tech 2026 LLC</title>
-  <desc id="desc">Optimized Vala Tech logo for footer usage.</desc>
-
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="80" viewBox="0 0 260 80" role="img" aria-label="Vala Tech 2026 LLC">
   <defs>
-    <linearGradient id="gRed" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#d9365c"/>
-      <stop offset="100%" stop-color="#a71f48"/>
-    </linearGradient>
-    <linearGradient id="gBlue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#3b82f6"/>
-      <stop offset="100%" stop-color="#1d4ed8"/>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#be264b"/>
+      <stop offset="100%" stop-color="#1d407c"/>
     </linearGradient>
   </defs>
 
-  <g transform="translate(4,8)">
-    <path d="M56 0c-19.8 0-38.6 11.5-47.2 29.7C0.2 48 4.1 69.7 18.4 84.2C10.8 68.3 12.8 48.7 25.5 35.3C34.7 25.6 46.6 21 59.5 20.5C64.4 20.3 64.9 6.6 60.4 4.1C59 3.4 57.5 0 56 0z" fill="url(#gRed)"/>
-    <path d="M41.8 24.6c7.8 3.1 11.7 10.1 11.1 19.6c-0.7 11.2-8.9 19.9-20.8 22.1c11.8 11.7 30.6 13.6 44.4 4.3c14.7-9.9 20.3-29.4 13.5-45.4c-6.9 6.4-15.1 10.5-24.8 12.2c-7.8 1.4-15.7 0.4-23.4-2.8z" fill="url(#gBlue)"/>
-
-    <g fill="#1f4da0" transform="translate(102,11)">
-      <path d="M0 48L17 0h10l17 48h-9l-4-11H13L9 48H0zm16-19h12L22 11h-1l-5 18z"/>
-      <path d="M48 48V13h8v6c3-4 7-7 13-7c9 0 14 6 14 16v20h-8V30c0-6-2-10-8-10c-7 0-11 5-11 12v16h-8z"/>
-      <path d="M88 48V13h8v6c3-4 7-7 13-7c9 0 14 6 14 16v20h-8V30c0-6-2-10-8-10c-7 0-11 5-11 12v16h-8z"/>
-      <path d="M128 48V13h8v35h-8zM128 7V0h8v7h-8z"/>
-      <path d="M157 49c-11 0-19-8-19-19c0-11 8-19 19-19c11 0 19 8 19 19c0 11-8 19-19 19zm0-7c7 0 11-5 11-12c0-7-4-12-11-12c-7 0-11 5-11 12c0 7 4 12 11 12z"/>
-    </g>
-
-    <text x="103" y="80" font-family="Poppins, Montserrat, Arial, sans-serif" font-size="16" letter-spacing="6" fill="#64748b">2026 LLC</text>
+  <!-- Icon: stylized globe/wing shape replicating original -->
+  <g transform="translate(4, 8)">
+    <!-- Red arc top-left -->
+    <path d="M32 2 C14 2 2 14 2 32 C2 42 7 51 14 57 C11 48 13 37 20 29 C26 22 34 18 44 17 C44 8 39 2 32 2 Z" fill="#be264b"/>
+    <!-- Blue arc bottom-right -->
+    <path d="M26 18 C33 21 37 28 36 37 C35 46 28 53 19 55 C26 62 37 64 48 60 C59 56 66 45 64 34 C60 39 54 43 47 44 C41 45 34 44 26 41 Z" fill="#1d407c"/>
   </g>
+
+  <!-- Company name -->
+  <text x="76" y="38" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#1d407c" letter-spacing="1">Vala Tech</text>
+  <text x="76" y="58" font-family="Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="400" fill="#64748b" letter-spacing="4">2026 LLC</text>
 </svg>
