@@ -1,20 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="260" height="80" viewBox="0 0 260 80" role="img" aria-label="Vala Tech 2026 LLC">
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="48" viewBox="0 0 180 48" role="img" aria-label="Vala Tech 2026 LLC">
   <defs>
-    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#be264b"/>
-      <stop offset="100%" stop-color="#1d407c"/>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8334a"/>
+      <stop offset="100%" stop-color="#c01030"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2563b0"/>
+      <stop offset="100%" stop-color="#1a3f7a"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d42840"/>
+      <stop offset="100%" stop-color="#1e4a90"/>
     </linearGradient>
   </defs>
 
-  <!-- Icon: stylized globe/wing shape replicating original -->
-  <g transform="translate(4, 8)">
-    <!-- Red arc top-left -->
-    <path d="M32 2 C14 2 2 14 2 32 C2 42 7 51 14 57 C11 48 13 37 20 29 C26 22 34 18 44 17 C44 8 39 2 32 2 Z" fill="#be264b"/>
-    <!-- Blue arc bottom-right -->
-    <path d="M26 18 C33 21 37 28 36 37 C35 46 28 53 19 55 C26 62 37 64 48 60 C59 56 66 45 64 34 C60 39 54 43 47 44 C41 45 34 44 26 41 Z" fill="#1d407c"/>
-  </g>
+  <!-- Icon: 3 overlapping geometric pieces, clean Airalo-style -->
+  <!-- Left red bar (tall) -->
+  <rect x="0" y="4" width="11" height="40" rx="3" fill="url(#g1)"/>
+  <!-- Middle gradient bar (medium) -->
+  <rect x="7" y="12" width="11" height="32" rx="3" fill="url(#g3)"/>
+  <!-- Right blue bar (short, offset) -->
+  <rect x="14" y="20" width="11" height="24" rx="3" fill="url(#g2)"/>
 
-  <!-- Company name -->
-  <text x="76" y="38" font-family="Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700" fill="#1d407c" letter-spacing="1">Vala Tech</text>
-  <text x="76" y="58" font-family="Helvetica Neue, Arial, sans-serif" font-size="13" font-weight="400" fill="#64748b" letter-spacing="4">2026 LLC</text>
+  <!-- Wordmark -->
+  <text x="34" y="29" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#2d2d2d" letter-spacing="0.3">Vala Tech</text>
+  <text x="35" y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="9" font-weight="400" fill="#888888" letter-spacing="2">2026 LLC</text>
 </svg>

@@ -20,7 +20,7 @@ export default function Footer() {
               <img
                 src="/vala-tech-optimized.svg"
                 alt="Vala Tech 2026 LLC"
-                className="h-9 w-auto object-contain"
+                className="h-12 w-auto object-contain"
                 loading="lazy"
                 decoding="async"
               />
