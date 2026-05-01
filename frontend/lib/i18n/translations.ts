@@ -35,7 +35,7 @@ const translations = {
     "trust.noHiddenDesc": "Çmimi që shikon është çmimi që paguan — zero surpriza.",
     "trust.airalo": "Partner Zyrtar i Airalo",
     "trust.airaloDesc": "Jemi partner i certifikuar i Airalo — platforma më e madhe e eSIM në botë.",
-    "footer.airaloPartner": "Partner Zyrtar i Airalo",
+    "footer.airaloPartner": "Partner Zyrtar",
 
     // Testimonials
     "testimonials.title": "Çfarë thonë klientët tanë",
@@ -599,7 +599,7 @@ const translations = {
     "trust.noHiddenDesc": "The price you see is the price you pay — zero surprises.",
     "trust.airalo": "Official Airalo Partner",
     "trust.airaloDesc": "We are a certified partner of Airalo — the world's largest eSIM platform.",
-    "footer.airaloPartner": "Official Airalo Partner",
+    "footer.airaloPartner": "Official Partner",
 
     // Testimonials
     "testimonials.title": "What our customers say",
