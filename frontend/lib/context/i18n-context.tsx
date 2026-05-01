@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   useCallback,
   type ReactNode,
 } from "react";
@@ -15,14 +16,23 @@ interface I18nContextType {
   t: (key: TranslationKey) => string;
 }
 
-const I18nContext = createContext<I18nContextType | null>(null);
+const I18nContext = createContext<I18nContextType>({
+  locale: "sq",
+  setLocale: () => {},
+  t: (key) => key,
+});
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === "undefined") return "sq";
+  const [locale, setLocaleState] = useState<Locale>("sq");
+  const [mounted, setMounted] = useState(false);
+
+  // Initialize locale from localStorage after mount (client-side only)
+  useEffect(() => {
     const saved = localStorage.getItem("locale") as Locale | null;
-    return saved && translations[saved] ? saved : "sq";
-  });
+    const initialLocale = saved && translations[saved] ? saved : "sq";
+    setLocaleState(initialLocale);
+    setMounted(true);
+  }, []);
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l);
@@ -43,6 +53,5 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
 export function useI18n() {
   const ctx = useContext(I18nContext);
-  if (!ctx) throw new Error("useI18n must be inside I18nProvider");
   return ctx;
 }
