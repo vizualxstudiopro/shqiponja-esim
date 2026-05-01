@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
+import { useI18n } from "@/lib/i18n-context";
 
 const GlobeIcon = () => (
   <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -50,39 +51,49 @@ const RoamingIcon = () => (
   </svg>
 );
 
-const scenes = [
+const buildScenes = (isEnglish: boolean) => [
   {
     id: "website",
-    title: "1. Zgjidh & Bli",
-    description: "Hap shqiponjaesim.com, zgjidh destinacionin dhe bli paketën tënde në sekonda.",
+    title: isEnglish ? "1. Choose & Buy" : "1. Zgjidh & Bli",
+    description: isEnglish
+      ? "Open shqiponjaesim.com, pick your destination, and buy your package in seconds."
+      : "Hap shqiponjaesim.com, zgjidh destinacionin dhe bli paketën tënde në sekonda.",
     icon: <GlobeIcon />,
     action: "Website Flow",
   },
   {
     id: "email",
-    title: "2. Merr QR Kodin",
-    description: "Kontrollo email-in. Do të pranosh menjëherë konfirmimin me QR kodin tënd unik.",
+    title: isEnglish ? "2. Get QR Code" : "2. Merr QR Kodin",
+    description: isEnglish
+      ? "Check your email. You will instantly receive confirmation with your unique QR code."
+      : "Kontrollo email-in. Do të pranosh menjëherë konfirmimin me QR kodin tënd unik.",
     icon: <MailIcon />,
-    action: "Email Confirmation",
+    action: isEnglish ? "Email Confirmation" : "Konfirmimi me Email",
   },
   {
     id: "install",
-    title: "3. Instalo eSIM",
-    description: "Skano kodin nga cilësimet e telefonit tënd (Settings). Procesi zgjat vetëm 1 minutë.",
+    title: isEnglish ? "3. Install eSIM" : "3. Instalo eSIM",
+    description: isEnglish
+      ? "Scan the code from your phone settings. The process takes around 1 minute."
+      : "Skano kodin nga cilësimet e telefonit tënd (Settings). Procesi zgjat vetëm 1 minutë.",
     icon: <QrCodeIcon />,
-    action: "Scanning Process",
+    action: isEnglish ? "Scanning Process" : "Procesi i Skanimit",
   },
   {
     id: "config",
-    title: "4. Aktivizo Roaming",
-    description: "E rëndësishme: Sigurohu që 'Data Roaming' të jetë ON për linjën e re 'Travel'.",
+    title: isEnglish ? "4. Enable Roaming" : "4. Aktivizo Roaming",
+    description: isEnglish
+      ? "Important: make sure Data Roaming is ON for your new Travel line."
+      : "E rëndësishme: Sigurohu që 'Data Roaming' të jetë ON për linjën e re 'Travel'.",
     icon: <RoamingIcon />,
-    action: "Final Toggle",
+    action: isEnglish ? "Final Toggle" : "Aktivizimi Final",
   },
   {
     id: "ready",
-    title: "5. Fluturo i Lirë",
-    description: "Sapo të zbresësh, telefoni do të lidhet automatikisht me rrjetin lokal. Gati!",
+    title: isEnglish ? "5. You Are Ready" : "5. Fluturo i Lirë",
+    description: isEnglish
+      ? "As soon as you land, your phone will connect automatically to the local network. Done!"
+      : "Sapo të zbresësh, telefoni do të lidhet automatikisht me rrjetin lokal. Gati!",
     icon: (
       <div className="text-shqiponja scale-150">
         <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="3">
@@ -90,11 +101,14 @@ const scenes = [
         </svg>
       </div>
     ),
-    action: "Connected ✓",
+    action: isEnglish ? "Connected" : "Lidhur",
   },
 ];
 
 export default function InstallGuidePage() {
+  const { locale } = useI18n();
+  const isEnglish = locale === "en";
+  const scenes = buildScenes(isEnglish);
   const [currentScene, setCurrentScene] = useState(0);
   const [device, setDevice] = useState<"iphone" | "android">("iphone");
   const [isPaused, setIsPaused] = useState(false);
@@ -131,14 +145,16 @@ export default function InstallGuidePage() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-shqiponja/30 bg-shqiponja/10 mb-6">
                 <span className="w-2 h-2 rounded-full bg-shqiponja animate-pulse"></span>
-                <span className="text-[10px] font-bold text-shqiponja uppercase tracking-widest">Udhëzuesi Interaktiv</span>
+                <span className="text-[10px] font-bold text-shqiponja uppercase tracking-widest">{isEnglish ? "Interactive Guide" : "Udhëzuesi Interaktiv"}</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
-                Instalimi në <br />
-                <span className="text-shqiponja">5 hapa të thjeshtë.</span>
+                {isEnglish ? "Installation in" : "Instalimi në"} <br />
+                <span className="text-shqiponja">{isEnglish ? "5 simple steps." : "5 hapa të thjeshtë."}</span>
               </h1>
               <p className="text-zinc-600 dark:text-zinc-400 text-lg">
-                Ndiq këtë animacion për të parë se si të lidhesh me internetin kudo në botë pa humbur kohë.
+                {isEnglish
+                  ? "Follow this animation to see how to connect to the internet anywhere in the world without wasting time."
+                  : "Ndiq këtë animacion për të parë se si të lidhesh me internetin kudo në botë pa humbur kohë."}
               </p>
             </div>
 
@@ -188,7 +204,7 @@ export default function InstallGuidePage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-[9px] uppercase tracking-[0.18em] text-zinc-500">Shqiponja eSIM</p>
-                        <p className="text-xs font-semibold text-zinc-100">Instalimi</p>
+                        <p className="text-xs font-semibold text-zinc-100">{isEnglish ? "Installation" : "Instalimi"}</p>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
@@ -196,16 +212,16 @@ export default function InstallGuidePage() {
                       </div>
                     </div>
                     <div className="mt-2 flex items-center gap-1.5">
-                      <span className="rounded-full bg-shqiponja/20 px-2 py-1 text-[9px] font-semibold text-shqiponja">Paketa</span>
-                      <span className="rounded-full bg-white/5 px-2 py-1 text-[9px] font-semibold text-zinc-400">Instalimi</span>
-                      <span className="rounded-full bg-white/5 px-2 py-1 text-[9px] font-semibold text-zinc-400">Profili</span>
+                      <span className="rounded-full bg-shqiponja/20 px-2 py-1 text-[9px] font-semibold text-shqiponja">{isEnglish ? "Packages" : "Paketa"}</span>
+                      <span className="rounded-full bg-white/5 px-2 py-1 text-[9px] font-semibold text-zinc-400">{isEnglish ? "Install" : "Instalimi"}</span>
+                      <span className="rounded-full bg-white/5 px-2 py-1 text-[9px] font-semibold text-zinc-400">{isEnglish ? "Profile" : "Profili"}</span>
                     </div>
                   </div>
 
                   <div className="rounded-2xl bg-[#121317] border border-white/10 p-3 mb-3">
-                    <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Destinacioni</p>
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">{isEnglish ? "Destination" : "Destinacioni"}</p>
                     <div className="mt-1 flex items-center justify-between">
-                      <p className="text-sm font-semibold text-zinc-100">Europe 10GB / 30 ditë</p>
+                      <p className="text-sm font-semibold text-zinc-100">{isEnglish ? "Europe 10GB / 30 days" : "Europe 10GB / 30 ditë"}</p>
                       <span className="text-sm font-bold text-shqiponja">€24.90</span>
                     </div>
                   </div>
@@ -228,9 +244,13 @@ export default function InstallGuidePage() {
                     <h3 className="text-base font-bold mb-2 tracking-tight text-zinc-100">{scenes[currentScene].title}</h3>
                     <p className="text-zinc-400 text-xs leading-relaxed mb-5 px-2">
                       {device === "iphone" && currentScene === 2
-                        ? "Shko te Settings > Cellular > Add eSIM."
+                        ? isEnglish
+                          ? "Go to Settings > Cellular > Add eSIM."
+                          : "Shko te Settings > Cellular > Add eSIM."
                         : device === "android" && currentScene === 2
-                        ? "Hap Settings > SIM Manager > Add eSIM."
+                        ? isEnglish
+                          ? "Open Settings > SIM Manager > Add eSIM."
+                          : "Hap Settings > SIM Manager > Add eSIM."
                         : scenes[currentScene].description}
                     </p>
                     <div className="w-full bg-[#121212] border border-white/5 rounded-2xl p-3 text-left">
@@ -246,15 +266,15 @@ export default function InstallGuidePage() {
 
                   <div className="mt-auto rounded-2xl bg-[#121317] border border-white/10 p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Porosia jote</p>
-                      <span className="text-[10px] font-semibold text-emerald-400">Aktive</span>
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500">{isEnglish ? "Your order" : "Porosia jote"}</p>
+                      <span className="text-[10px] font-semibold text-emerald-400">{isEnglish ? "Active" : "Aktive"}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs mb-2">
                       <span className="text-zinc-400">Data</span>
                       <span className="text-zinc-200 font-medium">7.5GB / 10GB</span>
                     </div>
                     <button className="w-full rounded-xl bg-shqiponja text-white text-xs font-semibold py-2">
-                      Shiko QR dhe Udhëzimet
+                      {isEnglish ? "View QR and Instructions" : "Shiko QR dhe Udhëzimet"}
                     </button>
                   </div>
                 </div>

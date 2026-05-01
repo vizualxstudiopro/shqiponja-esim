@@ -400,13 +400,13 @@ export default function LandingContent() {
 
           <div className="animate-fade-up delay-300 mt-10 flex flex-col gap-4 sm:flex-row">
             <a
-              href="#packages"
+              href="/#packages"
               className="group rounded-full bg-shqiponja px-8 py-3.5 text-base font-semibold text-white shadow-xl shadow-shqiponja/30 hover:bg-shqiponja-dark hover:shadow-shqiponja/50 transition-all duration-300 hover:scale-105"
             >
               {t("hero.cta")}
             </a>
             <a
-              href="#how"
+              href="/#how"
               className="rounded-full border border-white/15 px-8 py-3.5 text-base font-semibold text-white hover:bg-white/5 hover:border-white/30 transition-all duration-300"
             >
               {t("hero.howLink")}
@@ -765,7 +765,7 @@ export default function LandingContent() {
           <h2 className="text-3xl font-extrabold sm:text-4xl">{t("cta.title")}</h2>
           <p className="mx-auto mt-4 max-w-md text-white/80">{t("cta.subtitle")}</p>
           <a
-            href="#packages"
+            href="/#packages"
             className="mt-8 inline-block rounded-full bg-white px-8 py-3.5 text-base font-bold text-shqiponja shadow-lg hover:bg-zinc-100 hover:scale-105 transition-all duration-300"
           >
             {t("cta.btn")}

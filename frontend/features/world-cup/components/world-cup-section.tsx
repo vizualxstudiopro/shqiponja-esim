@@ -342,7 +342,7 @@ export default function WorldCupSection() {
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
           <a
-            href="#packages"
+            href="/#packages"
             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-7 py-3 text-sm font-bold text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/30"
           >
             {t("worldcup.allPackages")}
