@@ -32,7 +32,7 @@ export default function Footer() {
             </p>
             <a
               href="tel:+13072262252"
-              className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-shqiponja dark:text-zinc-500 transition"
+              className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-shqiponja dark:text-zinc-500 transition"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -51,7 +51,7 @@ export default function Footer() {
             </a>
             <a
               href="mailto:info@shqiponjaesim.com"
-              className="inline-flex items-center gap-1.5 text-xs text-shqiponja hover:underline"
+              className="flex items-center gap-1.5 text-xs text-shqiponja hover:underline"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
