@@ -1,0 +1,7 @@
+<svg width="96" height="56" viewBox="0 0 96 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0.5" y="0.5" width="95" height="55" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <circle cx="40" cy="28" r="12" fill="#0099DF"/>
+  <circle cx="54" cy="28" r="12" fill="#ED1C24"/>
+  <path d="M47 18.9C49.4 21.1 51 24.3 51 28C51 31.7 49.4 34.9 47 37.1C44.6 34.9 43 31.7 43 28C43 24.3 44.6 21.1 47 18.9Z" fill="#6C2D91" fill-opacity="0.9"/>
+  <text x="48" y="47" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#111827">maestro</text>
+</svg>

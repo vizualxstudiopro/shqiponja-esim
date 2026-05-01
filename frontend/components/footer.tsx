@@ -74,19 +74,28 @@ export default function Footer() {
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
               {t("footer.payWith")}
             </p>
-            <div className="flex items-center gap-3">
-              {/* Visa */}
-              <svg className="h-8 w-auto text-zinc-400 dark:text-zinc-500" viewBox="0 0 48 32" fill="none">
-                <rect width="48" height="32" rx="4" fill="currentColor" fillOpacity="0.08" stroke="currentColor" strokeOpacity="0.15" />
-                <path d="M20.3 21H17.7L19.3 11H21.9L20.3 21ZM15.8 11L13.3 17.8L13 16.3L12.1 11.7C12.1 11.7 12 11 11.1 11H7.1L7 11.2C7 11.2 8 11.4 9.2 12.1L11.5 21H14.2L18.5 11H15.8ZM37 21H39.3L37.3 11H35.2C34.5 11 33.9 11.4 33.7 12L29.8 21H32.5L33 19.5H36.3L37 21ZM33.8 17.5L35.2 13.7L36 17.5H33.8ZM30.2 13.6L30.6 11.3C30.6 11.3 29.5 11 28.4 11C27.2 11 24.2 11.5 24.2 14.1C24.2 16.5 27.5 16.5 27.5 17.8C27.5 19.1 24.6 18.8 23.5 18L23 20.4C23 20.4 24.2 21 25.8 21C27.5 21 30.2 20.1 30.2 17.7C30.2 15.2 26.9 15 26.9 13.9C26.9 12.8 29.1 12.9 30.2 13.6Z" fill="currentColor" fillOpacity="0.6" />
-              </svg>
-              {/* Mastercard */}
-              <svg className="h-8 w-auto text-zinc-400 dark:text-zinc-500" viewBox="0 0 48 32" fill="none">
-                <rect width="48" height="32" rx="4" fill="currentColor" fillOpacity="0.08" stroke="currentColor" strokeOpacity="0.15" />
-                <circle cx="20" cy="16" r="7" fill="currentColor" fillOpacity="0.2" />
-                <circle cx="28" cy="16" r="7" fill="currentColor" fillOpacity="0.2" />
-                <path d="M24 10.8A6.97 6.97 0 0 1 27 16a6.97 6.97 0 0 1-3 5.2A6.97 6.97 0 0 1 21 16a6.97 6.97 0 0 1 3-5.2Z" fill="currentColor" fillOpacity="0.3" />
-              </svg>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-2">
+              {[
+                { name: "Visa", src: "/payments/visa.svg" },
+                { name: "Mastercard", src: "/payments/mastercard.svg" },
+                { name: "Maestro", src: "/payments/maestro.svg" },
+                { name: "PayPal", src: "/payments/paypal.svg" },
+                { name: "Stripe", src: "/payments/stripe.svg" },
+              ].map((payment) => (
+                <div
+                  key={payment.name}
+                  className="rounded-xl border border-zinc-200/80 bg-white p-1.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+                  title={payment.name}
+                >
+                  <Image
+                    src={payment.src}
+                    alt={payment.name}
+                    width={96}
+                    height={56}
+                    className="h-8 w-auto"
+                  />
+                </div>
+              ))}
             </div>
 
             {/* Airalo badge */}
