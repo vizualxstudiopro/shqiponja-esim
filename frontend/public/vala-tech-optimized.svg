@@ -1,28 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="48" viewBox="0 0 180 48" role="img" aria-label="Vala Tech 2026 LLC">
-  <defs>
-    <linearGradient id="g1" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#e8334a"/>
-      <stop offset="100%" stop-color="#c01030"/>
-    </linearGradient>
-    <linearGradient id="g2" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#2563b0"/>
-      <stop offset="100%" stop-color="#1a3f7a"/>
-    </linearGradient>
-    <linearGradient id="g3" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#d42840"/>
-      <stop offset="100%" stop-color="#1e4a90"/>
-    </linearGradient>
-  </defs>
-
-  <!-- Icon: 3 overlapping geometric pieces, clean Airalo-style -->
-  <!-- Left red bar (tall) -->
-  <rect x="0" y="4" width="11" height="40" rx="3" fill="url(#g1)"/>
-  <!-- Middle gradient bar (medium) -->
-  <rect x="7" y="12" width="11" height="32" rx="3" fill="url(#g3)"/>
-  <!-- Right blue bar (short, offset) -->
-  <rect x="14" y="20" width="11" height="24" rx="3" fill="url(#g2)"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="188" height="48" viewBox="0 0 188 48" role="img" aria-label="Vala Tech 2026 LLC">
+  <!-- Original round icon shape from provided logo code (icon only) -->
+  <g transform="translate(0.5,1.2) scale(0.72)">
+    <path fill="#be264b" d="M 25.29 13.04 Q 17.67 20.78 13.90 31.60 Q 11.05 39.75 11.90 47.89 C 1.99 40.22 -1.23 27.50 4.25 16.33 C 9.94 4.72 24.68 -1.23 37.03 3.95 A 0.15 0.15 0.0 0 1 36.99 4.24 Q 32.47 4.89 29.35 8.35 Q 27.07 10.88 25.29 13.04 Z"/>
+    <path fill="#224c8b" d="M 25.29 13.04 Q 24.06 18.94 26.35 21.64 C 32.13 28.43 43.34 20.65 47.76 15.85 A 0.34 0.34 0.0 0 1 48.33 16.17 C 45.09 27.69 35.35 36.10 23.85 38.96 A 0.45 0.45 0.0 0 0 23.53 39.55 Q 23.60 39.75 23.71 39.90 Q 23.64 40.15 23.87 40.46 A 1.03 0.99 78.3 0 0 24.41 40.83 C 27.20 41.55 29.96 42.88 32.72 43.28 Q 39.59 44.26 46.47 42.22 C 38.53 53.60 23.12 55.28 11.90 47.89 Q 11.05 39.75 13.90 31.60 Q 17.67 20.78 25.29 13.04 Z"/>
+    <path fill="#296cb0" d="M 46.47 42.22 Q 39.59 44.26 32.72 43.28 C 29.96 42.88 27.20 41.55 24.41 40.83 A 1.03 0.99 78.3 0 1 23.87 40.46 Q 23.64 40.15 23.71 39.90 Q 40.94 38.67 50.86 24.68 A 0.29 0.29 0.0 0 1 51.39 24.83 Q 51.81 34.32 46.47 42.22 Z"/>
+    <path fill="#1d407c" d="M 41.79 13.80 Q 41.50 13.32 40.34 12.77 A 0.37 0.36 -44.6 0 1 40.35 12.11 Q 41.48 11.60 41.73 10.50 A 0.20 0.20 0.0 0 1 42.03 10.37 L 44.54 11.82 A 0.54 0.54 0.0 0 1 44.48 12.79 Q 43.41 13.22 42.68 13.91 A 0.58 0.57 -37.6 0 1 41.79 13.80 Z"/>
+  </g>
 
   <!-- Wordmark -->
-  <text x="34" y="29" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#2d2d2d" letter-spacing="0.3">Vala Tech</text>
-  <text x="35" y="43" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#6b7280" letter-spacing="0.5">2026 LLC</text>
+  <text x="44" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#2d2d2d" letter-spacing="0.2">Vala Tech</text>
+  <text x="45" y="39" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="10.8" font-weight="600" fill="#6b7280" letter-spacing="0.45">2026 LLC</text>
 </svg>
