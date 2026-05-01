@@ -8,7 +8,7 @@ import { ToastProvider } from "@/lib/toast-context";
 import { CurrencyProvider } from "@/lib/currency-context";
 import CookieConsent from "@/components/cookie-consent";
 import AnalyticsBootstrap from "@/components/analytics-bootstrap";
-import LiveChatAssistant from "@/components/live-chat-assistant";
+import LiveChatVisibility from "@/components/live-chat-visibility";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -109,7 +109,7 @@ export default function RootLayout({
                   {children}
                   <CookieConsent />
                   <AnalyticsBootstrap />
-                  <LiveChatAssistant />
+                  <LiveChatVisibility />
                 </ToastProvider>
               </CurrencyProvider>
             </I18nProvider>
