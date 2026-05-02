@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /packages
+Allow: /blog
+Allow: /instalimi
+Disallow: /admin/
+Disallow: /account/
+Disallow: /login/
+Disallow: /profili
+Disallow: /hyr
+Disallow: /regjistrohu
+Disallow: /verifiko
+Disallow: /rivendos-fjalekalimin
+Disallow: /harrova-fjalekalimin
+Disallow: /api/private/
+Disallow: /scripts/private/
+Sitemap: https://shqiponjaesim.com/sitemap.xml
