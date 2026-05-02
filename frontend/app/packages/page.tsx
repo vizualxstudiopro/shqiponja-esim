@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Paketa eSIM Shqiponja | 190+ Vende",
   description: "Zgjidh paketën eSIM për Europë, SHBA, Azi. Aktivizim i menjëhershëm. Internet i shpejtë në mbi 190 vende.",
   alternates: {
-    canonical: "https://shqiponjaesim.com/",
+    canonical: "https://shqiponjaesim.com/packages",
   },
 };
 
