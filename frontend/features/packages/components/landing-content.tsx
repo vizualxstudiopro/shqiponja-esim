@@ -379,7 +379,7 @@ export default function LandingContent() {
 
   return (
     <>
-      {/* ══════════ OPERATORS (Marquee) ══════════ */
+      {/* ══════════ OPERATORS (Marquee) ══════════ */}
       <section id="operators" className="border-b border-zinc-100 bg-zinc-50 py-12 dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden">
         <div className="mx-auto max-w-7xl px-6 text-center">
           <p className="mb-8 text-xs font-semibold uppercase tracking-widest text-zinc-400">
