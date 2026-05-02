@@ -193,6 +193,8 @@ export default function TouristCards() {
             <img
               src={card.image}
               alt={card.country}
+              width={600}
+              height={400}
               loading="lazy"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />

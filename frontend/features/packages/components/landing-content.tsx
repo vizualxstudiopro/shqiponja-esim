@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useI18n } from "@/lib/i18n-context";
-import PackageGrid from "@/components/package-grid";
-import PackageFinder from "@/components/package-finder";
-import Footer from "@/components/footer";
-import TouristCards from "@/components/tourist-cards";
-import WorldCupSection from "@/components/world-cup-section";
 import { Smartphone, Search, CheckCircle, XCircle, ChevronDown, X, ListChecks } from "lucide-react";
 
 import Link from "next/link";
+
+const PackageGrid = dynamic(() => import("@/components/package-grid"));
+const PackageFinder = dynamic(() => import("@/components/package-finder"));
+const Footer = dynamic(() => import("@/components/footer"));
+const TouristCards = dynamic(() => import("@/components/tourist-cards"));
+const WorldCupSection = dynamic(() => import("@/components/world-cup-section"));
 
 /* Scroll-reveal hook */
 function useReveal() {
