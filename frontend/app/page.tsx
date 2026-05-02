@@ -1,4 +1,5 @@
 import Navbar from "@/components/navbar";
+import HeroSection from "@/components/hero-section";
 import LandingContent from "@/components/landing-content";
 
 export default function Home() {
@@ -28,6 +29,7 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <Navbar />
+      <HeroSection />
       <LandingContent />
     </div>
   );
