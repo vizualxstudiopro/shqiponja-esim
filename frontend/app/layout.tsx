@@ -85,43 +85,34 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "Shqiponja eSIM",
+              name: "VALA TECH 2026 LLC",
+              legalName: "VALA TECH 2026 LLC",
               url: "https://shqiponjaesim.com",
               logo: "https://shqiponjaesim.com/opengraph-image",
-              description: "Platformë e-commerce për shitjen e paketave eSIM ndërkombëtare.",
+              description: "Platformë e-commerce për shitjen e paketave eSIM ndërkombëtare. Operated by VALA TECH 2026 LLC.",
+              telephone: "+13072262252",
+              email: "info@shqiponjaesim.com",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "2232 Dell Range Blvd, Suite 303 1440",
+                addressLocality: "Cheyenne",
+                addressRegion: "WY",
+                postalCode: "82009",
+                addressCountry: "US",
+              },
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer service",
+                telephone: "+13072262252",
+                email: "info@shqiponjaesim.com",
                 url: "https://shqiponjaesim.com/kontakti",
+              },
+              brand: {
+                "@type": "Brand",
+                name: "Shqiponja eSIM",
               },
               sameAs: [],
             }),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: `{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "VALA TECH 2026 LLC",
-  "legalName": "VALA TECH 2026 LLC",
-  "url": "https://shqiponjaesim.com",
-  "telephone": "+13072262252",
-  "email": "info@shqiponjaesim.com",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "2232 Dell Range Blvd, Suite 303 1440",
-    "addressLocality": "Cheyenne",
-    "addressRegion": "WY",
-    "postalCode": "82009",
-    "addressCountry": "US"
-  },
-  "brand": {
-    "@type": "Brand",
-    "name": "Shqiponja eSIM"
-  }
-}`,
           }}
         />
         <script
