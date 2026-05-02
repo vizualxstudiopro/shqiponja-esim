@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Navbar from "@/components/navbar";
 import PackageGrid from "@/components/package-grid";
 import Footer from "@/components/footer";
+import { getPackages, type EsimPackage } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Paketa eSIM Shqiponja | 190+ Vende",
@@ -11,9 +12,42 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PackagesPage() {
+function buildProductSchema(packages: EsimPackage[]) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": packages.map((pkg) => ({
+      "@type": "Product",
+      name: pkg.name,
+      category: "Telecommunications Services",
+      brand: {
+        "@type": "Brand",
+        name: "Shqiponja eSIM",
+      },
+      seller: {
+        "@type": "Organization",
+        name: "VALA TECH 2026 LLC",
+      },
+      offers: {
+        "@type": "Offer",
+        url: `https://shqiponjaesim.com/bli/${pkg.id}`,
+        priceCurrency: "EUR",
+        price: Number(pkg.price).toFixed(2),
+        availability: "https://schema.org/InStock",
+      },
+    })),
+  };
+}
+
+export default async function PackagesPage() {
+  const packages = await getPackages();
+  const productSchema = buildProductSchema(packages);
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       <Navbar />
       <main className="min-h-screen bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-950 dark:to-zinc-900">
         <div className="mx-auto max-w-7xl px-6 py-12">
