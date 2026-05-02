@@ -25,11 +25,16 @@ export default function Footer() {
                 decoding="async"
               />
             </div>
-            <p className="text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=2232+Dell+Range+Blvd%2C+Suite+303+1440%2C+Cheyenne%2C+WY+82009"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-xs leading-relaxed text-zinc-400 transition hover:text-shqiponja dark:text-zinc-500"
+            >
               2232 Dell Range Blvd, Suite 303 1440<br />
               Cheyenne, WY 82009<br />
               United States
-            </p>
+            </a>
             <a
               href="tel:+13072262252"
               className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white dark:text-zinc-500 transition"
@@ -95,6 +100,14 @@ export default function Footer() {
               <Link href="/refund" className="transition hover:text-shqiponja">Politika e Kthimeve</Link>
               <Link href="/cookies" className="transition hover:text-shqiponja">Cookie Policy</Link>
               <Link href="/imprint" className="transition hover:text-shqiponja">Të Dhënat e Kompanisë</Link>
+              <a
+                href="https://wyobiz.wyo.gov/Business/FilingSearch.aspx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition hover:text-shqiponja"
+              >
+                Wyoming Secretary of State
+              </a>
             </nav>
           </div>
 
