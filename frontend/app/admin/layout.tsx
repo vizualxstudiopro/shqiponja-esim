@@ -103,7 +103,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <meta name="robots" content="noindex, nofollow" />
       <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
         {/* Mobile overlay */}
         {sidebarOpen && (
