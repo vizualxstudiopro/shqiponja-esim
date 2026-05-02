@@ -73,6 +73,7 @@ export default function RootLayout({
     >
       <head>
         {/* Performance: preconnect to critical origins */}
+        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://conversations-widget.brevo.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
