@@ -37,7 +37,7 @@ export default function Footer() {
             </a>
             <a
               href="tel:+13072262252"
-              className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white dark:text-zinc-500 transition"
+              className="flex items-center gap-1.5 text-xs text-shqiponja hover:text-white transition"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -101,7 +101,7 @@ export default function Footer() {
               <Link href="/cookies" className="transition hover:text-shqiponja">Cookie Policy</Link>
               <Link href="/imprint" className="transition hover:text-shqiponja">Të Dhënat e Kompanisë</Link>
               <a
-                href="https://wyobiz.wyo.gov/Business/FilingSearch.aspx"
+                href="https://wyobiz.wyo.gov/Business/FilingDetails.aspx?eFNum=013208247006077089105158092103067039009123053107"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition hover:text-shqiponja"
