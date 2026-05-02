@@ -304,6 +304,7 @@ export default function WorldCupSection() {
                         </div>
                         <Link
                           href={`/bli/${card.pkg!.id}`}
+                          aria-label={`Bli eSIM për ${card.country}`}
                           className="inline-flex items-center gap-1.5 rounded-full bg-[#e94560] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#e94560]/30 transition-all hover:bg-[#d63851] hover:shadow-[#e94560]/50 hover:scale-105"
                         >
                           {t("worldcup.buy")}

@@ -4,9 +4,10 @@ interface LogoProps {
   size?: number;
   className?: string;
   variant?: "full" | "icon";
+  priority?: boolean;
 }
 
-export default function Logo({ size = 40, className = "", variant = "full" }: LogoProps) {
+export default function Logo({ size = 40, className = "", variant = "full", priority = false }: LogoProps) {
   const lightSrc = variant === "icon" ? "/icon-light.svg" : "/logo-light.svg";
   const darkSrc = variant === "icon" ? "/icon-dark.svg" : "/logo-dark.svg";
 
@@ -17,6 +18,7 @@ export default function Logo({ size = 40, className = "", variant = "full" }: Lo
         alt="Shqiponja eSIM"
         width={size}
         height={size}
+        priority={priority}
         className={`dark:hidden ${className}`}
       />
       <Image
@@ -24,6 +26,7 @@ export default function Logo({ size = 40, className = "", variant = "full" }: Lo
         alt="Shqiponja eSIM"
         width={size}
         height={size}
+        priority={priority}
         className={`hidden dark:block ${className}`}
       />
     </>

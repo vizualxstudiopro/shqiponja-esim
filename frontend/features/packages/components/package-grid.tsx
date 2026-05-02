@@ -296,6 +296,7 @@ export default function PackageGrid() {
 
                 <Link
                   href={`/bli/${pkg.id}`}
+                  aria-label={`Bli tani paketën ${pkg.name}`}
                   className="mt-auto pt-5 block rounded-xl bg-shqiponja py-3 text-center text-sm font-semibold text-white shadow-md shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
                 >
                   {t("packages.buy")}

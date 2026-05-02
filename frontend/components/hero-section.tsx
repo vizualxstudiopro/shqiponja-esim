@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 /**
  * Server component — renders the hero section with static Albanian text.
  * This ensures the LCP element (h1) is in the HTML from the server,
@@ -12,6 +14,15 @@ export default function HeroSection() {
       <div className="pointer-events-none absolute -bottom-60 -left-40 h-[400px] w-[400px] rounded-full bg-shqiponja/5 blur-3xl animate-glow delay-300" />
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center px-6 py-28 text-center lg:py-40">
+        <Image
+          src="/icon-light.svg"
+          alt="Shqiponja eSIM Hero"
+          width={96}
+          height={96}
+          priority
+          className="mb-6 h-20 w-20 sm:h-24 sm:w-24"
+        />
+
         <span className="mb-6 inline-block rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium tracking-widest uppercase text-zinc-300">
           eSIM NDËRKOMBËTARE — PA KONTRATË
         </span>
@@ -28,12 +39,14 @@ export default function HeroSection() {
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
           <a
             href="/#packages"
+            aria-label="Bli tani paketa eSIM"
             className="group rounded-full bg-shqiponja px-8 py-3.5 text-base font-semibold text-white shadow-xl shadow-shqiponja/30 hover:bg-shqiponja-dark hover:shadow-shqiponja/50 transition-all duration-300 hover:scale-105"
           >
             Bli Tani →
           </a>
           <a
             href="/#how"
+            aria-label="Shiko si funksionon Shqiponja eSIM"
             className="rounded-full border border-white/15 px-8 py-3.5 text-base font-semibold text-white hover:bg-white/5 hover:border-white/30 transition-all duration-300"
           >
             Si Funksionon?
