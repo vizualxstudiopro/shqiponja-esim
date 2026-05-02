@@ -13,11 +13,15 @@ import CookieBanner from "@/components/cookie-banner";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -68,6 +72,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* Performance: preconnect to critical origins */}
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://conversations-widget.brevo.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <meta name="google-site-verification" content="ygDyTLL2Ia1Hv0LP0TLjKlmTH1AtF14Y-db2DVIvfPA" />
         <script
           type="application/ld+json"
@@ -137,7 +146,7 @@ export default function RootLayout({
         </ThemeProvider>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(d,w,c){w.BrevoConversationsID='69c42990ed5ccd0b86050335';w[c]=w[c]||function(){(w[c].q=w[c].q||[]).push(arguments)};var s=d.createElement('script');s.async=true;s.src='https://conversations-widget.brevo.com/brevo-conversations.js';if(d.head)d.head.appendChild(s)})(document,window,'BrevoConversations');`,
+            __html: `(function(){setTimeout(function(){var d=document,w=window,c='BrevoConversations';w.BrevoConversationsID='69c42990ed5ccd0b86050335';w[c]=w[c]||function(){(w[c].q=w[c].q||[]).push(arguments)};var s=d.createElement('script');s.async=true;s.src='https://conversations-widget.brevo.com/brevo-conversations.js';if(d.head)d.head.appendChild(s)},3000)})();`,
           }}
         />
       </body>
