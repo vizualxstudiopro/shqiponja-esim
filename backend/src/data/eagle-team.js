@@ -1,0 +1,58 @@
+const EAGLE_TEAM = [
+  {
+    key: 'bardhyli',
+    name: 'Bardhyli',
+    region: 'Malesi',
+    role: 'Urime & Festa',
+    use_case: 'Mesazhe festive',
+    accent: '#C8102E',
+    prompt: '3D clay-style Albanian highlander with mustache, plain white plis, red vest with black embroidery, warm smile, studio lighting, dark neutral background.',
+  },
+  {
+    key: 'bato',
+    name: 'Bato',
+    region: 'Iliri',
+    role: 'Siguri & Fjalekalim',
+    use_case: 'Forgot password dhe account safety',
+    accent: '#B91C1C',
+    prompt: '3D clay-style Albanian guide character with white cap and traditional vest, holding a glowing key, friendly expression, studio lighting, dark neutral background.',
+  },
+  {
+    key: 'glauku',
+    name: 'Glauku',
+    region: 'Kukes',
+    role: 'Udherrefyes Blerjeje',
+    use_case: 'Checkout dhe aktivizim i paketes',
+    accent: '#D97706',
+    prompt: '3D clay-style young Albanian character with white plis and modern-traditional vest, holding eSIM card, energetic pose, studio lighting, dark neutral background.',
+  },
+  {
+    key: 'teuta',
+    name: 'Teuta',
+    region: 'Mirdite',
+    role: 'Prezantime',
+    use_case: 'Video guides dhe tutorials',
+    accent: '#7C3AED',
+    prompt: '3D clay-style Albanian woman character inspired by xhubleta, elegant professional pose, premium studio lighting, dark neutral background.',
+  },
+  {
+    key: 'enkela',
+    name: 'Enkela',
+    region: 'Arbereshe',
+    role: 'Mireseardhja',
+    use_case: 'Onboarding dhe welcome email',
+    accent: '#DB2777',
+    prompt: '3D clay-style warm Albanian woman in Arberesh-inspired attire, open arms welcoming pose, premium studio lighting, dark neutral background.',
+  },
+  {
+    key: 'agroni',
+    name: 'Agroni',
+    region: 'Laberi',
+    role: 'Live Chat',
+    use_case: 'Asistence ne kohe reale',
+    accent: '#0F766E',
+    prompt: '3D clay-style Albanian support character with white cap, welcoming gesture, premium studio lighting, dark neutral background.',
+  },
+];
+
+module.exports = EAGLE_TEAM;
