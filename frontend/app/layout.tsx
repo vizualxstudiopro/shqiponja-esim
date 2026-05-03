@@ -129,18 +129,15 @@ export default function RootLayout({
                 <ToastProvider>
                   {children}
                   <AnalyticsBootstrap />
-                  <LiveChatVisibility />
+                  {/* <LiveChatVisibility /> */}
                   <CookieBanner />
                 </ToastProvider>
               </CurrencyProvider>
             </I18nProvider>
           </AuthProvider>
         </ThemeProvider>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){setTimeout(function(){var d=document,w=window,c='BrevoConversations';w.BrevoConversationsID='69c42990ed5ccd0b86050335';w[c]=w[c]||function(){(w[c].q=w[c].q||[]).push(arguments)};var s=d.createElement('script');s.async=true;s.src='https://conversations-widget.brevo.com/brevo-conversations.js';if(d.head)d.head.appendChild(s)},3000)})();`,
-          }}
-        />
+        {/* Brevo chat script — hidden temporarily */}
+        {/* <script dangerouslySetInnerHTML={{ __html: `(function(){setTimeout(function(){var d=document,w=window,c='BrevoConversations';w.BrevoConversationsID='69c42990ed5ccd0b86050335';w[c]=w[c]||function(){(w[c].q=w[c].q||[]).push(arguments)};var s=d.createElement('script');s.async=true;s.src='https://conversations-widget.brevo.com/brevo-conversations.js';if(d.head)d.head.appendChild(s)},3000)})();` }} /> */}
       </body>
     </html>
   );
