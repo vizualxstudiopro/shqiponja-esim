@@ -27,7 +27,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/hyr");
+      router.push("/hyr?next=%2Fprofili");
       return;
     }
     if (token) {

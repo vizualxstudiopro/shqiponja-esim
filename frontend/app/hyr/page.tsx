@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import OAuthButtons from "@/components/oauth-buttons";
 import Logo from "@/components/logo";
@@ -12,6 +12,9 @@ export default function LoginPage() {
   const { login } = useAuth();
   const { t } = useI18n();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawNext = searchParams.get("next");
+  const nextPath = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [totpCode, setTotpCode] = useState("");
@@ -30,6 +33,11 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+      if (nextPath) {
+        router.push(nextPath);
+        return;
+      }
+
       // Get fresh user to check role for redirect
       const saved = localStorage.getItem("token");
       if (saved) {
