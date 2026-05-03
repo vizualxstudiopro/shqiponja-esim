@@ -74,6 +74,7 @@ function createApp() {
   app.use('/api/promo', require('../routes/promo'));
   app.use('/api/referrals', require('../routes/referrals'));
   app.use('/api/contact', require('../routes/contact'));
+  app.use('/api/webhooks', require('../routes/webhooks'));
 
   try {
     app.use('/api/compatibility', require('../routes/compatibility'));
