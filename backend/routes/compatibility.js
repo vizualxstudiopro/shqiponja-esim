@@ -1,6 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const ESIM_DEVICES = require('../src/data/esim-devices');
+let ESIM_DEVICES = [];
+
+try {
+  ESIM_DEVICES = require('../src/data/esim-devices');
+} catch (_errPrimary) {
+  try {
+    ESIM_DEVICES = require('../data/esim-devices');
+  } catch (errFallback) {
+    console.error('[COMPATIBILITY] Failed to load esim-devices dataset:', errFallback.message);
+    ESIM_DEVICES = [];
+  }
+}
 
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const cache = {
