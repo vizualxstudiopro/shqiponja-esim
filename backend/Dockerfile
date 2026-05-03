@@ -8,7 +8,7 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 
 # Force fresh copy of all source files
-ARG CACHEBUST=2026-05-03-v13
+ARG CACHEBUST=2026-05-03-v14
 COPY . .
 ENV NODE_ENV=production
 EXPOSE 3001
