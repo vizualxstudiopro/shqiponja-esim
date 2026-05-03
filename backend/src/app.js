@@ -74,7 +74,13 @@ function createApp() {
   app.use('/api/promo', require('../routes/promo'));
   app.use('/api/referrals', require('../routes/referrals'));
   app.use('/api/contact', require('../routes/contact'));
-  app.use('/api/compatibility', require('../routes/compatibility'));
+
+  try {
+    app.use('/api/compatibility', require('../routes/compatibility'));
+  } catch (err) {
+    console.error('[APP] Compatibility route disabled:', err.message);
+  }
+
   app.use('/api/avatars', require('../routes/avatars'));
 
   app.get('/', (_req, res) => {
