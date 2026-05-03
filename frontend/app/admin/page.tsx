@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { adminGetStats, getHealthStatus, type SyncStatus } from "@/lib/api";
+import { adminGetCronStatus, adminGetStats, type AdminCronStatus } from "@/lib/api";
 import { ShoppingCart, CreditCard, Euro, Users, Package, RefreshCw, type LucideIcon } from "lucide-react";
 
 interface Stats {
@@ -49,15 +49,27 @@ function timeAgo(isoDate: string): string {
   return `${Math.floor(hrs / 24)} ditë më parë`;
 }
 
+function timeUntil(timestamp: number): string {
+  const diff = timestamp - Date.now();
+  if (diff <= 0) return "tani";
+  const mins = Math.ceil(diff / 60_000);
+  if (mins < 60) return `pas ${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  if (!remMins) return `pas ${hrs} orë`;
+  return `pas ${hrs} orë ${remMins} min`;
+}
+
 export default function AdminDashboard() {
   const { token } = useAuth();
   const { t } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [cronStatus, setCronStatus] = useState<AdminCronStatus | null>(null);
 
   useEffect(() => {
-    if (token) adminGetStats(token).then(setStats).catch(() => {});
-    getHealthStatus().then((h) => setSyncStatus(h.lastSync)).catch(() => {});
+    if (!token) return;
+    adminGetStats(token).then(setStats).catch(() => {});
+    adminGetCronStatus(token).then(setCronStatus).catch(() => {});
   }, [token]);
 
   if (!stats) {
@@ -71,6 +83,17 @@ export default function AdminDashboard() {
     { label: t("admin.usersCount"), value: stats.totalUsers, color: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400", icon: Users, iconColor: "text-purple-500 dark:text-purple-400" },
     { label: t("admin.packagesCount"), value: stats.totalPackages, color: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400", icon: Package, iconColor: "text-amber-500 dark:text-amber-400" },
   ];
+  const syncStatus = cronStatus?.lastSync || null;
+  const intervalMinutes = cronStatus ? Math.round(cronStatus.intervalMs / 60000) : null;
+  const lastSyncAgeMs = syncStatus ? Date.now() - new Date(syncStatus.at).getTime() : Number.POSITIVE_INFINITY;
+  const isStale = !!cronStatus && (!cronStatus.enabled || !syncStatus || !!syncStatus.error || lastSyncAgeMs > cronStatus.staleAfterMs);
+  const nextSyncAt = syncStatus && cronStatus ? new Date(syncStatus.at).getTime() + cronStatus.intervalMs : null;
+  const healthLabel = !cronStatus ? null : !cronStatus.enabled ? "joaktiv" : syncStatus?.error ? "gabim" : isStale ? "stale" : "healthy";
+  const cronTone = syncStatus?.error || !cronStatus?.enabled
+    ? "border-red-300 bg-red-50 text-red-600 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400"
+    : isStale
+      ? "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+      : "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300";
 
   return (
     <div>
@@ -79,14 +102,24 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-extrabold">{t("admin.dashboard")}</h1>
           <p className="mt-1 text-sm text-zinc-500">{t("admin.summary")}</p>
         </div>
-        {syncStatus && (
-          <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${syncStatus.error ? "border-red-300 bg-red-50 text-red-600 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400" : "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"}`}>
+        {cronStatus && (
+          <div className={`rounded-lg border px-3 py-2 text-xs ${cronTone}`}>
+            <div className="flex items-center gap-2">
             <RefreshCw className="h-3.5 w-3.5" />
             <span>
-              Sinkronizimi: <strong>{timeAgo(syncStatus.at)}</strong>
-              {!syncStatus.error && ` · ${syncStatus.count} paketa`}
-              {syncStatus.error && ` · Gabim: ${syncStatus.error}`}
+              Cron: <strong>{cronStatus.enabled ? "aktiv" : "joaktiv"}</strong>
+              {intervalMinutes && ` · çdo ${intervalMinutes} min`}
+              {healthLabel && ` · ${healthLabel}`}
+              {syncStatus && ` · sinkronizimi ${timeAgo(syncStatus.at)}`}
+              {syncStatus && !syncStatus.error && ` · ${syncStatus.count} paketa`}
+              {syncStatus?.error && ` · Gabim: ${syncStatus.error}`}
             </span>
+            </div>
+            {cronStatus.enabled && !syncStatus?.error && nextSyncAt && (
+              <p className="mt-1 pl-5 text-[11px] opacity-85">
+                Sync-i i ardhshëm pritet {timeUntil(nextSyncAt)}
+              </p>
+            )}
           </div>
         )}
       </div>

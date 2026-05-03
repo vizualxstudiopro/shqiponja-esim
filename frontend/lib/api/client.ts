@@ -432,9 +432,22 @@ export async function adminGetStats(token: string) {
 }
 
 export interface SyncStatus { at: string; count: number; error: string | null }
+export interface AdminCronStatus {
+  enabled: boolean;
+  intervalMs: number;
+  retryMs: number;
+  staleAfterMs: number;
+  lastSync: SyncStatus | null;
+}
 export async function getHealthStatus(): Promise<{ status: string; uptime: number; build: string; lastSync: SyncStatus | null }> {
   const res = await fetchWithTimeout(`${API_URL}/api/health`, { cache: "no-store" });
   if (!res.ok) throw new Error("Health fetch failed");
+  return res.json();
+}
+
+export async function adminGetCronStatus(token: string): Promise<AdminCronStatus> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/cron-status`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Cron status fetch failed");
   return res.json();
 }
 

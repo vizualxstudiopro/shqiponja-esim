@@ -27,8 +27,8 @@ function run() {
   // Airalo scheduler guardrails
   assertContains(
     server,
-    /AIRALO_SYNC_INTERVAL_MS\s*=\s*Number\(process\.env\.AIRALO_SYNC_INTERVAL_MS\s*\|\|\s*55\s*\*\s*60\s*\*\s*1000\)/,
-    'Critical guard failed: 55-minute Airalo interval default is missing or changed.'
+    /AIRALO_SYNC_INTERVAL_MS\s*=\s*Number\(process\.env\.AIRALO_SYNC_INTERVAL_MS\s*\|\|\s*60\s*\*\s*60\s*\*\s*1000\)/,
+    'Critical guard failed: 60-minute Airalo interval default is missing or changed.'
   );
   assertContains(
     server,

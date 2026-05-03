@@ -448,6 +448,22 @@ router.post('/packages-auto-categorize', async (req, res) => {
   }
 });
 
+/* ─── CRON STATUS ─── */
+router.get('/cron-status', async (req, res) => {
+  const intervalMs = Number(process.env.AIRALO_SYNC_INTERVAL_MS || 60 * 60 * 1000);
+  const retryMs = Number(process.env.AIRALO_RETRY_DELAY_MS || 5 * 60 * 1000);
+  const staleAfterMs = Number(process.env.AIRALO_STALE_AFTER_MS || 2 * 60 * 60 * 1000);
+  const enabled = typeof req.app.locals.triggerAiraloSync === 'function';
+
+  res.json({
+    enabled,
+    intervalMs,
+    retryMs,
+    staleAfterMs,
+    lastSync: req.app.locals.lastSync || null,
+  });
+});
+
 /* ─── WEBHOOK LOGS ─── */
 router.get('/webhook-logs', async (req, res) => {
   try {

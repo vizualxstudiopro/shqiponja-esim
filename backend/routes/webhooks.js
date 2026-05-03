@@ -39,21 +39,22 @@ router.post('/twilio-sms', async (req, res) => {
     <p style="color:#666;font-size:12px">Received at: ${new Date().toISOString()}</p>
   `;
 
-  try {
-    await sendTransactionalEmail({
+  // Always respond with valid TwiML so Twilio marks delivery as successful.
+  res.status(200).type('text/xml').send(twimlOk());
+
+  // Process email forwarding in background so Twilio never waits on SMTP/API retries.
+  setImmediate(() => {
+    sendTransactionalEmail({
       toEmail: INCOMING_SMS_EMAIL,
       subject,
       html,
       logLabel: 'TWILIO INCOMING SMS',
-      senderType: 'support',
+      senderType: 'noreply',
       replyTo: process.env.EMAIL_SUPPORT_REPLY_TO || undefined,
+    }).catch((err) => {
+      console.error('[TWILIO SMS WEBHOOK] Email forwarding failed:', err && err.message ? err.message : err);
     });
-  } catch (err) {
-    console.error('[TWILIO SMS WEBHOOK] Email forwarding failed:', err && err.message ? err.message : err);
-  }
-
-  // Always respond with valid TwiML so Twilio marks delivery as successful.
-  res.status(200).type('text/xml').send(twimlOk());
+  });
 });
 
 module.exports = router;

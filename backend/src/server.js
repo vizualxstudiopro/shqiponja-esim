@@ -6,7 +6,7 @@ const airalo = require('./services/airaloService');
 
 const PORT = process.env.PORT || 3001;
 const AIRALO_INITIAL_DELAY_MS = Number(process.env.AIRALO_INITIAL_DELAY_MS || 10_000);
-const AIRALO_SYNC_INTERVAL_MS = Number(process.env.AIRALO_SYNC_INTERVAL_MS || 55 * 60 * 1000);
+const AIRALO_SYNC_INTERVAL_MS = Number(process.env.AIRALO_SYNC_INTERVAL_MS || 60 * 60 * 1000);
 const AIRALO_RETRY_DELAY_MS = Number(process.env.AIRALO_RETRY_DELAY_MS || 5 * 60 * 1000);
 const app = createApp();
 
