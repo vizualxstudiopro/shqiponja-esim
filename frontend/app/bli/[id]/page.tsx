@@ -38,22 +38,26 @@ export default async function BliPage({ params }: Props) {
   const { id } = await params;
   const pkg = await getPackageById(Number(id));
   if (!pkg) notFound();
+  const pkgUrl = `https://shqiponjaesim.com/bli/${pkg.id}`;
+  const fallbackImage = "https://shqiponjaesim.com/logo-dark.svg";
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: pkg.name,
     description: pkg.description || `Paketë eSIM ${pkg.region}: ${pkg.data} për ${pkg.duration}`,
-    offers: {
-      "@type": "Offer",
-      price: pkg.price,
-      priceCurrency: pkg.currency || "EUR",
-      availability: "https://schema.org/InStock",
-      url: `https://shqiponjaesim.com/bli/${pkg.id}`,
-    },
+    image: fallbackImage,
     brand: {
       "@type": "Brand",
       name: "Shqiponja eSIM",
+    },
+    offers: {
+      "@type": "Offer",
+      price: pkg.price,
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      url: pkgUrl,
+      priceValidUntil: "2026-12-31",
     },
   };
 
