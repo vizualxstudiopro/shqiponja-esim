@@ -66,6 +66,20 @@ export async function getPackages(): Promise<EsimPackage[]> {
   }
 }
 
+export async function getPackagesByCountry(countryCode: string): Promise<EsimPackage[]> {
+  if (!countryCode || countryCode.trim().length !== 2) return [];
+  try {
+    const res = await fetchWithTimeout(
+      `${API_URL}/api/packages?country=${encodeURIComponent(countryCode.trim().toUpperCase())}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function getFeaturedPackages(): Promise<EsimPackage[]> {
   try {
     const res = await fetchWithTimeout(`${API_URL}/api/packages/featured`, {

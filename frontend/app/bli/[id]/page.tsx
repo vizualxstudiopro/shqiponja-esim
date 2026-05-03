@@ -43,7 +43,7 @@ export default async function BliPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: pkg.name,
-    description: `Paketë eSIM ${pkg.region}: ${pkg.data} për ${pkg.duration}`,
+    description: pkg.description || `Paketë eSIM ${pkg.region}: ${pkg.data} për ${pkg.duration}`,
     offers: {
       "@type": "Offer",
       price: pkg.price,
