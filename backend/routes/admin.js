@@ -184,6 +184,8 @@ router.get('/packages', async (req, res) => {
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
   const offset = (page - 1) * limit;
   const searchQuery = req.query.q || '';
+  const hasCountryCodeFilter = Object.prototype.hasOwnProperty.call(req.query, 'country_code');
+  const countryCodeFilter = hasCountryCodeFilter ? String(req.query.country_code || '').toUpperCase() : null;
 
   let where = '1=1';
   const params = [];
@@ -193,6 +195,16 @@ router.get('/packages', async (req, res) => {
     const like = `%${searchQuery.trim()}%`;
     params.push(like, like, like);
     paramIdx += 3;
+  }
+  // Exact filter by country code (supports empty value for global/no-country packages)
+  if (hasCountryCodeFilter) {
+    if (countryCodeFilter === '') {
+      where += ` AND (country_code IS NULL OR country_code = '')`;
+    } else {
+      where += ` AND country_code = $${paramIdx}`;
+      params.push(countryCodeFilter);
+      paramIdx++;
+    }
   }
   // Filter by visible status if specified
   if (req.query.visible === '0' || req.query.visible === '1') {

@@ -26,7 +26,9 @@ export default function ProfilePage() {
   const [resending, setResending] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    // Check both user state AND localStorage token to avoid race conditions
+    const hasToken = token || typeof window !== 'undefined' && localStorage.getItem("token");
+    if (!authLoading && !user && !hasToken) {
       router.push("/hyr?next=%2Fprofili");
       return;
     }

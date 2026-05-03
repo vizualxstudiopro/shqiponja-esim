@@ -172,8 +172,8 @@ export default function AdminPackagesPage() {
     setExpandedCountry(cc);
     setExpandedLoading(true);
     try {
-      const data = await adminGetPackages(token!, 1, 100, cc || "");
-      setExpandedPackages(data.packages.filter((p) => cc === "" ? (!p.country_code || p.country_code === "") : p.country_code === cc));
+      const data = await adminGetPackages(token!, 1, 100, "", undefined, cc || "");
+      setExpandedPackages(data.packages);
     } catch {
       toast("Gabim", "error");
     } finally {

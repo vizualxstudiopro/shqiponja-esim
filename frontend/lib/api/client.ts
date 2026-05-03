@@ -483,10 +483,11 @@ export interface PaginatedPackages {
   totalPages: number;
 }
 
-export async function adminGetPackages(token: string, page = 1, limit = 50, q = "", visible?: 0 | 1): Promise<PaginatedPackages> {
+export async function adminGetPackages(token: string, page = 1, limit = 50, q = "", visible?: 0 | 1, countryCode?: string): Promise<PaginatedPackages> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (q.trim()) params.set("q", q.trim());
   if (visible !== undefined) params.set("visible", String(visible));
+  if (countryCode !== undefined) params.set("country_code", countryCode);
   const res = await fetchWithTimeout(`${API_URL}/api/admin/packages?${params}`, { headers: authHeaders(token), cache: "no-store" });
   if (!res.ok) throw new Error("Nuk ke qasje");
   return res.json();

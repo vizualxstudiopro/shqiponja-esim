@@ -50,6 +50,15 @@ function normalizePackage(p) {
 
 // GET /api/packages - List all eSIM packages
 router.get('/', async (req, res) => {
+  if (airalo.isEnabled()) {
+    const staleAfterMs = Number(process.env.AIRALO_STALE_AFTER_MS || 2 * 60 * 60 * 1000);
+    const lastSyncAt = req.app.locals.lastSync?.at ? Date.parse(req.app.locals.lastSync.at) : 0;
+    const isStale = !lastSyncAt || (Date.now() - lastSyncAt) > staleAfterMs;
+    if (isStale && typeof req.app.locals.triggerAiraloSync === 'function') {
+      req.app.locals.triggerAiraloSync('stale-read').catch(() => {});
+    }
+  }
+
   const { country, region, type } = req.query;
   const cacheKey = `packages:${country||''}:${region||''}:${type||''}:${req.query.category||''}`;
   const cached = cache.get(cacheKey);

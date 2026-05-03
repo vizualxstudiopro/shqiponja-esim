@@ -2,7 +2,7 @@
   sendOTPSMS,
   sendPurchaseConfirmation,
   sendUsageAlert,
-} from "../lib/twilio";
+} from "../lib/twilio.ts";
 
 const TEST_PHONE = "+355696969348";
 

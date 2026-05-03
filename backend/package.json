@@ -4,8 +4,9 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "npx nodemon src/server.js",
+    "verify:sync": "node scripts/verify-critical-sync.js",
+    "start": "npm run verify:sync && node src/server.js",
+    "dev": "npm run verify:sync && npx nodemon src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
