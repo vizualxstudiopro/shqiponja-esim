@@ -26,7 +26,7 @@ const EMAIL_PROFILES = {
     `${BRAND_NAME} <invoice@shqiponjaesim.com>`,
   support:
     process.env.EMAIL_SUPPORT_FROM ||
-    `${BRAND_NAME} <suport@shqiponjaesim.com>`,
+    `${BRAND_NAME} <info@shqiponjaesim.com>`,
 };
 
 function parseSender(rawFrom) {
