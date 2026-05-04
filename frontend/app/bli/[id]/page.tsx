@@ -58,6 +58,11 @@ export default async function BliPage({ params }: Props) {
       availability: "https://schema.org/InStock",
       url: pkgUrl,
       priceValidUntil: "2026-12-31",
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "US",
+        returnPolicyCategory: "https://schema.org/NoReturns",
+      },
     },
   };
 
