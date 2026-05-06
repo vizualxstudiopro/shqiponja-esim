@@ -65,6 +65,18 @@ async function migrate() {
     )
   `);
 
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS order_sms_alerts (
+      id                  SERIAL PRIMARY KEY,
+      order_id            INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+      threshold_percent   INTEGER NOT NULL,
+      usage_percent       REAL,
+      message_sid         TEXT,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(order_id, threshold_percent)
+    )
+  `);
+
   // Webhook logs for debugging payment flows
   await db.query(`
     CREATE TABLE IF NOT EXISTS webhook_logs (
@@ -204,6 +216,7 @@ async function migrate() {
     CREATE INDEX IF NOT EXISTS idx_packages_airalo ON packages(airalo_package_id);
     CREATE INDEX IF NOT EXISTS idx_packages_country ON packages(country_code);
     CREATE INDEX IF NOT EXISTS idx_orders_iccid ON orders(iccid);
+    CREATE INDEX IF NOT EXISTS idx_order_sms_alerts_order_threshold ON order_sms_alerts(order_id, threshold_percent);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_packages_airalo_unique ON packages(airalo_package_id);
   `);
   console.log('✔ Database indexes ensured');

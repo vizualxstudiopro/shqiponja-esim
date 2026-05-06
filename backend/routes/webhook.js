@@ -65,6 +65,10 @@ router.post('/', async (req, res) => {
 
       // Store the Lemon Squeezy order ID
       const lsOrderId = String(event.data?.id || '');
+      const customerPhone =
+        (typeof customData?.phone === 'string' && customData.phone.trim()) ||
+        (typeof customData?.customer_phone === 'string' && customData.customer_phone.trim()) ||
+        null;
 
       const qrData = `SHQIPONJA-ESIM-${orderId}-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
@@ -104,11 +108,11 @@ router.post('/', async (req, res) => {
       await db.query(`
         UPDATE orders SET payment_status = $1, status = $2, qr_data = $3,
           airalo_order_id = $4, iccid = $5, esim_status = $6, qr_code_url = $7, activation_code = $8,
-          ls_order_id = $9
-        WHERE id = $10
+          ls_order_id = $9, phone = COALESCE($10, phone)
+        WHERE id = $11
       `, ['paid', orderStatus, provisioningFailed ? null : airaloQr,
         airaloOrderId, iccid, iccid ? 'active' : (esimProvisioningAttempted ? 'provisioning_failed' : null),
-        qrCodeUrl, activationCode, lsOrderId, Number(orderId)]);
+        qrCodeUrl, activationCode, lsOrderId, customerPhone, Number(orderId)]);
       console.log(`✔ Webhook: Order #${orderId} marked as paid, status: ${orderStatus} (LS order: ${lsOrderId})`);
 
       await processReferralRewardForOrder(Number(orderId));

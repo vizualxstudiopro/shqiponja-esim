@@ -8,6 +8,7 @@ const { escapeHtml, verifyEmailTemplate, resetPasswordTemplate, welcomeEmailTemp
 const { sendTransactionalEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { validateRegister, validateLogin } = require('../middleware/validate');
+const { send_sms, MESSAGE_TYPES } = require('../src/services/twilioService');
 
 const router = express.Router();
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
@@ -113,7 +114,7 @@ router.get('/me', authMiddleware, async (req, res) => {
 
 // POST /api/auth/verify - Verify email with token
 router.post('/verify', async (req, res) => {
-  const { token: verifyToken } = req.body;
+  const { token: verifyToken, phoneNumber } = req.body;
   if (!verifyToken) return res.status(400).json({ error: 'Token mungon' });
 
   const user = (await db.query('SELECT id FROM users WHERE verify_token = $1', [verifyToken])).rows[0];
@@ -132,6 +133,11 @@ router.post('/verify', async (req, res) => {
       senderType: 'hello',
       replyTo: 'info@shqiponjaesim.com',
     }).catch(err => console.error('Welcome email error:', err));
+
+    if (phoneNumber) {
+      send_sms(phoneNumber, MESSAGE_TYPES.welcome_new_customer)
+        .catch(err => console.error('Welcome SMS error:', err.message));
+    }
   }
 
   res.json({ ok: true, message: 'Email-i u verifikua me sukses!' });

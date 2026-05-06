@@ -7,6 +7,9 @@
     "verify:sync": "node scripts/verify-critical-sync.js",
     "start": "npm run verify:sync && node src/server.js",
     "dev": "npm run verify:sync && npx nodemon src/server.js",
+    "twilio:sms": "node scripts/twilio-sms.js sms",
+    "twilio:verify-send": "node scripts/twilio-sms.js verify-send",
+    "twilio:verify-check": "node scripts/twilio-sms.js verify-check",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -30,6 +33,7 @@
     "otpauth": "^9.5.0",
     "pdfkit": "^0.18.0",
     "pg": "^8.20.0",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "twilio": "^6.0.1"
   }
 }
