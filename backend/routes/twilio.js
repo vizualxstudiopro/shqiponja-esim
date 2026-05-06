@@ -9,6 +9,28 @@ const {
 
 const router = express.Router();
 
+// POST /api/twilio/voice - TwiML webhook for incoming call forwarding (NO auth - called by Twilio)
+// Twilio calls this URL when someone dials our number; we respond with TwiML to forward the call.
+router.post('/voice', (req, res) => {
+  const forwardTo = process.env.TWILIO_FORWARD_TO;
+  if (!forwardTo) {
+    // No forward number configured — play a message and hang up
+    res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say language="sq-AL">Pershendetje, ju keni arritur Shqiponja eSIM. Ju lutem na kontaktoni permes faqes sone te internetit.</Say>
+</Response>`);
+    return;
+  }
+
+  res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Dial callerId="${process.env.TWILIO_PHONE_NUMBER || req.body.To}" timeout="30" record="do-not-record">
+    <Number>${forwardTo}</Number>
+  </Dial>
+  <Say language="sq-AL">Nuk u arrit te lidhemi. Ju lutem provoni perseri me vone.</Say>
+</Response>`);
+});
+
 router.use(authMiddleware);
 
 // POST /api/twilio/sms
