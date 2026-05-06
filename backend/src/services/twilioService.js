@@ -196,12 +196,23 @@ async function checkVerifyCode(to_number, code) {
   };
 }
 
+async function send_custom_sms(to_number, body) {
+  if (!isTwilioSmsConfigured()) {
+    throw new Error('Twilio SMS is not configured');
+  }
+  const to = normalizeToAlbaniaE164(to_number);
+  const senderParams = getMessageParams(to);
+  const response = await client.messages.create({ body, ...senderParams, to });
+  return { sid: response.sid, status: response.status, to };
+}
+
 module.exports = {
   MESSAGE_TYPES,
   isTwilioSmsConfigured,
   isTwilioVerifyConfigured,
   normalizeToAlbaniaE164,
   send_sms,
+  send_custom_sms,
   sendVerifyCode,
   checkVerifyCode,
 };

@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { adminGetCronStatus, adminGetStats, type AdminCronStatus } from "@/lib/api";
-import { ShoppingCart, CreditCard, Euro, Users, Package, RefreshCw, type LucideIcon } from "lucide-react";
+import { adminGetCronStatus, adminGetStats, adminGetTwilioBalance, type AdminCronStatus, type TwilioBalance } from "@/lib/api";
+import { ShoppingCart, CreditCard, Euro, Users, Package, RefreshCw, MessageSquare, type LucideIcon } from "lucide-react";
 
 interface Stats {
   totalOrders: number;
@@ -65,11 +65,14 @@ export default function AdminDashboard() {
   const { t } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
   const [cronStatus, setCronStatus] = useState<AdminCronStatus | null>(null);
+  const [twilioBalance, setTwilioBalance] = useState<TwilioBalance | null>(null);
+  const [twilioBalanceError, setTwilioBalanceError] = useState(false);
 
   useEffect(() => {
     if (!token) return;
     adminGetStats(token).then(setStats).catch(() => {});
     adminGetCronStatus(token).then(setCronStatus).catch(() => {});
+    adminGetTwilioBalance(token).then(setTwilioBalance).catch(() => setTwilioBalanceError(true));
   }, [token]);
 
   if (!stats) {
@@ -137,6 +140,25 @@ export default function AdminDashboard() {
             </div>
           );
         })}
+      </div>
+
+      {/* Twilio Balance */}
+      <div className="mt-4">
+        <div className="inline-flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-5 py-3 dark:border-zinc-700 dark:bg-zinc-900">
+          <MessageSquare className="h-5 w-5 text-shqiponja" />
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{t("admin.twilioBalance")}</p>
+            {twilioBalanceError ? (
+              <p className="text-sm font-semibold text-red-500">{t("admin.twilioBalanceError")}</p>
+            ) : twilioBalance ? (
+              <p className="text-lg font-extrabold">
+                {twilioBalance.balance.toFixed(2)} {twilioBalance.currency.toUpperCase()}
+              </p>
+            ) : (
+              <p className="text-sm text-zinc-400">{t("admin.twilioBalanceLoading")}</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Charts */}

@@ -85,7 +85,7 @@ router.get('/users', async (req, res) => {
 
   const total = parseInt((await db.query(`SELECT COUNT(*) AS cnt FROM users WHERE ${where}`, params)).rows[0].cnt);
   const users = (await db.query(
-    `SELECT id, name, email, role, email_verified, created_at FROM users WHERE ${where} ORDER BY created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+    `SELECT id, name, email, phone, role, email_verified, created_at FROM users WHERE ${where} ORDER BY created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
     [...params, limit, offset]
   )).rows;
   res.json({ users, total, page, totalPages: Math.ceil(total / limit) });
@@ -767,6 +767,99 @@ router.patch('/referrals/:id', async (req, res) => {
   } catch (err) {
     console.error('Admin referral update error:', err);
     res.status(500).json({ error: 'Gabim serveri' });
+  }
+});
+
+/* ─── MARKETING BLAST ─── */
+router.post('/marketing/send', async (req, res) => {
+  const { type, subject, message, userIds } = req.body;
+  if (!['email', 'sms'].includes(type)) {
+    return res.status(400).json({ error: 'type duhet të jetë email ose sms' });
+  }
+  if (!message || !String(message).trim()) {
+    return res.status(400).json({ error: 'Mesazhi është i detyrueshëm' });
+  }
+  // Limit message length
+  if (String(message).length > 1600) {
+    return res.status(400).json({ error: 'Mesazhi është shumë i gjatë (max 1600 karaktere)' });
+  }
+  if (type === 'email' && (!subject || !String(subject).trim())) {
+    return res.status(400).json({ error: 'Subjekti është i detyrueshëm për email' });
+  }
+
+  let query, params;
+  if (Array.isArray(userIds) && userIds.length > 0) {
+    const ids = userIds.map(Number).filter(n => Number.isFinite(n) && n > 0);
+    if (!ids.length) return res.status(400).json({ error: 'userIds të pavlefshëm' });
+    if (type === 'email') {
+      query = `SELECT id, name, email FROM users WHERE id = ANY($1) AND email IS NOT NULL`;
+    } else {
+      query = `SELECT id, name, phone FROM users WHERE id = ANY($1) AND phone IS NOT NULL AND phone != ''`;
+    }
+    params = [ids];
+  } else {
+    if (type === 'email') {
+      query = `SELECT id, name, email FROM users WHERE email IS NOT NULL`;
+    } else {
+      query = `SELECT id, name, phone FROM users WHERE phone IS NOT NULL AND phone != ''`;
+    }
+    params = [];
+  }
+
+  const targets = (await db.query(query, params)).rows;
+  if (!targets.length) {
+    return res.json({ sent: 0, failed: 0, message: 'Asnjë destinatar i gjetur' });
+  }
+
+  let sent = 0, failed = 0;
+
+  if (type === 'email') {
+    const { sendMail } = require('../src/utils/email');
+    const safeSubject = String(subject).slice(0, 200);
+    const safeMessage = String(message).replace(/\n/g, '<br>');
+    await Promise.all(targets.map(async u => {
+      try {
+        const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+          <div style="background:#C8102E;padding:20px 24px;border-radius:8px 8px 0 0">
+            <h1 style="color:#fff;margin:0;font-size:20px">Shqiponja eSIM</h1>
+          </div>
+          <div style="padding:24px;background:#fff;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
+            <p style="margin:0 0 12px">Përshëndetje ${u.name || ''},</p>
+            <div style="margin:0 0 20px;line-height:1.6">${safeMessage}</div>
+            <a href="https://shqiponjaesim.com/packages" style="display:inline-block;background:#C8102E;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Shiko Paketat</a>
+          </div>
+        </div>`;
+        await sendMail(u.email, safeSubject, html);
+        sent++;
+      } catch { failed++; }
+    }));
+  } else {
+    const twilioService = require('../src/services/twilioService');
+    await Promise.all(targets.map(async u => {
+      try {
+        await twilioService.send_custom_sms(u.phone, String(message).trim());
+        sent++;
+      } catch { failed++; }
+    }));
+  }
+
+  res.json({ sent, failed, total: targets.length });
+});
+
+/* ─── TWILIO BALANCE ─── */
+router.get('/twilio-balance', async (req, res) => {
+  try {
+    const twilio = require('twilio');
+    const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    const account = await client.api.accounts(process.env.TWILIO_ACCOUNT_SID).fetch();
+    const balance = await client.balance.fetch();
+    res.json({
+      balance: parseFloat(balance.balance),
+      currency: balance.currency,
+      accountName: account.friendlyName,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Nuk u arrit bilanci: ' + err.message });
   }
 });
 

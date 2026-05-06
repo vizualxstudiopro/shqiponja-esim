@@ -289,6 +289,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  phone?: string | null;
   role: string;
   email_verified: number;
   created_at: string;
@@ -488,6 +489,27 @@ export async function adminUpdateUserRole(token: string, userId: number, role: s
 export async function adminDeleteUser(token: string, userId: number) {
   const res = await fetchWithTimeout(`${API_URL}/api/admin/users/${userId}`, { method: "DELETE", headers: authHeaders(token) });
   if (!res.ok) { const e = await res.json().catch(() => ({ error: "Fshirja dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export interface MarketingResult { sent: number; failed: number; total: number; message?: string }
+export async function adminSendMarketing(
+  token: string,
+  data: { type: 'email' | 'sms'; subject?: string; message: string; userIds?: number[] }
+): Promise<MarketingResult> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/marketing/send`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Dërgimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export interface TwilioBalance { balance: number; currency: string; accountName: string }
+export async function adminGetTwilioBalance(token: string): Promise<TwilioBalance> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/twilio-balance`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Bilanci nuk u ngarkua");
   return res.json();
 }
 
