@@ -8,7 +8,7 @@ const { escapeHtml, verifyEmailTemplate, resetPasswordTemplate, welcomeEmailTemp
 const { sendTransactionalEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { validateRegister, validateLogin } = require('../middleware/validate');
-const { send_sms, MESSAGE_TYPES } = require('../src/services/twilioService');
+const { send_sms, MESSAGE_TYPES, sendVerifyCode, checkVerifyCode } = require('../src/services/twilioService');
 
 const router = express.Router();
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
@@ -80,10 +80,9 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
     return res.status(401).json({ error: 'Email ose fjalëkalim i gabuar' });
   }
 
-  // Check if 2FA is enabled for this user
+  // Check TOTP 2FA (admin authenticator app)
   if (user.totp_enabled && user.totp_secret) {
     if (!totpCode) {
-      // Return a challenge — client must re-submit with totpCode
       return res.json({ requires2FA: true });
     }
     const { TOTP, Secret } = require('otpauth');
@@ -91,6 +90,22 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
     const isValid = totp.validate({ token: totpCode, window: 1 }) !== null;
     if (!isValid) {
       return res.status(401).json({ error: 'Kodi 2FA i pavlefshëm' });
+    }
+  }
+
+  // Check SMS 2FA
+  if (user.sms_2fa_enabled && user.phone) {
+    const { smsCode } = req.body;
+    if (!smsCode) {
+      // Step 1: send code and return challenge
+      sendVerifyCode(user.phone).catch(err => console.error('[SMS 2FA] send error:', err.message));
+      const maskedPhone = user.phone.slice(0, -4).replace(/\d/g, '*') + user.phone.slice(-4);
+      return res.json({ requiresSms2FA: true, maskedPhone });
+    }
+    // Step 2: verify code
+    const result = await checkVerifyCode(user.phone, smsCode).catch(() => ({ approved: false }));
+    if (!result.approved) {
+      return res.status(401).json({ error: 'Kodi SMS i pavlefshëm ose i skaduar' });
     }
   }
 
@@ -106,10 +121,16 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
 
 // GET /api/auth/me - Get current user
 router.get('/me', authMiddleware, async (req, res) => {
-  const user = (await db.query('SELECT id, name, email, role, email_verified, created_at FROM users WHERE id = $1',
-    [req.user.id])).rows[0];
+  const user = (await db.query(
+    'SELECT id, name, email, role, email_verified, created_at, sms_2fa_enabled, phone FROM users WHERE id = $1',
+    [req.user.id]
+  )).rows[0];
   if (!user) return res.status(404).json({ error: 'Përdoruesi nuk u gjet' });
-  res.json(user);
+  // Mask phone for response
+  const maskedPhone = user.phone
+    ? user.phone.slice(0, -4).replace(/\d/g, '*') + user.phone.slice(-4)
+    : null;
+  res.json({ ...user, phone: undefined, masked_phone: maskedPhone });
 });
 
 // POST /api/auth/verify - Verify email with token
@@ -275,6 +296,46 @@ router.post('/change-password', authMiddleware, async (req, res) => {
   const hash = await bcrypt.hash(newPassword, 12);
   await db.query('UPDATE users SET password = $1 WHERE id = $2', [hash, req.user.id]);
   res.json({ ok: true, message: 'Fjalëkalimi u ndryshua me sukses!' });
+});
+
+// POST /api/auth/sms-2fa/send - Send verification code to phone
+router.post('/sms-2fa/send', authLimiter, authMiddleware, async (req, res) => {
+  const { phone } = req.body;
+  if (!phone || typeof phone !== 'string') {
+    return res.status(400).json({ error: 'Numri i telefonit mungon' });
+  }
+  try {
+    await sendVerifyCode(phone);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/sms-2fa/enable - Verify code and enable SMS 2FA
+router.post('/sms-2fa/enable', authLimiter, authMiddleware, async (req, res) => {
+  const { phone, code } = req.body;
+  if (!phone || !code) {
+    return res.status(400).json({ error: 'Numri dhe kodi janë të detyrueshëm' });
+  }
+  const result = await checkVerifyCode(phone, code).catch(() => ({ approved: false }));
+  if (!result.approved) {
+    return res.status(400).json({ error: 'Kodi i pavlefshëm ose i skaduar' });
+  }
+  await db.query(
+    'UPDATE users SET phone = $1, sms_2fa_enabled = 1 WHERE id = $2',
+    [phone, req.user.id]
+  );
+  res.json({ ok: true });
+});
+
+// POST /api/auth/sms-2fa/disable - Disable SMS 2FA
+router.post('/sms-2fa/disable', authMiddleware, async (req, res) => {
+  await db.query(
+    'UPDATE users SET sms_2fa_enabled = 0, phone = NULL WHERE id = $1',
+    [req.user.id]
+  );
+  res.json({ ok: true });
 });
 
 module.exports = router;

@@ -22,7 +22,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string, totpCode?: string) => Promise<{ requires2FA?: boolean }>;
+  login: (email: string, password: string, totpCode?: string, smsCode?: string) => Promise<{ requires2FA?: boolean; requiresSms2FA?: boolean; maskedPhone?: string }>;
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   loginWithMicrosoft: (code: string, redirectUri: string) => Promise<void>;
@@ -83,10 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { window.fetch = originalFetch; };
   }, [token, logout]);
 
-  async function login(email: string, password: string, totpCode?: string): Promise<{ requires2FA?: boolean }> {
-    const res = await apiLogin(email, password, totpCode);
+  async function login(email: string, password: string, totpCode?: string, smsCode?: string): Promise<{ requires2FA?: boolean; requiresSms2FA?: boolean; maskedPhone?: string }> {
+    const res = await apiLogin(email, password, totpCode, smsCode);
     if (res.requires2FA) {
       return { requires2FA: true };
+    }
+    if (res.requiresSms2FA) {
+      return { requiresSms2FA: true, maskedPhone: res.maskedPhone };
     }
     localStorage.setItem("token", res.token);
     setToken(res.token);

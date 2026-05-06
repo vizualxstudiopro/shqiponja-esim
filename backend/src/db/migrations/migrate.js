@@ -165,6 +165,14 @@ async function migrate() {
     // Columns likely already exist
   }
 
+  // SMS 2FA on users
+  try {
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS sms_2fa_enabled INTEGER NOT NULL DEFAULT 0`);
+  } catch (e) {
+    // Columns likely already exist
+  }
+
   // Referrals table
   await db.query(`
     CREATE TABLE IF NOT EXISTS referrals (

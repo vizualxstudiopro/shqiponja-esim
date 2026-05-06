@@ -293,12 +293,16 @@ export interface User {
   email_verified: number;
   created_at: string;
   oauth_provider?: string;
+  sms_2fa_enabled?: number;
+  masked_phone?: string | null;
 }
 
 export interface AuthResponse {
   user: User;
   token: string;
   requires2FA?: boolean;
+  requiresSms2FA?: boolean;
+  maskedPhone?: string;
 }
 
 export async function register(
@@ -321,12 +325,13 @@ export async function register(
 export async function login(
   email: string,
   password: string,
-  totpCode?: string
+  totpCode?: string,
+  smsCode?: string
 ): Promise<AuthResponse> {
   const res = await fetchWithTimeout(`${API_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, totpCode }),
+    body: JSON.stringify({ email, password, totpCode, smsCode }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Hyrja dështoi" }));
@@ -674,6 +679,38 @@ export async function changePassword(token: string, currentPassword: string, new
     body: JSON.stringify({ currentPassword, newPassword }),
   });
   if (!res.ok) { const e = await res.json().catch(() => ({ error: "Ndryshimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+/* ─── SMS 2FA ─── */
+
+export async function sendSms2FACode(token: string, phone: string): Promise<{ ok: boolean }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/sms-2fa/send`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ phone }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Dërgimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export async function enableSms2FA(token: string, phone: string, code: string): Promise<{ ok: boolean }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/sms-2fa/enable`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ phone, code }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Aktivizimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export async function disableSms2FA(token: string): Promise<{ ok: boolean }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/sms-2fa/disable`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Deaktivizimi dështoi" })); throw new Error(e.error); }
   return res.json();
 }
 

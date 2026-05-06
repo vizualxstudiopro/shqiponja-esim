@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { useToast } from "@/lib/toast-context";
 import { useRouter } from "next/navigation";
-import { getMyOrders, updateProfile, changePassword, resendVerification, getMyReferral, type Order, type ReferralStats } from "@/lib/api";
+import { getMyOrders, updateProfile, changePassword, resendVerification, getMyReferral, sendSms2FACode, enableSms2FA, disableSms2FA, type Order, type ReferralStats } from "@/lib/api";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
 import DigitalPassport from "@/components/digital-passport";
@@ -24,6 +24,13 @@ export default function ProfilePage() {
   const [savingName, setSavingName] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
   const [resending, setResending] = useState(false);
+
+  // SMS 2FA state
+  const [sms2faPhone, setSms2faPhone] = useState("");
+  const [sms2faCode, setSms2faCode] = useState("");
+  const [sms2faCodeSent, setSms2faCodeSent] = useState(false);
+  const [sms2faSending, setSms2faSending] = useState(false);
+  const [sms2faActivating, setSms2faActivating] = useState(false);
 
   useEffect(() => {
     // Check both user state AND localStorage token to avoid race conditions
@@ -88,6 +95,49 @@ export default function ProfilePage() {
       toast("Error", "error");
     } finally {
       setResending(false);
+    }
+  }
+
+  async function handleSms2faSendCode() {
+    if (!token || sms2faSending) return;
+    setSms2faSending(true);
+    try {
+      await sendSms2FACode(token, sms2faPhone);
+      setSms2faCodeSent(true);
+      toast(t("profile.sms2fa.codeSent"), "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Error", "error");
+    } finally {
+      setSms2faSending(false);
+    }
+  }
+
+  async function handleSms2faEnable(e: FormEvent) {
+    e.preventDefault();
+    if (!token) return;
+    setSms2faActivating(true);
+    try {
+      await enableSms2FA(token, sms2faPhone, sms2faCode);
+      setUser({ ...user!, sms_2fa_enabled: 1, masked_phone: sms2faPhone.slice(0, -4).replace(/\d/g, "*") + sms2faPhone.slice(-4) });
+      setSms2faPhone("");
+      setSms2faCode("");
+      setSms2faCodeSent(false);
+      toast(t("profile.sms2fa.activated"), "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Error", "error");
+    } finally {
+      setSms2faActivating(false);
+    }
+  }
+
+  async function handleSms2faDisable() {
+    if (!token) return;
+    try {
+      await disableSms2FA(token);
+      setUser({ ...user!, sms_2fa_enabled: 0, masked_phone: null });
+      toast(t("profile.sms2fa.disabled_ok"), "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Error", "error");
     }
   }
 
@@ -196,6 +246,85 @@ export default function ProfilePage() {
         )}
 
         <DigitalPassport orders={orders} />
+
+        {/* SMS 2FA Section */}
+        <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-800">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-extrabold flex items-center gap-2">
+                🔐 {t("profile.sms2fa.title")}
+              </h2>
+              <p className="mt-1 text-sm text-zinc-500">{t("profile.sms2fa.subtitle")}</p>
+            </div>
+            {user.sms_2fa_enabled ? (
+              <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                ✓ {t("profile.sms2fa.enabled")}
+              </span>
+            ) : (
+              <span className="shrink-0 inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-500">
+                {t("profile.sms2fa.disabled")}
+              </span>
+            )}
+          </div>
+
+          {user.sms_2fa_enabled ? (
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-sm text-zinc-500">
+                {t("profile.sms2fa.maskedPhone")} <span className="font-mono font-semibold">{user.masked_phone}</span>
+              </p>
+              <button
+                onClick={handleSms2faDisable}
+                className="rounded-lg border border-red-200 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition dark:border-red-800 dark:hover:bg-red-950"
+              >
+                {t("profile.sms2fa.disable")}
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSms2faEnable} className="mt-4 space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="tel"
+                  value={sms2faPhone}
+                  onChange={(e) => setSms2faPhone(e.target.value)}
+                  placeholder={t("profile.sms2fa.phonePlaceholder")}
+                  required
+                  className="flex-1 rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700"
+                />
+                <button
+                  type="button"
+                  onClick={handleSms2faSendCode}
+                  disabled={sms2faSending || !sms2faPhone}
+                  className="rounded-lg bg-zinc-800 px-4 py-2.5 text-xs font-semibold text-white hover:bg-zinc-700 transition disabled:opacity-50 dark:bg-zinc-600"
+                >
+                  {sms2faSending ? t("profile.sms2fa.sending") : t("profile.sms2fa.sendCode")}
+                </button>
+              </div>
+              {sms2faCodeSent && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    value={sms2faCode}
+                    onChange={(e) => setSms2faCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder={t("profile.sms2fa.enterCode")}
+                    required
+                    autoFocus
+                    className="flex-1 rounded-lg border border-zinc-300 px-4 py-2.5 text-center font-mono text-lg tracking-[0.3em] outline-none focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700"
+                  />
+                  <button
+                    type="submit"
+                    disabled={sms2faActivating || sms2faCode.length < 6}
+                    className="rounded-lg bg-shqiponja px-4 py-2.5 text-xs font-semibold text-white hover:bg-shqiponja-dark transition disabled:opacity-50"
+                  >
+                    {sms2faActivating ? t("profile.sms2fa.activating") : t("profile.sms2fa.activate")}
+                  </button>
+                </div>
+              )}
+            </form>
+          )}
+        </div>
 
         {/* Edit Name Modal */}
         {editingName && (

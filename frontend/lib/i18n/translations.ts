@@ -283,6 +283,26 @@ const translations = {
     "profile.nameUpdated": "Emri u përditësua me sukses",
     "profile.passwordChanged": "Fjalëkalimi u ndryshua me sukses",
 
+    // SMS 2FA
+    "profile.sms2fa.title": "Siguria me SMS (2FA)",
+    "profile.sms2fa.subtitle": "Aktivizo verifikimin me dy hapa. Çdo herë që hyni, do ju dërgohet nje kod në telefonin tuaj.",
+    "profile.sms2fa.enabled": "2FA me SMS është aktive",
+    "profile.sms2fa.disabled": "2FA me SMS nuk është aktive",
+    "profile.sms2fa.phone": "Numri i telefonit",
+    "profile.sms2fa.phonePlaceholder": "+355 69 XXX XXXX",
+    "profile.sms2fa.sendCode": "Dërgo Kod",
+    "profile.sms2fa.sending": "Duke dërguar...",
+    "profile.sms2fa.codeSent": "Kodi u dërgua!",
+    "profile.sms2fa.enterCode": "Fut kodin 6-shifror",
+    "profile.sms2fa.activate": "Aktivizo 2FA",
+    "profile.sms2fa.activating": "Duke aktivizuar...",
+    "profile.sms2fa.activated": "2FA me SMS u aktivizua!",
+    "profile.sms2fa.disable": "Deaktivizo 2FA",
+    "profile.sms2fa.disabled_ok": "2FA me SMS u deaktivizua",
+    "profile.sms2fa.maskedPhone": "Tel:",
+    "auth.smsCode": "Kodi SMS",
+    "auth.smsCodeHint": "Kontrolloni telefonin tuaj, ju dërguam nje kod 6-shifror.",
+
     // Referral
     "referral.title": "Fto Miqtë",
     "referral.subtitle": "Ndajeni kodin tuaj me miqtë dhe fitoni zbritje për çdo blerje të tyre.",
@@ -895,6 +915,26 @@ const translations = {
     "profile.newPassword": "New password",
     "profile.nameUpdated": "Name updated successfully",
     "profile.passwordChanged": "Password changed successfully",
+
+    // SMS 2FA
+    "profile.sms2fa.title": "SMS Security (2FA)",
+    "profile.sms2fa.subtitle": "Enable two-step verification. Every time you log in, a code will be sent to your phone.",
+    "profile.sms2fa.enabled": "SMS 2FA is active",
+    "profile.sms2fa.disabled": "SMS 2FA is not active",
+    "profile.sms2fa.phone": "Phone number",
+    "profile.sms2fa.phonePlaceholder": "+355 69 XXX XXXX",
+    "profile.sms2fa.sendCode": "Send Code",
+    "profile.sms2fa.sending": "Sending...",
+    "profile.sms2fa.codeSent": "Code sent!",
+    "profile.sms2fa.enterCode": "Enter 6-digit code",
+    "profile.sms2fa.activate": "Activate 2FA",
+    "profile.sms2fa.activating": "Activating...",
+    "profile.sms2fa.activated": "SMS 2FA activated!",
+    "profile.sms2fa.disable": "Disable 2FA",
+    "profile.sms2fa.disabled_ok": "SMS 2FA disabled",
+    "profile.sms2fa.maskedPhone": "Phone:",
+    "auth.smsCode": "SMS Code",
+    "auth.smsCodeHint": "Check your phone, we sent you a 6-digit code.",
 
     // Referral
     "referral.title": "Invite Friends",

@@ -19,6 +19,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [needs2FA, setNeeds2FA] = useState(false);
+  const [smsCode, setSmsCode] = useState("");
+  const [needsSms2FA, setNeedsSms2FA] = useState(false);
+  const [maskedPhone, setMaskedPhone] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,9 +30,20 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const result = await login(email, password, needs2FA ? totpCode : undefined);
+      const result = await login(
+        email,
+        password,
+        needs2FA ? totpCode : undefined,
+        needsSms2FA ? smsCode : undefined
+      );
       if (result.requires2FA) {
         setNeeds2FA(true);
+        setLoading(false);
+        return;
+      }
+      if (result.requiresSms2FA) {
+        setNeedsSms2FA(true);
+        setMaskedPhone(result.maskedPhone ?? "");
         setLoading(false);
         return;
       }
@@ -126,6 +140,31 @@ export default function LoginPage() {
                 autoComplete="one-time-code"
                 value={totpCode}
                 onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
+                placeholder="000000"
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-center text-lg font-mono tracking-[0.3em] outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+              />
+            </div>
+          )}
+
+          {needsSms2FA && (
+            <div>
+              <label htmlFor="smsCode" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {t("auth.smsCode")}
+              </label>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                {t("auth.smsCodeHint")}{maskedPhone ? ` (${maskedPhone})` : ""}
+              </p>
+              <input
+                id="smsCode"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                required
+                autoFocus
+                autoComplete="one-time-code"
+                value={smsCode}
+                onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, ""))}
                 placeholder="000000"
                 className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-center text-lg font-mono tracking-[0.3em] outline-none transition focus:border-shqiponja focus:ring-2 focus:ring-shqiponja/20 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
               />
