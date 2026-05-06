@@ -1,11 +1,13 @@
 const nodemailer = require('nodemailer');
 const QRCode = require('qrcode');
 const PDFDocument = require('pdfkit');
+const https = require('https');
 
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = process.env.SMTP_PORT || 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const SMTP_FROM = process.env.SMTP_FROM || 'Shqiponja eSIM <noreply@shqiponjaesim.com>';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://shqiponjaesim.com';
 
@@ -28,9 +30,73 @@ if (SMTP_HOST && SMTP_USER) {
   });
 }
 
+// Parse "Name <email>" or plain "email" into { name, email }
+function parseFromAddress(fromStr) {
+  const match = (fromStr || '').match(/^(.+?)\s*<(.+?)>$/);
+  if (match) return { name: match[1].trim(), email: match[2].trim() };
+  return { name: 'Shqiponja eSIM', email: fromStr || 'noreply@shqiponjaesim.com' };
+}
+
+async function sendMailViaBrevoApi(to, subject, html, options = {}) {
+  const fromStr = options.from || process.env.SMTP_FROM || SMTP_FROM;
+  const sender = parseFromAddress(fromStr);
+  const recipients = Array.isArray(to) ? to.map(e => ({ email: e })) : [{ email: to }];
+
+  const payload = {
+    sender,
+    to: recipients,
+    subject,
+    htmlContent: html,
+  };
+  if (options.replyTo) payload.replyTo = { email: options.replyTo };
+  if (options.attachments && options.attachments.length) {
+    payload.attachment = options.attachments.map(a => ({
+      name: a.filename,
+      content: Buffer.isBuffer(a.content) ? a.content.toString('base64') : Buffer.from(a.content).toString('base64'),
+    }));
+  }
+
+  const body = JSON.stringify(payload);
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.brevo.com',
+      port: 443,
+      path: '/v3/smtp/email',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': BREVO_API_KEY,
+        'Content-Length': Buffer.byteLength(body),
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(JSON.parse(data));
+        } else {
+          console.error('[EMAIL ERROR] Brevo API error:', res.statusCode, data);
+          reject(new Error(`Brevo API ${res.statusCode}: ${data}`));
+        }
+      });
+    });
+    req.on('error', err => {
+      console.error('[EMAIL ERROR] Brevo API request failed:', err.message);
+      reject(err);
+    });
+    req.write(body);
+    req.end();
+  });
+}
+
 async function sendMail(to, subject, html, options = {}) {
+  // Prefer Brevo HTTP API (more reliable on cloud)
+  if (BREVO_API_KEY) {
+    return sendMailViaBrevoApi(to, subject, html, options);
+  }
+
   if (!transporter) {
-    throw new Error('SMTP not configured');
+    throw new Error('Email not configured: set BREVO_API_KEY or SMTP credentials');
   }
 
   try {
