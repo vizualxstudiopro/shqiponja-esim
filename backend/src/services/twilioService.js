@@ -4,7 +4,9 @@ const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
 const TWILIO_VERIFY_SERVICE_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
-const AIRALO_PARTNER_LINK = process.env.AIRALO_PARTNER_LINK || 'https://www.airalo.com';
+const TWILIO_ALPHA_SENDER = process.env.TWILIO_ALPHA_SENDER || 'Shqiponja';
+const TWILIO_MESSAGING_SERVICE_SID = process.env.TWILIO_MESSAGING_SERVICE_SID;
+const AIRALO_PARTNER_LINK = process.env.AIRALO_PARTNER_LINK || 'https://shqiponjaesim.com/packages';
 
 const client =
   TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN
@@ -16,6 +18,58 @@ const MESSAGE_TYPES = {
   usage_80: 'usage_80',
   usage_100: 'usage_100',
 };
+
+// Country prefixes that support Alphanumeric Sender ID.
+// Serbia (+381) is intentionally excluded.
+const ALPHA_SENDER_PREFIXES = [
+  '+355', // Albania
+  '+383', // Kosovo
+  '+382', // Montenegro
+  '+387', // Bosnia & Herzegovina
+  '+389', // North Macedonia
+  '+385', // Croatia
+  '+386', // Slovenia
+  '+43',  // Austria
+  '+32',  // Belgium
+  '+359', // Bulgaria
+  '+420', // Czech Republic
+  '+45',  // Denmark
+  '+372', // Estonia
+  '+358', // Finland
+  '+33',  // France
+  '+49',  // Germany
+  '+30',  // Greece
+  '+36',  // Hungary
+  '+353', // Ireland
+  '+39',  // Italy
+  '+371', // Latvia
+  '+370', // Lithuania
+  '+352', // Luxembourg
+  '+356', // Malta
+  '+31',  // Netherlands
+  '+47',  // Norway
+  '+48',  // Poland
+  '+351', // Portugal
+  '+40',  // Romania
+  '+421', // Slovakia
+  '+34',  // Spain
+  '+46',  // Sweden
+  '+41',  // Switzerland
+  '+44',  // United Kingdom
+];
+
+function supportsAlphaSender(e164) {
+  return ALPHA_SENDER_PREFIXES.some((prefix) => e164.startsWith(prefix));
+}
+
+// Returns messaging params: uses Messaging Service (alpha sender) for supported
+// countries, falls back to direct phone number for unsupported ones.
+function getMessageParams(toE164) {
+  if (TWILIO_MESSAGING_SERVICE_SID && supportsAlphaSender(toE164)) {
+    return { messagingServiceSid: TWILIO_MESSAGING_SERVICE_SID };
+  }
+  return { from: TWILIO_PHONE_NUMBER };
+}
 
 function isTwilioSmsConfigured() {
   return Boolean(TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_PHONE_NUMBER && client);
@@ -30,27 +84,41 @@ function isTwilioVerifyConfigured() {
   );
 }
 
+// Normalizes Albanian (0xx), Kosovo (04x), and any valid E.164 number.
 function normalizeToAlbaniaE164(rawNumber) {
   const value = String(rawNumber || '').trim();
   if (!value) {
     throw new Error('Phone number is required');
   }
 
-  const compact = value.replace(/[\s\-()]/g, '');
+  const compact = value.replace(/[\s\-().]/g, '');
 
-  if (/^\+355\d{8,9}$/.test(compact)) {
+  // Already valid E.164
+  if (/^\+\d{7,15}$/.test(compact)) {
     return compact;
   }
 
+  // Albania: 355xxxxxxxxx → +355xxxxxxxxx
   if (/^355\d{8,9}$/.test(compact)) {
     return `+${compact}`;
   }
 
-  if (/^0\d{8,9}$/.test(compact)) {
+  // Albania local: 06x/07x → +355
+  if (/^0[67]\d{7,8}$/.test(compact)) {
     return `+355${compact.slice(1)}`;
   }
 
-  throw new Error('Phone number must be in E.164 format (+355...)');
+  // Kosovo: 383xxxxxxxxx → +383xxxxxxxxx
+  if (/^383\d{8,9}$/.test(compact)) {
+    return `+${compact}`;
+  }
+
+  // Kosovo local: 04x → +383
+  if (/^04\d{7,8}$/.test(compact)) {
+    return `+383${compact.slice(1)}`;
+  }
+
+  throw new Error(`Phone number format not recognized: ${rawNumber}`);
 }
 
 function buildMessage(messageType, airaloLink = AIRALO_PARTNER_LINK) {
@@ -73,10 +141,11 @@ async function send_sms(to_number, message_type, options = {}) {
 
   const to = normalizeToAlbaniaE164(to_number);
   const body = buildMessage(message_type, options.airaloLink);
+  const senderParams = getMessageParams(to);
 
   const response = await client.messages.create({
     body,
-    from: TWILIO_PHONE_NUMBER,
+    ...senderParams,
     to,
   });
 
