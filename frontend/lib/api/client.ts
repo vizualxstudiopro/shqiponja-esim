@@ -130,7 +130,15 @@ export async function getCoverageCountries(): Promise<CoverageCountry[]> {
       next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
-    return res.json();
+    const data = await res.json();
+    // Backend returns { countries: { category: [...] }, global_count: N }
+    // Flatten into a single array
+    if (data && typeof data === "object" && data.countries) {
+      return Object.values(data.countries as Record<string, CoverageCountry[]>).flat();
+    }
+    // Fallback: if it ever returns a plain array
+    if (Array.isArray(data)) return data;
+    return [];
   } catch {
     return [];
   }
