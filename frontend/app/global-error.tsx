@@ -1,22 +1,19 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
-import NextError from "next/error";
-import { useEffect } from "react";
-
 export default function GlobalError({
   error,
 }: {
   error: Error & { digest?: string };
 }) {
-  useEffect(() => {
-    Sentry.captureException(error);
-  }, [error]);
-
   return (
     <html>
       <body>
-        <NextError statusCode={0} />
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <h2>Diçka shkoi keq!</h2>
+          <p style={{ color: "#888", fontSize: "0.875rem" }}>
+            {error?.digest ? `Kodi: ${error.digest}` : "Ndodhi një gabim i papritur."}
+          </p>
+        </div>
       </body>
     </html>
   );
