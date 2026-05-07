@@ -13,6 +13,7 @@ const PackageFinder = dynamic(() => import("@/components/package-finder"));
 const Footer = dynamic(() => import("@/components/footer"));
 const TouristCards = dynamic(() => import("@/components/tourist-cards"));
 const WorldCupSection = dynamic(() => import("@/components/world-cup-section"));
+const CoverageMap = dynamic(() => import("@/components/coverage-map"), { ssr: false });
 
 /* Scroll-reveal hook */
 function useReveal() {
@@ -806,6 +807,7 @@ export default function LandingContent() {
       </section>
 
       <NewsletterSection />
+      <CoverageMap />
       <Footer />
     </>
   );

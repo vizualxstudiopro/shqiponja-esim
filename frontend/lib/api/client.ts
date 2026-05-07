@@ -115,6 +115,27 @@ export async function getDestinations(): Promise<Destination[]> {
   }
 }
 
+export interface CoverageCountry {
+  country_code: string;
+  name: string;
+  flag: string;
+  min_price: number;
+  package_count: number;
+  category: string;
+}
+
+export async function getCoverageCountries(): Promise<CoverageCountry[]> {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/api/packages/countries`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function searchPackages(q: string): Promise<EsimPackage[]> {
   if (!q || q.trim().length < 2) return [];
   try {
