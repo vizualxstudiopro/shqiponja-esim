@@ -105,8 +105,8 @@ export default function CoverageMap() {
 
   // Color palette — clear contrast in both modes
   const colors = isDark
-    ? { bg: "#18181b", card: "#1c1c1f", border: "#3f3f46", covered: "#10b981", coveredHover: "#34d399", coveredSelected: "#6ee7b7", uncovered: "#3f3f46", ocean: "#18181b", stroke: "#09090b", text: "#a1a1aa", accent: "#10b981" }
-    : { bg: "#f4f4f5", card: "#ffffff", border: "#d4d4d8", covered: "#059669", coveredHover: "#10b981", coveredSelected: "#34d399", uncovered: "#d1d5db", ocean: "#e0f2fe", stroke: "#ffffff", text: "#71717a", accent: "#059669" };
+    ? { bg: "#18181b", card: "#1c1c1f", border: "#3f3f46", covered: "#C8102E", coveredHover: "#e8213e", coveredSelected: "#f25c72", uncovered: "#3f3f46", ocean: "#18181b", stroke: "#09090b", text: "#a1a1aa", accent: "#C8102E" }
+    : { bg: "#f4f4f5", card: "#ffffff", border: "#d4d4d8", covered: "#C8102E", coveredHover: "#9B0D23", coveredSelected: "#f25c72", uncovered: "#d1d5db", ocean: "#f0f0f0", stroke: "#ffffff", text: "#71717a", accent: "#C8102E" };
 
   /* ── Touch handlers: distinguish tap from scroll ── */
   const handleTouchStart = (e: React.TouchEvent) => {
