@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
 import { getCoverageCountries, type CoverageCountry } from "@/lib/api";
 
@@ -71,16 +71,21 @@ interface Tooltip {
   data: CoverageCountry;
 }
 
+/** Drag threshold in px — below this it's a tap, above it's a scroll */
+const DRAG_THRESHOLD = 8;
+
 export default function CoverageMap() {
   const { locale } = useI18n();
+  const router = useRouter();
   const [countries, setCountries] = useState<CoverageCountry[]>([]);
-  const [numericMap, setNumericMap] = useState<Map<string, CoverageCountry>>(
-    new Map()
-  );
-  const [tooltip, setTooltip] = useState<Tooltip | null>(null);
+  const [numericMap, setNumericMap] = useState<Map<string, CoverageCountry>>(new Map());
+  const [tooltip, setTooltip] = useState<Tooltip | null>(null);       // desktop hover
+  const [selected, setSelected] = useState<CoverageCountry | null>(null); // mobile tap
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const isDrag = useRef(false);
 
   useEffect(() => {
     getCoverageCountries().then((data) => {
@@ -100,19 +105,43 @@ export default function CoverageMap() {
 
   // Color palette — clear contrast in both modes
   const colors = isDark
-    ? { bg: "#18181b", card: "#1c1c1f", border: "#3f3f46", covered: "#10b981", coveredHover: "#34d399", uncovered: "#3f3f46", ocean: "#18181b", stroke: "#09090b", text: "#a1a1aa", accent: "#10b981" }
-    : { bg: "#f4f4f5", card: "#ffffff", border: "#d4d4d8", covered: "#059669", coveredHover: "#10b981", uncovered: "#d1d5db", ocean: "#e0f2fe", stroke: "#ffffff", text: "#71717a", accent: "#059669" };
-  const handleMouseMove = (
-    e: React.MouseEvent,
-    country: CoverageCountry
-  ) => {
+    ? { bg: "#18181b", card: "#1c1c1f", border: "#3f3f46", covered: "#10b981", coveredHover: "#34d399", coveredSelected: "#6ee7b7", uncovered: "#3f3f46", ocean: "#18181b", stroke: "#09090b", text: "#a1a1aa", accent: "#10b981" }
+    : { bg: "#f4f4f5", card: "#ffffff", border: "#d4d4d8", covered: "#059669", coveredHover: "#10b981", coveredSelected: "#34d399", uncovered: "#d1d5db", ocean: "#e0f2fe", stroke: "#ffffff", text: "#71717a", accent: "#059669" };
+
+  /* ── Touch handlers: distinguish tap from scroll ── */
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStart.current = { x: t.clientX, y: t.clientY };
+    isDrag.current = false;
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+    const dx = Math.abs(e.touches[0].clientX - touchStart.current.x);
+    const dy = Math.abs(e.touches[0].clientY - touchStart.current.y);
+    if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) isDrag.current = true;
+  };
+
+  /* ── Geography click handler ── */
+  const handleGeoClick = (country: CoverageCountry) => {
+    if (isDrag.current) return; // was a scroll — ignore
+    const isTouch = window.matchMedia("(pointer: coarse)").matches;
+    if (isTouch) {
+      // Mobile: tap selects; tapping same country again navigates
+      if (selected?.country_code === country.country_code) {
+        router.push(`/packages/${country.country_code.toLowerCase()}`);
+      } else {
+        setSelected(country);
+      }
+    } else {
+      // Desktop: click navigates directly
+      router.push(`/packages/${country.country_code.toLowerCase()}`);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent, country: CoverageCountry) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    setTooltip({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-      data: country,
-    });
+    setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, data: country });
   };
 
   const totalCovered = countries.length;
@@ -163,6 +192,8 @@ export default function CoverageMap() {
           className="relative rounded-2xl overflow-hidden"
           style={{ aspectRatio: "2 / 1", background: colors.ocean, border: `1px solid ${colors.border}` }}
           onMouseLeave={() => setTooltip(null)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
         >
           {loading ? (
             <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ color: colors.text }}>
@@ -178,11 +209,18 @@ export default function CoverageMap() {
                 {({ geographies }) =>
                   geographies.map((geo) => {
                     const covered = numericMap.get(String(geo.id));
+                    const isSelected = covered && selected?.country_code === covered.country_code;
                     return (
                       <Geography
                         key={geo.rsmKey}
                         geography={geo}
-                        fill={covered ? colors.covered : colors.uncovered}
+                        fill={
+                          covered
+                            ? isSelected
+                              ? colors.coveredSelected
+                              : colors.covered
+                            : colors.uncovered
+                        }
                         stroke={colors.stroke}
                         strokeWidth={0.5}
                         style={{
@@ -194,15 +232,9 @@ export default function CoverageMap() {
                           },
                           pressed: { outline: "none" },
                         }}
-                        onMouseMove={
-                          covered ? (e) => handleMouseMove(e, covered) : undefined
-                        }
+                        onMouseMove={covered ? (e) => handleMouseMove(e, covered) : undefined}
                         onMouseLeave={() => setTooltip(null)}
-                        onClick={
-                          covered
-                            ? () => { window.location.href = `/packages/${covered.country_code.toLowerCase()}`; }
-                            : undefined
-                        }
+                        onClick={covered ? () => handleGeoClick(covered) : undefined}
                       />
                     );
                   })
@@ -211,10 +243,10 @@ export default function CoverageMap() {
             </ComposableMap>
           )}
 
-          {/* Tooltip */}
+          {/* Desktop tooltip (hover only) */}
           {tooltip && (
             <div
-              className="pointer-events-none absolute z-20 rounded-xl shadow-lg px-4 py-3 text-sm"
+              className="pointer-events-none absolute z-20 rounded-xl shadow-lg px-4 py-3 text-sm hidden md:block"
               style={{
                 left: Math.min(tooltip.x + 12, (containerRef.current?.offsetWidth ?? 300) - 190),
                 top: Math.max(tooltip.y - 80, 8),
@@ -256,6 +288,55 @@ export default function CoverageMap() {
           </div>
         </div>
       </div>
+
+      {/* ── Mobile bottom bar (tap to select, tap button to navigate) ── */}
+      {selected && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+          style={{
+            background: colors.card,
+            borderTop: `1px solid ${colors.border}`,
+            boxShadow: "0 -4px 24px rgba(0,0,0,0.18)",
+          }}
+        >
+          <div className="max-w-lg mx-auto flex items-center gap-3 px-4 py-3">
+            {/* Flag + info */}
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold flex items-center gap-2 text-base truncate" style={{ color: isDark ? "#f4f4f5" : "#18181b" }}>
+                <span className="text-xl">{selected.flag}</span>
+                <span className="truncate">{selected.name}</span>
+              </div>
+              <div className="text-sm mt-0.5" style={{ color: colors.text }}>
+                {labels.from}{" "}
+                <span className="font-bold" style={{ color: colors.accent }}>
+                  €{selected.min_price.toFixed(2)}
+                </span>
+                {" · "}
+                {selected.package_count} {labels.packages}
+              </div>
+            </div>
+
+            {/* Navigate button */}
+            <button
+              onClick={() => router.push(`/packages/${selected.country_code.toLowerCase()}`)}
+              className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold text-white"
+              style={{ background: colors.accent }}
+            >
+              {labels.buy} →
+            </button>
+
+            {/* Close */}
+            <button
+              onClick={() => setSelected(null)}
+              className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-lg"
+              style={{ color: colors.text }}
+              aria-label="Mbyll"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
