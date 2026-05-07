@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const { Sentry, initSentry } = require('./sentry');
+
+initSentry();
 
 const { apiLimiter } = require('./middleware/rate-limit');
 const { eurToAllRate, getRates } = require('./services/exchangeRates');
@@ -90,9 +93,11 @@ function createApp() {
     res.json({ message: 'Shqiponja eSIM API' });
   });
 
+  Sentry.setupExpressErrorHandler(app);
+
   app.use((err, _req, res, _next) => {
     console.error('Unhandled error:', err);
-    res.status(500).json({ error: 'Gabim i brendshÃ«m i serverit' });
+    res.status(500).json({ error: 'Gabim i brendshëm i serverit' });
   });
 
   return app;

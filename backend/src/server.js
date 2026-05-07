@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const { createApp } = require('./app');
+const { Sentry } = require('./sentry');
 const { migrate } = require('./db/migrations/migrate');
 const airalo = require('./services/airaloService');
 const { checkAndSendUsageSmsAlerts } = require('./services/usageSmsMonitor');
@@ -163,3 +164,14 @@ function scheduleMonthlyReport() {
 }
 
 scheduleMonthlyReport();
+
+/* ─── GLOBAL ERROR CAPTURE ─── */
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] uncaughtException:', err);
+  Sentry.captureException(err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] unhandledRejection:', reason);
+  Sentry.captureException(reason);
+});
