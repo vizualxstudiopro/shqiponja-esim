@@ -72,13 +72,14 @@ interface Tooltip {
 }
 
 export default function CoverageMap() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [countries, setCountries] = useState<CoverageCountry[]>([]);
   const [numericMap, setNumericMap] = useState<Map<string, CoverageCountry>>(
     new Map()
   );
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDark, setIsDark] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -89,6 +90,18 @@ export default function CoverageMap() {
     });
   }, []);
 
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.classList.contains("dark"));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Color palette — clear contrast in both modes
+  const colors = isDark
+    ? { bg: "#18181b", card: "#1c1c1f", border: "#3f3f46", covered: "#10b981", coveredHover: "#34d399", uncovered: "#3f3f46", ocean: "#18181b", stroke: "#09090b", text: "#a1a1aa", accent: "#10b981" }
+    : { bg: "#f4f4f5", card: "#ffffff", border: "#d4d4d8", covered: "#059669", coveredHover: "#10b981", uncovered: "#d1d5db", ocean: "#e0f2fe", stroke: "#ffffff", text: "#71717a", accent: "#059669" };
   const handleMouseMove = (
     e: React.MouseEvent,
     country: CoverageCountry
@@ -126,7 +139,7 @@ export default function CoverageMap() {
         };
 
   return (
-    <section className="py-20 bg-[var(--bg)] overflow-hidden">
+    <section className="py-20 overflow-hidden" style={{ background: colors.bg }}>
       <div className="max-w-6xl mx-auto px-4">
         {/* Heading */}
         <div className="text-center mb-10">
@@ -134,9 +147,9 @@ export default function CoverageMap() {
             {labels.heading}
           </h2>
           {!loading && (
-            <p className="mt-2 text-[var(--muted)] text-lg">
+            <p className="mt-2 text-lg" style={{ color: colors.text }}>
               {labels.sub}{" "}
-              <span className="text-[var(--accent)] font-bold">
+              <span className="font-bold" style={{ color: colors.accent }}>
                 {totalCovered}
               </span>{" "}
               {labels.countries}
@@ -147,12 +160,12 @@ export default function CoverageMap() {
         {/* Map container */}
         <div
           ref={containerRef}
-          className="relative rounded-2xl overflow-hidden border border-[var(--border)] bg-[var(--card)]"
-          style={{ aspectRatio: "2 / 1" }}
+          className="relative rounded-2xl overflow-hidden"
+          style={{ aspectRatio: "2 / 1", background: colors.ocean, border: `1px solid ${colors.border}` }}
           onMouseLeave={() => setTooltip(null)}
         >
           {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center text-[var(--muted)] text-sm">
+            <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ color: colors.text }}>
               {labels.loading}
             </div>
           ) : (
@@ -169,30 +182,25 @@ export default function CoverageMap() {
                       <Geography
                         key={geo.rsmKey}
                         geography={geo}
-                        fill={covered ? "var(--accent)" : "var(--border)"}
-                        stroke="var(--bg)"
-                        strokeWidth={0.4}
+                        fill={covered ? colors.covered : colors.uncovered}
+                        stroke={colors.stroke}
+                        strokeWidth={0.5}
                         style={{
-                          default: { outline: "none", opacity: covered ? 1 : 0.5 },
+                          default: { outline: "none" },
                           hover: {
                             outline: "none",
-                            fill: covered ? "var(--accent-hover, #34d399)" : "var(--border)",
-                            opacity: 1,
+                            fill: covered ? colors.coveredHover : colors.uncovered,
                             cursor: covered ? "pointer" : "default",
                           },
                           pressed: { outline: "none" },
                         }}
                         onMouseMove={
-                          covered
-                            ? (e) => handleMouseMove(e, covered)
-                            : undefined
+                          covered ? (e) => handleMouseMove(e, covered) : undefined
                         }
                         onMouseLeave={() => setTooltip(null)}
                         onClick={
                           covered
-                            ? () => {
-                                window.location.href = `/packages/${covered.country_code.toLowerCase()}`;
-                              }
+                            ? () => { window.location.href = `/packages/${covered.country_code.toLowerCase()}`; }
                             : undefined
                         }
                       />
@@ -206,27 +214,30 @@ export default function CoverageMap() {
           {/* Tooltip */}
           {tooltip && (
             <div
-              className="pointer-events-none absolute z-20 rounded-xl border border-[var(--border)] bg-[var(--bg)] shadow-lg px-4 py-3 text-sm"
+              className="pointer-events-none absolute z-20 rounded-xl shadow-lg px-4 py-3 text-sm"
               style={{
-                left: Math.min(tooltip.x + 12, (containerRef.current?.offsetWidth ?? 300) - 180),
-                top: Math.max(tooltip.y - 70, 8),
-                minWidth: 160,
+                left: Math.min(tooltip.x + 12, (containerRef.current?.offsetWidth ?? 300) - 190),
+                top: Math.max(tooltip.y - 80, 8),
+                minWidth: 170,
+                background: colors.card,
+                border: `1px solid ${colors.border}`,
+                color: isDark ? "#f4f4f5" : "#18181b",
               }}
             >
               <div className="font-semibold flex items-center gap-2">
                 <span>{tooltip.data.flag}</span>
                 <span>{tooltip.data.name}</span>
               </div>
-              <div className="text-[var(--muted)] mt-1">
+              <div className="mt-1" style={{ color: colors.text }}>
                 {labels.from}{" "}
-                <span className="text-[var(--accent)] font-bold">
+                <span className="font-bold" style={{ color: colors.accent }}>
                   €{tooltip.data.min_price.toFixed(2)}
                 </span>
               </div>
-              <div className="text-[var(--muted)]">
+              <div style={{ color: colors.text }}>
                 {tooltip.data.package_count} {labels.packages}
               </div>
-              <div className="mt-2 text-[var(--accent)] text-xs font-medium">
+              <div className="mt-2 text-xs font-medium" style={{ color: colors.accent }}>
                 {labels.buy} →
               </div>
             </div>
@@ -234,13 +245,13 @@ export default function CoverageMap() {
         </div>
 
         {/* Legend */}
-        <div className="mt-4 flex items-center justify-center gap-6 text-sm text-[var(--muted)]">
+        <div className="mt-4 flex items-center justify-center gap-6 text-sm" style={{ color: colors.text }}>
           <div className="flex items-center gap-2">
-            <span className="inline-block w-4 h-4 rounded-sm bg-[var(--accent)]" />
+            <span className="inline-block w-4 h-4 rounded-sm" style={{ background: colors.covered }} />
             {locale === "en" ? "Covered" : "Mbuluar"}
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-block w-4 h-4 rounded-sm bg-[var(--border)] opacity-50" />
+            <span className="inline-block w-4 h-4 rounded-sm" style={{ background: colors.uncovered }} />
             {locale === "en" ? "Not available" : "Nuk mbulohet"}
           </div>
         </div>
