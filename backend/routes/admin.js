@@ -586,6 +586,64 @@ router.get('/orders/:id/detail', async (req, res) => {
   }
 });
 
+/* ─── FULFILL awaiting_esim order (manual eSIM provision) ─── */
+router.post('/orders/:id/fulfill', async (req, res) => {
+  const { sendTransactionalEmail } = require('../lib/emailService');
+  const { esimReadyTemplate } = require('../lib/email');
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+    const { iccid, qr_data, qr_code_url, activation_code } = req.body;
+    if (!iccid && !qr_data && !qr_code_url) {
+      return res.status(400).json({ error: 'Duhet të paktën iccid, qr_data ose qr_code_url' });
+    }
+    const safeIccid = iccid ? String(iccid).slice(0, 30) : null;
+    const safeQrData = qr_data ? String(qr_data).slice(0, 500) : null;
+    const safeQrUrl = qr_code_url ? String(qr_code_url).slice(0, 500) : null;
+    const safeActivationCode = activation_code ? String(activation_code).slice(0, 500) : null;
+
+    await db.query(`
+      UPDATE orders
+      SET iccid = COALESCE($1, iccid),
+          qr_data = COALESCE($2, qr_data),
+          qr_code_url = COALESCE($3, qr_code_url),
+          activation_code = COALESCE($4, activation_code),
+          esim_status = 'active',
+          status = 'completed',
+          payment_status = 'paid'
+      WHERE id = $5
+    `, [safeIccid, safeQrData, safeQrUrl, safeActivationCode, id]);
+
+    const order = (await db.query(`
+      SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price
+      FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1
+    `, [id])).rows[0];
+    if (!order) return res.status(404).json({ error: 'Porosia nuk u gjet' });
+
+    // Send "eSIM is ready" email
+    sendTransactionalEmail({
+      toEmail: order.email,
+      subject: 'eSIM juaj është gati! 🚀 — Shqiponja eSIM',
+      html: await esimReadyTemplate({
+        orderId: order.id,
+        packageFlag: order.package_flag,
+        packageName: order.package_name,
+        price: order.price,
+        iccid: order.iccid,
+        qrData: order.qr_data,
+        qrCodeUrl: order.qr_code_url,
+      }),
+      logLabel: 'ESIM READY',
+      senderType: 'noreply',
+    }).catch(err => console.error('eSIM ready email failed:', err));
+
+    res.json({ ok: true, order });
+  } catch (err) {
+    console.error('Fulfill eSIM error:', err);
+    res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
+  }
+});
+
 router.post('/orders/:id/resend-esim', async (req, res) => {
   const { sendTransactionalEmail } = require('../lib/emailService');
   const { orderConfirmationTemplate } = require('../lib/email');

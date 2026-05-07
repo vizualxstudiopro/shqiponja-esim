@@ -8,12 +8,13 @@ import {
   adminUpdateOrderStatus,
   adminGetOrderDetail,
   adminResendEsim,
+  adminFulfillEsim,
   type Order,
   type OrderDetail,
   type PaginatedOrders,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
-import { Download, Search, ChevronLeft, ChevronRight, Eye, CheckCircle, Send, X, Copy } from "lucide-react";
+import { Download, Search, ChevronLeft, ChevronRight, Eye, CheckCircle, Send, X, Copy, Wrench } from "lucide-react";
 
 export default function AdminOrdersPage() {
   const { token } = useAuth();
@@ -30,6 +31,9 @@ export default function AdminOrdersPage() {
   const [detail, setDetail] = useState<OrderDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [fulfillOpen, setFulfillOpen] = useState(false);
+  const [fulfilling, setFulfilling] = useState(false);
+  const [fulfillForm, setFulfillForm] = useState({ iccid: "", qr_data: "", qr_code_url: "", activation_code: "" });
 
   const fetchOrders = useCallback(() => {
     if (!token) return;
@@ -95,6 +99,32 @@ export default function AdminOrdersPage() {
       toast(err instanceof Error ? err.message : "Error", "error");
     } finally {
       setResending(false);
+    }
+  }
+
+  async function handleFulfillEsim() {
+    if (!token || !detail) return;
+    if (!fulfillForm.iccid && !fulfillForm.qr_data && !fulfillForm.qr_code_url) {
+      toast("Duhet të paktën ICCID, QR Data ose QR URL", "error");
+      return;
+    }
+    setFulfilling(true);
+    try {
+      const result = await adminFulfillEsim(token, detail.id, {
+        iccid: fulfillForm.iccid || undefined,
+        qr_data: fulfillForm.qr_data || undefined,
+        qr_code_url: fulfillForm.qr_code_url || undefined,
+        activation_code: fulfillForm.activation_code || undefined,
+      });
+      setDetail(prev => prev ? { ...prev, ...result.order, esim_status: "active", status: "completed" } : null);
+      setOrders(prev => prev.map(o => o.id === detail.id ? { ...o, status: "completed", esim_status: "active" } : o));
+      setFulfillOpen(false);
+      setFulfillForm({ iccid: "", qr_data: "", qr_code_url: "", activation_code: "" });
+      toast("eSIM u provizionua dhe email-i u dërgua!", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Error", "error");
+    } finally {
+      setFulfilling(false);
     }
   }
 
@@ -264,10 +294,44 @@ export default function AdminOrdersPage() {
                       <CheckCircle className="h-4 w-4" /> Mark as Completed
                     </button>
                   )}
+                  {(detail.esim_status === "awaiting_esim" || detail.esim_status === "provisioning_failed" || !detail.iccid) && (
+                    <button onClick={() => setFulfillOpen(true)} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition">
+                      <Wrench className="h-4 w-4" /> Fulfill eSIM
+                    </button>
+                  )}
                   <button onClick={handleResendEsim} disabled={resending || (!detail.qr_data && !detail.qr_code_url)} className="flex items-center gap-2 rounded-lg bg-shqiponja px-4 py-2 text-sm font-semibold text-white hover:bg-shqiponja/90 transition disabled:opacity-50">
                     <Send className="h-4 w-4" /> {resending ? "Duke dërguar..." : "Resend eSIM"}
                   </button>
                 </div>
+
+                {/* Fulfill eSIM mini-form */}
+                {fulfillOpen && (
+                  <div className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-950/30">
+                    <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-3">📲 Fulfill eSIM — Shto të dhënat manualisht</h3>
+                    <div className="space-y-2">
+                      {(["iccid", "qr_data", "qr_code_url", "activation_code"] as const).map(field => (
+                        <div key={field}>
+                          <label className="text-xs font-semibold text-zinc-500 uppercase">{field.replace(/_/g, " ")}</label>
+                          <input
+                            type="text"
+                            value={fulfillForm[field]}
+                            onChange={e => setFulfillForm(f => ({ ...f, [field]: e.target.value }))}
+                            className="mt-0.5 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm font-mono outline-none focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-800"
+                            placeholder={field === "iccid" ? "89000..." : field === "qr_code_url" ? "https://..." : ""}
+                          />
+                        </div>
+                      ))}
+                      <div className="flex gap-2 pt-1">
+                        <button onClick={handleFulfillEsim} disabled={fulfilling} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:opacity-50">
+                          {fulfilling ? "Duke dërguar..." : "Konfirmo & Dërgo Email"}
+                        </button>
+                        <button onClick={() => setFulfillOpen(false)} className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-700">
+                          Anulo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

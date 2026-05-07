@@ -76,6 +76,7 @@ function createApp() {
   app.use('/api/contact', require('../routes/contact'));
   app.use('/api/webhooks', require('../routes/webhooks'));
   app.use('/api/twilio', require('../routes/twilio'));
+  app.use('/api/newsletter', require('../routes/newsletter'));
 
   try {
     app.use('/api/compatibility', require('../routes/compatibility'));

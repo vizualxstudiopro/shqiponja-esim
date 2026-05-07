@@ -229,6 +229,18 @@ async function migrate() {
   `);
   console.log('✔ Database indexes ensured');
 
+  // Newsletter subscribers
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      id                SERIAL PRIMARY KEY,
+      email             TEXT NOT NULL UNIQUE,
+      locale            TEXT NOT NULL DEFAULT 'sq',
+      unsubscribe_token TEXT NOT NULL UNIQUE,
+      subscribed_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      unsubscribed_at   TIMESTAMPTZ
+    )
+  `);
+
   // Seed data
   await seed();
   await seedAdmin();

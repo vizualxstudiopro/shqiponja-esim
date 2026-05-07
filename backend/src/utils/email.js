@@ -568,15 +568,158 @@ function contactAdminTemplate(name, email, message) {
   `, 'Mesazh i ri nga forma e kontaktit');
 }
 
+async function esimReadyTemplate({ orderId, packageFlag, packageName, price, iccid, qrData, qrCodeUrl }) {
+  const priceDisplay = price ? `€${Number(price).toFixed(2)}` : '';
+  let qrImageSrc = qrCodeUrl || null;
+  if (!qrImageSrc && qrData) {
+    try {
+      qrImageSrc = await QRCode.toDataURL(qrData, { width: 250, margin: 2, color: { dark: '#0a0a0a', light: '#ffffff' } });
+    } catch (err) {
+      console.error('[EMAIL] QR generation failed:', err.message);
+    }
+  }
+  return baseLayout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">eSIM juaj është gati! 🚀</h2>
+    ${eagleGuideCard('glauku', 'Glauku ketu! eSIM-i yt eshte provizionuar dhe gati per aktivizim. Skano QR kodin dhe je i lidhur!')}
+    <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">
+      eSIM-i juaj u aprovua dhe është gati për t'u aktivizuar. Ja detajet:
+    </p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8fa;border-radius:12px;overflow:hidden;margin:0 0 24px">
+      <tr>
+        <td style="background:${BRAND_RED};padding:12px 20px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td><span style="font-size:14px;font-weight:700;color:#ffffff">🎉 eSIM GATI</span></td>
+              <td align="right"><span style="font-size:13px;color:#ffffff;opacity:0.85">#${orderId}</span></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding:6px 0;font-size:13px;color:#71717a">Paketa</td>
+              <td align="right" style="padding:6px 0;font-size:14px;font-weight:600;color:#18181b">${packageFlag || ''} ${escapeHtml(packageName || '')}</td>
+            </tr>
+            ${priceDisplay ? `<tr>
+              <td style="padding:6px 0;font-size:13px;color:#71717a">Çmimi</td>
+              <td align="right" style="padding:6px 0;font-size:14px;font-weight:600;color:#18181b">${priceDisplay}</td>
+            </tr>` : ''}
+            ${iccid ? `<tr>
+              <td style="padding:6px 0;font-size:13px;color:#71717a">ICCID</td>
+              <td align="right" style="padding:6px 0;font-size:13px;font-weight:500;color:#18181b;font-family:monospace">${escapeHtml(iccid)}</td>
+            </tr>` : ''}
+            <tr>
+              <td style="padding:6px 0;font-size:13px;color:#71717a">Statusi</td>
+              <td align="right" style="padding:6px 0"><span style="display:inline-block;background:#dcfce7;color:#166534;padding:3px 10px;border-radius:9999px;font-size:12px;font-weight:600">✓ Gati për aktivizim</span></td>
+            </tr>
+          </table>
+          ${qrImageSrc ? `
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #e4e4e7;padding-top:16px">
+            <tr>
+              <td align="center" style="padding:12px 0 8px">
+                <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b">Skano kodin QR për ta aktivizuar:</p>
+                <img src="${qrImageSrc}" alt="eSIM QR Code" width="200" height="200" style="display:block;margin:0 auto;border-radius:12px;border:2px solid #e4e4e7" />
+              </td>
+            </tr>
+          </table>` : ''}
+          ${qrData ? `
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px">
+            <tr><td style="font-size:12px;color:#71717a;padding-bottom:4px">Kodi manual:</td></tr>
+            <tr><td style="font-size:11px;font-family:monospace;color:#18181b;word-break:break-all;background:#ffffff;padding:10px;border-radius:8px;border:1px solid #e4e4e7">${escapeHtml(qrData)}</td></tr>
+          </table>` : ''}
+        </td>
+      </tr>
+    </table>
+
+    <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#18181b">Si ta aktivizosh? 📱</h3>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr><td style="padding:6px 0;font-size:14px;color:#52525b"><strong style="color:${BRAND_RED}">1.</strong> Shko te <strong>Cilësimet</strong> → <strong>Celular</strong> → <strong>Shto Plan eSIM</strong></td></tr>
+      <tr><td style="padding:6px 0;font-size:14px;color:#52525b"><strong style="color:${BRAND_RED}">2.</strong> Skano QR kodin ose fut kodin manualisht</td></tr>
+      <tr><td style="padding:6px 0;font-size:14px;color:#52525b"><strong style="color:${BRAND_RED}">3.</strong> Aktivizo kur të arrish në destinacion</td></tr>
+    </table>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px">
+      <tr><td align="center">
+        <a href="${FRONTEND_URL}/porosi/${orderId}" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Porosinë</a>
+      </td></tr>
+    </table>
+    <p style="margin:14px 0 0;font-size:13px;color:#71717a;text-align:center">
+      ${EAGLE_PERSONAS.agroni.emoji} ${EAGLE_PERSONAS.agroni.name} eshte online per suport: <a href="${FRONTEND_URL}/kontakti" style="color:${BRAND_RED};font-weight:600;text-decoration:none">Hap Live Chat</a>
+    </p>
+  `, 'eSIM juaj është gati për aktivizim!');
+}
+
+function monthlyReportTemplate({ month, totalOrders, paidOrders, totalRevenue, newUsers, topPackages }) {
+  const rows = (topPackages || []).slice(0, 5).map(p =>
+    `<tr>
+      <td style="padding:8px 12px;font-size:13px;color:#18181b">${escapeHtml(p.name || '')}</td>
+      <td align="right" style="padding:8px 12px;font-size:13px;font-weight:600;color:#18181b">${p.count}</td>
+      <td align="right" style="padding:8px 12px;font-size:13px;font-weight:600;color:${BRAND_RED}">€${Number(p.revenue || 0).toFixed(2)}</td>
+    </tr>`
+  ).join('');
+  return baseLayout(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b">Raporti Mujor 📊</h2>
+    ${eagleGuideCard('enkela', 'Raporti automatik i muajit. Keto jane shifrat kryesore per periudhen e kaluar.')}
+    <p style="margin:0 0 20px;font-size:15px;color:#52525b;line-height:1.6">Periudha: <strong>${escapeHtml(month)}</strong></p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px">
+      <tr>
+        <td width="48%" style="padding:0 6px 0 0">
+          <div style="background:#f0fdf4;border-radius:12px;padding:16px 20px;text-align:center">
+            <p style="margin:0;font-size:12px;font-weight:600;color:#166534;text-transform:uppercase;letter-spacing:0.5px">Të ardhura</p>
+            <p style="margin:4px 0 0;font-size:28px;font-weight:800;color:#166534">€${Number(totalRevenue || 0).toFixed(2)}</p>
+          </div>
+        </td>
+        <td width="52%" style="padding:0 0 0 6px">
+          <div style="background:#fff7ed;border-radius:12px;padding:16px 20px;text-align:center">
+            <p style="margin:0;font-size:12px;font-weight:600;color:#9a3412;text-transform:uppercase;letter-spacing:0.5px">Porosi të paguara</p>
+            <p style="margin:4px 0 0;font-size:28px;font-weight:800;color:#9a3412">${paidOrders}</p>
+            <p style="margin:2px 0 0;font-size:11px;color:#9a3412">${totalOrders} gjithsej</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div style="background:#faf5ff;border-radius:12px;padding:16px 20px;margin:0 0 24px;text-align:center">
+      <p style="margin:0;font-size:12px;font-weight:600;color:#6b21a8;text-transform:uppercase;letter-spacing:0.5px">Përdorues të rinj</p>
+      <p style="margin:4px 0 0;font-size:28px;font-weight:800;color:#6b21a8">+${newUsers}</p>
+    </div>
+
+    ${rows ? `
+    <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#18181b">Top Paketa</h3>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-radius:12px;overflow:hidden;border:1px solid #e4e4e7">
+      <thead>
+        <tr style="background:#f4f4f5">
+          <th style="padding:8px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#71717a;text-align:left">Paketa</th>
+          <th style="padding:8px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#71717a;text-align:right">Porosi</th>
+          <th style="padding:8px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#71717a;text-align:right">Të ardhura</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>` : ''}
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px">
+      <tr><td align="center">
+        <a href="${FRONTEND_URL}/admin" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Dashboard</a>
+      </td></tr>
+    </table>
+  `, `Raporti Mujor — ${escapeHtml(month)}`);
+}
+
 module.exports = {
   sendMail,
   escapeHtml,
   verifyEmailTemplate,
   resetPasswordTemplate,
   orderConfirmationTemplate,
+  esimReadyTemplate,
   welcomeEmailTemplate,
   paymentReceiptTemplate,
   generateInvoicePdfBuffer,
   contactConfirmationTemplate,
   contactAdminTemplate,
+  monthlyReportTemplate,
 };

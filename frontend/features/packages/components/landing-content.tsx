@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useI18n } from "@/lib/i18n-context";
-import { Smartphone, Search, CheckCircle, XCircle, ChevronDown, X, ListChecks } from "lucide-react";
+import { Smartphone, Search, CheckCircle, XCircle, ChevronDown, X, ListChecks, Mail } from "lucide-react";
+import { subscribeNewsletter } from "@/lib/api";
 
 import Link from "next/link";
 
@@ -804,7 +805,82 @@ export default function LandingContent() {
         </div>
       </section>
 
+      <NewsletterSection />
       <Footer />
     </>
+  );
+}
+
+/* ─── Newsletter Section (used inside LandingContent) ─── */
+function NewsletterSection() {
+  const { t, locale } = useI18n();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [error, setError] = useState("");
+  const ref = useReveal();
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus("loading");
+    setError("");
+    try {
+      await subscribeNewsletter(email.trim(), locale);
+      setStatus("success");
+      setEmail("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gabim");
+      setStatus("error");
+    }
+  }
+
+  return (
+    <section className="py-20 bg-gradient-to-br from-shqiponja/5 via-transparent to-shqiponja/5 dark:from-shqiponja/10 dark:to-shqiponja/10">
+      <div ref={ref} className="reveal-on-scroll mx-auto max-w-2xl px-4 text-center">
+        <div className="inline-flex items-center gap-2 rounded-full bg-shqiponja/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-shqiponja mb-6">
+          <Mail className="h-3.5 w-3.5" />
+          {locale === "sq" ? "Newsletter" : "Newsletter"}
+        </div>
+        <h2 className="text-2xl font-extrabold sm:text-3xl">
+          {locale === "sq" ? "Merr ofertat e para 🦅" : "Get the best deals first 🦅"}
+        </h2>
+        <p className="mt-3 text-zinc-500 dark:text-zinc-400">
+          {locale === "sq"
+            ? "Regjistrohu dhe merr oferta ekskluzive, paketa të reja dhe lajme të udhëtimit direkt në email."
+            : "Subscribe and get exclusive deals, new packages, and travel news straight to your inbox."}
+        </p>
+
+        {status === "success" ? (
+          <div className="mt-8 flex items-center justify-center gap-2 text-green-600 font-semibold">
+            <CheckCircle className="h-5 w-5" />
+            {locale === "sq" ? "U regjistrove me sukses! 🎉" : "You're subscribed! 🎉"}
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder={locale === "sq" ? "email@yt.com" : "your@email.com"}
+              className="w-full sm:max-w-xs rounded-full border border-zinc-200 px-5 py-3 text-sm outline-none focus:border-shqiponja dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+            />
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="rounded-full bg-shqiponja px-7 py-3 text-sm font-bold text-white hover:bg-shqiponja/90 transition disabled:opacity-60 whitespace-nowrap"
+            >
+              {status === "loading"
+                ? (locale === "sq" ? "Duke dërguar..." : "Subscribing...")
+                : (locale === "sq" ? "Abonohu falas" : "Subscribe free")}
+            </button>
+          </form>
+        )}
+        {status === "error" && <p className="mt-2 text-sm text-red-500">{error}</p>}
+        <p className="mt-4 text-xs text-zinc-400">
+          {locale === "sq" ? "Pa spam. Çregjistrohu kurdo." : "No spam. Unsubscribe anytime."}
+        </p>
+      </div>
+    </section>
   );
 }

@@ -4,6 +4,7 @@ const { createApp } = require('./app');
 const { migrate } = require('./db/migrations/migrate');
 const airalo = require('./services/airaloService');
 const { checkAndSendUsageSmsAlerts } = require('./services/usageSmsMonitor');
+const db = require('./db/client');
 
 const PORT = process.env.PORT || 3001;
 const AIRALO_INITIAL_DELAY_MS = Number(process.env.AIRALO_INITIAL_DELAY_MS || 10_000);
@@ -98,3 +99,67 @@ startServer().catch((err) => {
   console.error('Failed to start server:', err);
   process.exit(1);
 });
+
+/* ─── MONTHLY REPORT CRON ─── */
+// Runs at 08:00 on the 1st of every month
+async function sendMonthlyReport() {
+  const { sendTransactionalEmail } = require('../lib/emailService');
+  const { monthlyReportTemplate } = require('../lib/email');
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.SMTP_FROM || 'admin@shqiponjaesim.com';
+
+  try {
+    const now = new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthLabel = firstOfMonth.toLocaleDateString('sq-AL', { year: 'numeric', month: 'long' });
+
+    const [ordersRow, paidRow, revenueRow, usersRow, topRow] = await Promise.all([
+      db.query("SELECT COUNT(*) c FROM orders WHERE created_at >= $1 AND created_at < $2", [firstOfMonth, lastOfMonth]),
+      db.query("SELECT COUNT(*) c FROM orders WHERE payment_status='paid' AND created_at >= $1 AND created_at < $2", [firstOfMonth, lastOfMonth]),
+      db.query("SELECT COALESCE(SUM(p.price),0) r FROM orders o JOIN packages p ON p.id=o.package_id WHERE o.payment_status='paid' AND o.created_at >= $1 AND o.created_at < $2", [firstOfMonth, lastOfMonth]),
+      db.query("SELECT COUNT(*) c FROM users WHERE created_at >= $1 AND created_at < $2", [firstOfMonth, lastOfMonth]),
+      db.query(`SELECT p.name, p.flag, COUNT(*) AS count, SUM(p.price) AS revenue
+        FROM orders o JOIN packages p ON p.id=o.package_id
+        WHERE o.payment_status='paid' AND o.created_at >= $1 AND o.created_at < $2
+        GROUP BY p.id, p.name, p.flag ORDER BY count DESC LIMIT 5`, [firstOfMonth, lastOfMonth]),
+    ]);
+
+    const topPackages = topRow.rows.map(r => ({
+      name: `${r.flag || ''} ${r.name}`,
+      count: parseInt(r.count),
+      revenue: parseFloat(r.revenue || 0),
+    }));
+
+    await sendTransactionalEmail({
+      toEmail: ADMIN_EMAIL,
+      subject: `Raport Mujor — ${monthLabel} — Shqiponja eSIM`,
+      html: await monthlyReportTemplate({
+        month: monthLabel,
+        totalOrders: parseInt(ordersRow.rows[0].c),
+        paidOrders: parseInt(paidRow.rows[0].c),
+        totalRevenue: parseFloat(revenueRow.rows[0].r),
+        newUsers: parseInt(usersRow.rows[0].c),
+        topPackages,
+      }),
+      logLabel: 'MONTHLY REPORT',
+      senderType: 'noreply',
+    });
+    console.log(`[MONTHLY REPORT] Sent for ${monthLabel} to ${ADMIN_EMAIL}`);
+  } catch (err) {
+    console.error('[MONTHLY REPORT ERROR]', err.message);
+  }
+}
+
+function scheduleMonthlyReport() {
+  const now = new Date();
+  // Next 1st of month at 08:00
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1, 8, 0, 0, 0);
+  const msUntilNext = next.getTime() - now.getTime();
+  console.log(`[MONTHLY REPORT] Scheduled in ${Math.round(msUntilNext / 3600000)}h (next: ${next.toISOString()})`);
+  setTimeout(() => {
+    sendMonthlyReport().catch(() => {});
+    setInterval(() => sendMonthlyReport().catch(() => {}), 30 * 24 * 60 * 60 * 1000); // roughly monthly fallback
+  }, msUntilNext);
+}
+
+scheduleMonthlyReport();

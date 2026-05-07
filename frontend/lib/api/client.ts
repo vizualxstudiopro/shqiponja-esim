@@ -1012,3 +1012,52 @@ export async function getAvatarTeam(): Promise<EagleAvatarAsset[]> {
     return [];
   }
 }
+
+/* ─── Admin: Fulfill awaiting_esim order ─── */
+export async function adminFulfillEsim(
+  token: string,
+  orderId: number,
+  data: { iccid?: string; qr_data?: string; qr_code_url?: string; activation_code?: string }
+): Promise<{ ok: boolean; order: Order }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${orderId}/fulfill`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Fulfillimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+/* ─── Newsletter ─── */
+export async function subscribeNewsletter(email: string, locale: string): Promise<{ ok: boolean }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/newsletter/subscribe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, locale }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Regjistrimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
+export interface NewsletterSubscriber {
+  id: number;
+  email: string;
+  locale: string;
+  subscribed_at: string;
+}
+
+export interface PaginatedNewsletterSubscribers {
+  subscribers: NewsletterSubscriber[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function adminGetNewsletterSubscribers(token: string, page = 1): Promise<PaginatedNewsletterSubscribers> {
+  const res = await fetchWithTimeout(`${API_URL}/api/newsletter/subscribers?page=${page}`, {
+    headers: authHeaders(token),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
