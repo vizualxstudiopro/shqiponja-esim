@@ -22,6 +22,7 @@ export default function LoginPage() {
   const [smsCode, setSmsCode] = useState("");
   const [needsSms2FA, setNeedsSms2FA] = useState(false);
   const [maskedPhone, setMaskedPhone] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -34,7 +35,8 @@ export default function LoginPage() {
         email,
         password,
         needs2FA ? totpCode : undefined,
-        needsSms2FA ? smsCode : undefined
+        needsSms2FA ? smsCode : undefined,
+        rememberMe
       );
       if (result.requires2FA) {
         setNeeds2FA(true);
@@ -53,7 +55,7 @@ export default function LoginPage() {
       }
 
       // Get fresh user to check role for redirect
-      const saved = localStorage.getItem("token");
+      const saved = localStorage.getItem("token") || sessionStorage.getItem("token");
       if (saved) {
         try {
           const payload = JSON.parse(atob(saved.split(".")[1]));
@@ -170,6 +172,19 @@ export default function LoginPage() {
               />
             </div>
           )}
+
+          <div className="flex items-center gap-2">
+            <input
+              id="rememberMe"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 rounded border-zinc-300 accent-shqiponja cursor-pointer"
+            />
+            <label htmlFor="rememberMe" className="text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer select-none">
+              Mbaj mend
+            </label>
+          </div>
 
           <button
             type="submit"

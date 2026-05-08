@@ -22,7 +22,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string, totpCode?: string, smsCode?: string) => Promise<{ requires2FA?: boolean; requiresSms2FA?: boolean; maskedPhone?: string }>;
+  login: (email: string, password: string, totpCode?: string, smsCode?: string, rememberMe?: boolean) => Promise<{ requires2FA?: boolean; requiresSms2FA?: boolean; maskedPhone?: string }>;
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   loginWithMicrosoft: (code: string, redirectUri: string) => Promise<void>;
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("token");
+    const savedToken = localStorage.getItem("token") || sessionStorage.getItem("token");
     if (savedToken) {
       setToken(savedToken);
     } else {
@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     setToken(null);
     setUser(null);
   }, []);
@@ -60,9 +61,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .then((u) => {
           setUser(u);
         })
-        .catch(() => {
-          localStorage.removeItem("token");
-          setToken(null);
+        .catch((err: unknown) => {
+          // Only logout on 401 (invalid/expired token), not on network errors
+          const status = (err as { status?: number })?.status;
+          if (status === 401) {
+            localStorage.removeItem("token");
+            sessionStorage.removeItem("token");
+            setToken(null);
+          }
         })
         .finally(() => setLoading(false));
     } else {
@@ -83,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { window.fetch = originalFetch; };
   }, [token, logout]);
 
-  async function login(email: string, password: string, totpCode?: string, smsCode?: string): Promise<{ requires2FA?: boolean; requiresSms2FA?: boolean; maskedPhone?: string }> {
+  async function login(email: string, password: string, totpCode?: string, smsCode?: string, rememberMe?: boolean): Promise<{ requires2FA?: boolean; requiresSms2FA?: boolean; maskedPhone?: string }> {
     const res = await apiLogin(email, password, totpCode, smsCode);
     if (res.requires2FA) {
       return { requires2FA: true };
@@ -91,7 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (res.requiresSms2FA) {
       return { requiresSms2FA: true, maskedPhone: res.maskedPhone };
     }
-    localStorage.setItem("token", res.token);
+    if (rememberMe) {
+      localStorage.setItem("token", res.token);
+    } else {
+      sessionStorage.setItem("token", res.token);
+    }
     setToken(res.token);
     setUser(res.user);
     return {};
