@@ -58,6 +58,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (token) {
+      // Decode JWT immediately so user is never null while getMe is in-flight
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.exp * 1000 > Date.now()) {
+          setUser((prev) => prev ?? { id: payload.id, email: payload.email, name: payload.name, role: payload.role });
+        } else {
+          // Token expired locally
+          localStorage.removeItem("token");
+          sessionStorage.removeItem("token");
+          setToken(null);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // Malformed token
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        setToken(null);
+        setLoading(false);
+        return;
+      }
+
       getMe(token)
         .then((u) => {
           setUser(u);
@@ -68,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem("token");
             sessionStorage.removeItem("token");
             setToken(null);
+            setUser(null);
           }
         })
         .finally(() => setLoading(false));
