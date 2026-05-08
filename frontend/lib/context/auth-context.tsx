@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
         if (payload.exp * 1000 > Date.now()) {
-          setUser((prev) => prev ?? { id: payload.id, email: payload.email, name: payload.name, role: payload.role, email_verified: false, created_at: "" });
+          setUser((prev) => prev ?? { id: payload.id, email: payload.email, name: payload.name, role: payload.role, email_verified: 0, created_at: "" });
         } else {
           // Token expired locally
           localStorage.removeItem("token");
