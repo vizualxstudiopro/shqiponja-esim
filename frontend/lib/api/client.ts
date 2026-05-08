@@ -370,12 +370,16 @@ export async function login(
   return res.json();
 }
 
+export class ApiError extends Error {
+  constructor(public status: number, message: string) { super(message); }
+}
+
 export async function getMe(token: string): Promise<User> {
   const res = await fetchWithTimeout(`${API_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
-  if (!res.ok) throw new Error("Nuk je i kyçur");
+  if (!res.ok) throw new ApiError(res.status, "Nuk je i kyçur");
   return res.json();
 }
 

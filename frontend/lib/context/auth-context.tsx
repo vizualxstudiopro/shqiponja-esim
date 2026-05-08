@@ -15,6 +15,7 @@ import {
   oauthMicrosoft as apiOauthMicrosoft,
   oauthFacebook as apiOauthFacebook,
   getMe,
+  ApiError,
   type User,
 } from "@/lib/api";
 
@@ -63,8 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         .catch((err: unknown) => {
           // Only logout on 401 (invalid/expired token), not on network errors
-          const status = (err as { status?: number })?.status;
-          if (status === 401) {
+          if (err instanceof ApiError && err.status === 401) {
             localStorage.removeItem("token");
             sessionStorage.removeItem("token");
             setToken(null);
