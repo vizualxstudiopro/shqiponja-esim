@@ -41,7 +41,7 @@ function createApp() {
   app.use(express.urlencoded({ extended: true }));
 
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime(), build: '2026-04-21-v16', lastSync: app.locals.lastSync || null });
+    res.json({ status: 'ok', uptime: process.uptime(), build: '2026-05-08-v17', lastSync: app.locals.lastSync || null });
   });
 
   app.get('/api/rates', async (_req, res) => {
