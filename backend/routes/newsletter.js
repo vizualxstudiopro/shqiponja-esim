@@ -246,4 +246,105 @@ router.post('/broadcast', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
+// POST /api/newsletter/brevo-setup — Admin only
+// Creates Brevo lists and bulk-syncs all existing subscribers + users
+router.post('/brevo-setup', authMiddleware, adminOnly, async (req, res) => {
+  const BREVO_API_KEY = process.env.BREVO_API_KEY;
+  if (!BREVO_API_KEY) {
+    return res.status(400).json({ error: 'BREVO_API_KEY nuk është vendosur' });
+  }
+
+  function brevoRequest(method, path, body) {
+    return new Promise((resolve, reject) => {
+      const data = body ? JSON.stringify(body) : null;
+      const headers = {
+        'api-key': BREVO_API_KEY,
+        'Content-Type': 'application/json',
+      };
+      if (data) headers['Content-Length'] = Buffer.byteLength(data);
+      const req = require('https').request(
+        { hostname: 'api.brevo.com', port: 443, path, method, headers },
+        (r) => {
+          let chunks = '';
+          r.on('data', c => { chunks += c; });
+          r.on('end', () => {
+            try { resolve({ status: r.statusCode, body: JSON.parse(chunks) }); }
+            catch { resolve({ status: r.statusCode, body: chunks }); }
+          });
+        }
+      );
+      req.on('error', reject);
+      if (data) req.write(data);
+      req.end();
+    });
+  }
+
+  async function createList(name, folderId) {
+    const payload = { name };
+    if (folderId) payload.folderId = folderId;
+    const r = await brevoRequest('POST', '/v3/contacts/lists', payload);
+    if (r.status === 201) return r.body.id;
+    if (r.status === 400 && r.body?.code === 'duplicate_parameter') {
+      // List already exists — fetch by name
+      const all = await brevoRequest('GET', '/v3/contacts/lists?limit=50');
+      const found = all.body?.lists?.find(l => l.name === name);
+      return found ? found.id : null;
+    }
+    throw new Error(`Create list failed: ${r.status} ${JSON.stringify(r.body)}`);
+  }
+
+  async function bulkAddToList(emails, listId) {
+    if (!emails.length || !listId) return { count: 0 };
+    // Brevo bulk import — up to 150 emails per call
+    let added = 0;
+    for (let i = 0; i < emails.length; i += 150) {
+      const batch = emails.slice(i, i + 150).map(e => ({ email: e }));
+      const r = await brevoRequest('POST', '/v3/contacts/import', {
+        jsonBody: batch,
+        listIds: [listId],
+        updateExistingContacts: true,
+        emptyContactsAttributes: false,
+      });
+      if (r.status === 202) added += batch.length;
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    return { count: added };
+  }
+
+  try {
+    // 1. Create/get lists
+    const newsletterListId = await createList('Newsletter Subscribers');
+    const usersListId = await createList('Registered Users');
+
+    // 2. Fetch existing newsletter subscribers
+    const { rows: subs } = await db.query(
+      "SELECT email FROM newsletter_subscribers WHERE unsubscribed_at IS NULL"
+    );
+    // 3. Fetch existing registered users
+    const { rows: users } = await db.query("SELECT email FROM users");
+
+    // 4. Bulk sync
+    const subEmails = subs.map(r => r.email);
+    const userEmails = users.map(r => r.email);
+    const [subResult, userResult] = await Promise.all([
+      bulkAddToList(subEmails, newsletterListId),
+      bulkAddToList(userEmails, usersListId),
+    ]);
+
+    console.log(`[BREVO SETUP] Newsletter list: ${newsletterListId} (${subResult.count} contacts)`);
+    console.log(`[BREVO SETUP] Users list: ${usersListId} (${userResult.count} contacts)`);
+
+    res.json({
+      newsletterListId,
+      usersListId,
+      subscribersSynced: subResult.count,
+      usersSynced: userResult.count,
+      message: `Vendos këto në Railway: BREVO_NEWSLETTER_LIST_ID=${newsletterListId} dhe BREVO_USERS_LIST_ID=${usersListId}`,
+    });
+  } catch (err) {
+    console.error('[BREVO SETUP] Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

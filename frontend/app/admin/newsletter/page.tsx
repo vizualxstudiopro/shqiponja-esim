@@ -5,10 +5,12 @@ import { useAuth } from "@/lib/auth-context";
 import {
   adminGetNewsletterSubscribers,
   adminBroadcastNewsletter,
+  adminBrevoSetup,
   type NewsletterSubscriber,
   type BroadcastResult,
+  type BrevoSetupResult,
 } from "@/lib/api";
-import { Mail, Send, Users, ChevronLeft, ChevronRight, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Mail, Send, Users, ChevronLeft, ChevronRight, Eye, EyeOff, AlertCircle, CheckCircle2, Settings2 } from "lucide-react";
 
 const LOCALE_LABELS: Record<string, string> = { sq: "🇦🇱 Shqip", en: "🇬🇧 English" };
 
@@ -35,6 +37,11 @@ export default function AdminNewsletterPage() {
   const [result, setResult] = useState<BroadcastResult | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // Brevo setup
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [setupResult, setSetupResult] = useState<BrevoSetupResult | null>(null);
+  const [setupError, setSetupError] = useState<string | null>(null);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -76,6 +83,21 @@ export default function AdminNewsletterPage() {
     }
   }
 
+  async function handleBrevoSetup() {
+    if (!token) return;
+    setSetupLoading(true);
+    setSetupResult(null);
+    setSetupError(null);
+    try {
+      const res = await adminBrevoSetup(token);
+      setSetupResult(res);
+    } catch (err: unknown) {
+      setSetupError(err instanceof Error ? err.message : "Gabim i panjohur");
+    } finally {
+      setSetupLoading(false);
+    }
+  }
+
   // Live preview in iframe
   useEffect(() => {
     if (preview && iframeRef.current) {
@@ -102,6 +124,59 @@ export default function AdminNewsletterPage() {
           <h1 className="text-xl font-bold">Newsletter</h1>
           <p className="text-sm text-zinc-500">{total} abonentë aktivë</p>
         </div>
+      </div>
+
+      {/* ── Brevo Setup Panel ── */}
+      <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Settings2 className="h-4 w-4 text-zinc-400" />
+              <h2 className="text-sm font-bold">Konfiguro Brevo</h2>
+            </div>
+            <p className="mt-1 text-xs text-zinc-500">
+              Krijon automatikisht listat "Newsletter Subscribers" dhe "Registered Users" në Brevo dhe importon të gjithë kontaktet ekzistues.
+            </p>
+          </div>
+          <button
+            onClick={handleBrevoSetup}
+            disabled={setupLoading}
+            className="shrink-0 flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+          >
+            <Settings2 className={`h-4 w-4 ${setupLoading ? "animate-spin" : ""}`} />
+            {setupLoading ? "Duke konfiguruar..." : "Konfiguro tani"}
+          </button>
+        </div>
+
+        {setupResult && (
+          <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+            <div className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+              <div className="space-y-1 text-sm">
+                <p className="font-semibold text-green-700 dark:text-green-400">Konfigurimi u krye me sukses!</p>
+                <p className="text-green-600 dark:text-green-500">
+                  Newsletter Subscribers → List ID: <strong>{setupResult.newsletterListId}</strong> ({setupResult.subscribersSynced} kontakte)
+                </p>
+                <p className="text-green-600 dark:text-green-500">
+                  Registered Users → List ID: <strong>{setupResult.usersListId}</strong> ({setupResult.usersSynced} kontakte)
+                </p>
+                <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3 dark:bg-amber-900/20 dark:border-amber-800">
+                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Vendos këto në Railway → Variables:</p>
+                  <code className="mt-1 block text-xs text-amber-800 dark:text-amber-300">
+                    BREVO_NEWSLETTER_LIST_ID={setupResult.newsletterListId}<br />
+                    BREVO_USERS_LIST_ID={setupResult.usersListId}
+                  </code>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {setupError && (
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm dark:border-red-800 dark:bg-red-900/20">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+            <p className="text-red-700 dark:text-red-400">{setupError}</p>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
