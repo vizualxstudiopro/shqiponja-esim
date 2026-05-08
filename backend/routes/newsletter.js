@@ -292,13 +292,18 @@ router.post('/brevo-setup', authMiddleware, adminOnly, async (req, res) => {
   }
 
   async function createList(name, folderId) {
-    const payload = { name, folderId };
-    const r = await brevoRequest('POST', '/v3/contacts/lists', payload);
+    // First check if list with this name already exists
+    const all = await brevoRequest('GET', '/v3/contacts/lists?limit=50');
+    if (all.status === 200 && all.body?.lists) {
+      const found = all.body.lists.find(l => l.name === name);
+      if (found) return found.id;
+    }
+    // Create new list
+    const r = await brevoRequest('POST', '/v3/contacts/lists', { name, folderId });
     if (r.status === 201) return r.body.id;
     if (r.status === 400 && r.body?.code === 'duplicate_parameter') {
-      // List already exists — fetch by name
-      const all = await brevoRequest('GET', '/v3/contacts/lists?limit=50');
-      const found = all.body?.lists?.find(l => l.name === name);
+      const all2 = await brevoRequest('GET', '/v3/contacts/lists?limit=50');
+      const found = all2.body?.lists?.find(l => l.name === name);
       return found ? found.id : null;
     }
     throw new Error(`Create list failed: ${r.status} ${JSON.stringify(r.body)}`);
