@@ -1123,14 +1123,16 @@ export async function adminBroadcastNewsletter(
 }
 
 export async function adminBrevoSetup(token: string): Promise<BrevoSetupResult> {
-  const res = await fetchWithTimeout(`${API_URL}/api/newsletter/brevo-setup`, {
+  const url = `${API_URL}/api/newsletter/brevo-setup`;
+  const res = await fetchWithTimeout(url, {
     method: "POST",
-    headers: authHeaders(token),
+    headers: { ...authHeaders(token), "Content-Type": "application/json" },
+    body: "{}",
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    let msg = `HTTP ${res.status}`;
-    try { const j = JSON.parse(text); msg = j.error || msg; } catch { msg = text.slice(0, 120) || msg; }
+    let msg = `HTTP ${res.status} @ ${url}`;
+    try { const j = JSON.parse(text); msg = j.error || msg; } catch { msg = `${msg} — ${text.slice(0, 80)}`; }
     throw new Error(msg);
   }
   return res.json();
