@@ -100,7 +100,12 @@ async function checkAndSendUsageSmsAlerts() {
   let sent = 0;
   let skipped = 0;
 
-  for (const order of candidates) {
+  for (let i = 0; i < candidates.length; i++) {
+    const order = candidates[i];
+    // Pause 1s every 5 requests to avoid Airalo 429 rate limit
+    if (i > 0 && i % 5 === 0) {
+      await new Promise(r => setTimeout(r, 1000));
+    }
     try {
       const usage = await airalo.getEsimUsage(order.iccid);
       const usedPercent = extractUsedPercent(usage);
@@ -138,7 +143,12 @@ async function checkAndSendUsageSmsAlerts() {
       console.log(`[USAGE SMS] Order #${order.id} -> ${threshold}% sent (SID: ${sms.sid})`);
     } catch (err) {
       skipped += 1;
-      console.error(`[USAGE SMS] Order #${order.id} skipped:`, err.message);
+      if (err.response?.status === 429) {
+        console.warn(`[USAGE SMS] Order #${order.id} rate-limited (429) — pausing 30s`);
+        await new Promise(r => setTimeout(r, 30_000));
+      } else {
+        console.error(`[USAGE SMS] Order #${order.id} skipped:`, err.message);
+      }
     }
   }
 
