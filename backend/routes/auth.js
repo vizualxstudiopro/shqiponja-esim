@@ -9,6 +9,9 @@ const { sendTransactionalEmail } = require('../lib/emailService');
 const { authLimiter } = require('../middleware/rate-limit');
 const { validateRegister, validateLogin } = require('../middleware/validate');
 const { send_sms, MESSAGE_TYPES, sendVerifyCode, checkVerifyCode } = require('../src/services/twilioService');
+const { syncBrevoContact } = require('../src/services/brevoContacts');
+
+const BREVO_USERS_LIST_ID = process.env.BREVO_USERS_LIST_ID;
 
 const router = express.Router();
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
@@ -58,6 +61,13 @@ router.post('/register', authLimiter, validateRegister, async (req, res) => {
     logLabel: 'VERIFY EMAIL',
     senderType: 'noreply',
   }).catch(err => console.error('Verification email error:', err));
+
+  // Sync to Brevo Contacts (non-blocking)
+  syncBrevoContact(
+    email,
+    { FIRSTNAME: name.split(' ')[0], LASTNAME: name.split(' ').slice(1).join(' ') || undefined },
+    BREVO_USERS_LIST_ID ? [BREVO_USERS_LIST_ID] : []
+  ).catch(() => {});
 
   res.status(201).json({ user, token });
 });

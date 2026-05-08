@@ -6,9 +6,43 @@ const { validateEmail } = require('../middleware/validate');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const { apiLimiter } = require('../middleware/rate-limit');
 const { sendMail } = require('../src/utils/email');
+const { syncBrevoContact, removeFromBrevoList } = require('../src/services/brevoContacts');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://shqiponjaesim.com';
 const BRAND_RED = '#C8102E';
+const NEWSLETTER_LIST_ID = process.env.BREVO_NEWSLETTER_LIST_ID;
+
+function buildWelcomeNewsletterHtml(unsubscribeUrl, locale) {
+  const isSq = locale !== 'en';
+  return `<!DOCTYPE html>
+<html lang="${isSq ? 'sq' : 'en'}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${isSq ? 'Mirë se vjen te Shqiponja eSIM!' : 'Welcome to Shqiponja eSIM!'}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5">
+<tr><td align="center" style="padding:32px 16px">
+  <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)">
+    <tr><td style="background:#C8102E;padding:28px 32px;text-align:center">
+      <span style="font-size:24px;font-weight:800;color:#fff">🦅 Shqiponja eSIM</span>
+    </td></tr>
+    <tr><td style="padding:32px">
+      <h2 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#18181b">${isSq ? '🎉 Mirë se vjen në listën tonë!' : '🎉 Welcome to our newsletter!'}</h2>
+      <p style="margin:0 0 16px;font-size:15px;color:#52525b;line-height:1.7">${isSq ? 'Faleminderit që u abone! Do të marrësh ofertat tona më të mira, destinacione të reja eSIM dhe promocione ekskluzive direkt në inbox-in tënd.' : 'Thanks for subscribing! You\'ll receive our best offers, new eSIM destinations and exclusive deals straight to your inbox.'}</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 24px">
+        <a href="${FRONTEND_URL}/paketa" style="display:inline-block;background:#C8102E;color:#fff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">${isSq ? 'Shiko paketat →' : 'Browse packages →'}</a>
+      </td></tr></table>
+    </td></tr>
+    <tr><td style="padding:0 32px 24px;text-align:center">
+      <p style="margin:0;font-size:11px;color:#d4d4d8">${isSq ? 'Nuk dëshiron email?' : 'Don\'t want emails?'} <a href="${unsubscribeUrl}" style="color:#a1a1aa">${isSq ? 'Çregjistrohu' : 'Unsubscribe'}</a></p>
+    </td></tr>
+  </table>
+</td></tr>
+</table>
+</body></html>`;
+}
 
 function buildCampaignHtml(subject, bodyHtml, unsubscribeUrl) {
   return `<!DOCTYPE html>
@@ -76,7 +110,7 @@ router.post('/subscribe', apiLimiter, async (req, res) => {
 
   const unsubscribeToken = crypto.randomBytes(24).toString('hex');
   try {
-    await db.query(`
+    const insertResult = await db.query(`
       INSERT INTO newsletter_subscribers (email, locale, unsubscribe_token)
       VALUES ($1, $2, $3)
       ON CONFLICT (email) DO UPDATE
@@ -85,7 +119,27 @@ router.post('/subscribe', apiLimiter, async (req, res) => {
             subscribed_at = NOW()
       WHERE newsletter_subscribers.unsubscribed_at IS NOT NULL
         OR newsletter_subscribers.email = EXCLUDED.email
+      RETURNING unsubscribe_token
     `, [safeEmail, safeLocale, unsubscribeToken]);
+
+    // Get the actual token stored (may differ if row already existed)
+    const storedToken = insertResult.rows[0]?.unsubscribe_token || unsubscribeToken;
+    const unsubscribeUrl = `${FRONTEND_URL}/api/newsletter/unsubscribe?token=${storedToken}`;
+
+    // Sync to Brevo Contacts (non-blocking)
+    syncBrevoContact(
+      safeEmail,
+      { LOCALE: safeLocale },
+      NEWSLETTER_LIST_ID ? [NEWSLETTER_LIST_ID] : []
+    ).catch(() => {});
+
+    // Send welcome email (non-blocking)
+    sendMail(
+      safeEmail,
+      safeLocale === 'en' ? 'Welcome to Shqiponja eSIM newsletter!' : 'Mirë se vjen te newsletter-i i Shqiponja eSIM!',
+      buildWelcomeNewsletterHtml(unsubscribeUrl, safeLocale),
+    ).catch(err => console.error('[NEWSLETTER WELCOME] Failed:', err.message));
+
     res.json({ ok: true });
   } catch (err) {
     console.error('Newsletter subscribe error:', err.message);
@@ -106,6 +160,10 @@ router.get('/unsubscribe', async (req, res) => {
     );
     if (result.rowCount === 0) {
       return res.status(404).send('<h2>Token nuk u gjet</h2>');
+    }
+    // Remove from Brevo list (non-blocking)
+    if (NEWSLETTER_LIST_ID && result.rows[0]?.email) {
+      removeFromBrevoList(result.rows[0].email, NEWSLETTER_LIST_ID).catch(() => {});
     }
     res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Çregjistrim</title><style>body{font-family:sans-serif;text-align:center;padding:60px;background:#f4f4f5}h1{color:#c8102e}p{color:#52525b}</style></head><body><h1>🦅 Shqiponja eSIM</h1><h2>U çregjistrove nga newsletter-i.</h2><p>Email-i juaj u hoq nga lista jonë e postimeve.</p><p><a href="${process.env.FRONTEND_URL || 'https://shqiponjaesim.com'}">Kthehu në faqe</a></p></body></html>`);
   } catch (err) {
