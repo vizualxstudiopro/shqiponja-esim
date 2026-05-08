@@ -279,9 +279,20 @@ router.post('/brevo-setup', authMiddleware, adminOnly, async (req, res) => {
     });
   }
 
+  async function getOrCreateFolderId() {
+    // Try to get existing folders
+    const r = await brevoRequest('GET', '/v3/contacts/folders?limit=50');
+    if (r.status === 200 && r.body?.folders?.length) {
+      return r.body.folders[0].id; // use first existing folder
+    }
+    // Create a folder if none exist
+    const c = await brevoRequest('POST', '/v3/contacts/folders', { name: 'Shqiponja eSIM' });
+    if (c.status === 201) return c.body.id;
+    throw new Error(`Could not get/create Brevo folder: ${c.status} ${JSON.stringify(c.body)}`);
+  }
+
   async function createList(name, folderId) {
-    const payload = { name };
-    if (folderId) payload.folderId = folderId;
+    const payload = { name, folderId };
     const r = await brevoRequest('POST', '/v3/contacts/lists', payload);
     if (r.status === 201) return r.body.id;
     if (r.status === 400 && r.body?.code === 'duplicate_parameter') {
@@ -312,9 +323,10 @@ router.post('/brevo-setup', authMiddleware, adminOnly, async (req, res) => {
   }
 
   try {
-    // 1. Create/get lists
-    const newsletterListId = await createList('Newsletter Subscribers');
-    const usersListId = await createList('Registered Users');
+    // 1. Get or create folder, then create/get lists
+    const folderId = await getOrCreateFolderId();
+    const newsletterListId = await createList('Newsletter Subscribers', folderId);
+    const usersListId = await createList('Registered Users', folderId);
 
     // 2. Fetch existing newsletter subscribers
     const { rows: subs } = await db.query(
