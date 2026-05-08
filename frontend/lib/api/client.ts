@@ -1090,3 +1090,26 @@ export async function adminGetNewsletterSubscribers(token: string, page = 1): Pr
   if (!res.ok) throw new Error("Nuk ke qasje");
   return res.json();
 }
+
+export interface BroadcastResult {
+  sent: number;
+  failed: number;
+  total: number;
+  message?: string;
+  errors?: { email: string; error: string }[];
+}
+
+export async function adminBroadcastNewsletter(
+  token: string,
+  subject: string,
+  bodyHtml: string,
+  locale?: "sq" | "en" | "all"
+): Promise<BroadcastResult> {
+  const res = await fetchWithTimeout(`${API_URL}/api/newsletter/broadcast`, {
+    method: "POST",
+    headers: { ...authHeaders(token), "Content-Type": "application/json" },
+    body: JSON.stringify({ subject, bodyHtml, locale: locale === "all" ? undefined : locale }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Dërgimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
