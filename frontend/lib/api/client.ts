@@ -1127,6 +1127,11 @@ export async function adminBrevoSetup(token: string): Promise<BrevoSetupResult> 
     method: "POST",
     headers: authHeaders(token),
   });
-  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Setup dështoi" })); throw new Error(e.error); }
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    let msg = `HTTP ${res.status}`;
+    try { const j = JSON.parse(text); msg = j.error || msg; } catch { msg = text.slice(0, 120) || msg; }
+    throw new Error(msg);
+  }
   return res.json();
 }
