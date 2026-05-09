@@ -99,19 +99,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [token]);
 
-  // Auto-logout on 401 responses (expired JWT)
-  useEffect(() => {
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-      const res = await originalFetch(...args);
-      if (res.status === 401 && token) {
-        logout();
-      }
-      return res;
-    };
-    return () => { window.fetch = originalFetch; };
-  }, [token, logout]);
-
   async function login(email: string, password: string, totpCode?: string, smsCode?: string, rememberMe?: boolean): Promise<{ requires2FA?: boolean; requiresSms2FA?: boolean; maskedPhone?: string }> {
     const res = await apiLogin(email, password, totpCode, smsCode);
     if (res.requires2FA) {
