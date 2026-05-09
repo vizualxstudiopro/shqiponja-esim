@@ -39,6 +39,14 @@ function readStoredToken() {
   return sessionStorage.getItem("token") || localStorage.getItem("token");
 }
 
+function decodeJwtPayload(token: string) {
+  const part = token.split(".")[1];
+  if (!part) throw new Error("Missing JWT payload");
+  const normalized = part.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
+  return JSON.parse(atob(padded));
+}
+
 function storeToken(token: string, rememberMe: boolean) {
   localStorage.removeItem("token");
   sessionStorage.removeItem("token");
@@ -74,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       // Decode JWT immediately so user is never null while getMe is in-flight
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
+        const payload = decodeJwtPayload(token);
         if (payload.exp * 1000 > Date.now()) {
           setUser((prev) => prev ?? ({ id: payload.id, email: payload.email, name: payload.name, role: payload.role, email_verified: 0, created_at: "" } as User));
         } else {
