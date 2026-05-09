@@ -3,6 +3,8 @@ const router = express.Router();
 const db = require('../db');
 const { processReferralRewardForOrder } = require('../src/services/referralRewards');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { apiLimiter } = require('../middleware/rate-limit');
+const MARKETING_FROM = process.env.MARKETING_FROM || 'Shqiponja eSIM <hello@shqiponjaesim.com>';
 
 // All admin routes require auth + admin role
 router.use(authMiddleware, adminOnly);
@@ -887,7 +889,7 @@ router.post('/marketing/send', async (req, res) => {
             <a href="https://shqiponjaesim.com/packages" style="display:inline-block;background:#C8102E;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Shiko Paketat</a>
           </div>
         </div>`;
-        await sendMail(u.email, safeSubject, html);
+        await sendMail(u.email, safeSubject, html, { from: MARKETING_FROM });
         sent++;
       } catch { failed++; }
     }));

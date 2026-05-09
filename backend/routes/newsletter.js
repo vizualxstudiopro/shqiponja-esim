@@ -11,6 +11,7 @@ const { syncBrevoContact, removeFromBrevoList } = require('../src/services/brevo
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://shqiponjaesim.com';
 const BRAND_RED = '#C8102E';
 const NEWSLETTER_LIST_ID = process.env.BREVO_NEWSLETTER_LIST_ID;
+const MARKETING_FROM = process.env.MARKETING_FROM || 'Shqiponja eSIM <hello@shqiponjaesim.com>';
 
 function createBrevoRequest(apiKey) {
   return function brevoRequest(method, path, body) {
@@ -188,6 +189,7 @@ router.post('/subscribe', apiLimiter, async (req, res) => {
       safeEmail,
       safeLocale === 'en' ? 'Welcome to Shqiponja eSIM newsletter!' : 'Mirë se vjen te newsletter-i i Shqiponja eSIM!',
       buildWelcomeNewsletterHtml(unsubscribeUrl, safeLocale),
+      { from: MARKETING_FROM }
     ).catch(err => console.error('[NEWSLETTER WELCOME] Failed:', err.message));
 
     res.json({ ok: true });
@@ -275,7 +277,7 @@ router.post('/broadcast', authMiddleware, adminOnly, async (req, res) => {
       const unsubscribeUrl = `${FRONTEND_URL}/api/newsletter/unsubscribe?token=${unsubscribe_token}`;
       const html = buildCampaignHtml(subject.trim(), bodyHtml.trim(), unsubscribeUrl);
       try {
-        await sendMail(email, subject.trim(), html);
+        await sendMail(email, subject.trim(), html, { from: MARKETING_FROM });
         sent++;
       } catch (err) {
         failed++;
