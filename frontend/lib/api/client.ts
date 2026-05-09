@@ -1111,6 +1111,13 @@ export interface BrevoSetupResult {
   message: string;
 }
 
+export interface BrevoContactsResult {
+  newsletterListId: number | null;
+  usersListId: number | null;
+  newsletterEmails: string[];
+  userEmails: string[];
+}
+
 export async function adminBroadcastNewsletter(
   token: string,
   subject: string,
@@ -1138,6 +1145,18 @@ export async function adminBrevoSetup(token: string): Promise<BrevoSetupResult> 
     let msg = `HTTP ${res.status} @ ${url}`;
     try { const j = JSON.parse(text); msg = j.error || msg; } catch { msg = `${msg} — ${text.slice(0, 80)}`; }
     throw new Error(msg);
+  }
+  return res.json();
+}
+
+export async function adminGetBrevoContacts(token: string): Promise<BrevoContactsResult> {
+  const res = await fetchWithTimeout(`${API_URL}/api/newsletter/brevo-contacts`, {
+    headers: authHeaders(token),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({ error: "Nuk u lexuan kontaktet nga Brevo" }));
+    throw new Error(e.error);
   }
   return res.json();
 }

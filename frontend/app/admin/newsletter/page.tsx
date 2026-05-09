@@ -6,9 +6,11 @@ import {
   adminGetNewsletterSubscribers,
   adminBroadcastNewsletter,
   adminBrevoSetup,
+  adminGetBrevoContacts,
   type NewsletterSubscriber,
   type BroadcastResult,
   type BrevoSetupResult,
+  type BrevoContactsResult,
 } from "@/lib/api";
 import { Mail, Send, Users, ChevronLeft, ChevronRight, Eye, EyeOff, AlertCircle, CheckCircle2, Settings2 } from "lucide-react";
 
@@ -42,6 +44,9 @@ export default function AdminNewsletterPage() {
   const [setupLoading, setSetupLoading] = useState(false);
   const [setupResult, setSetupResult] = useState<BrevoSetupResult | null>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
+  const [brevoContacts, setBrevoContacts] = useState<BrevoContactsResult | null>(null);
+  const [brevoContactsLoading, setBrevoContactsLoading] = useState(false);
+  const [brevoContactsError, setBrevoContactsError] = useState<string | null>(null);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -88,9 +93,21 @@ export default function AdminNewsletterPage() {
     setSetupLoading(true);
     setSetupResult(null);
     setSetupError(null);
+    setBrevoContacts(null);
+    setBrevoContactsError(null);
     try {
       const res = await adminBrevoSetup(token);
       setSetupResult(res);
+
+      setBrevoContactsLoading(true);
+      try {
+        const contacts = await adminGetBrevoContacts(token);
+        setBrevoContacts(contacts);
+      } catch (err: unknown) {
+        setBrevoContactsError(err instanceof Error ? err.message : "Gabim i panjohur");
+      } finally {
+        setBrevoContactsLoading(false);
+      }
     } catch (err: unknown) {
       setSetupError(err instanceof Error ? err.message : "Gabim i panjohur");
     } finally {
@@ -162,6 +179,54 @@ export default function AdminNewsletterPage() {
                 </p>
                 <p className="text-green-600 dark:text-green-500 text-xs">✓ Variablat Railway janë vendosur automatikisht.</p>
               </div>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
+              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Kontakte nga Brevo (pas konfigurimit)
+              </p>
+
+              {brevoContactsLoading && (
+                <p className="mt-2 text-xs text-zinc-500">Duke lexuar email-et nga Brevo...</p>
+              )}
+
+              {brevoContactsError && (
+                <p className="mt-2 text-xs text-red-600 dark:text-red-400">{brevoContactsError}</p>
+              )}
+
+              {brevoContacts && (
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <div>
+                    <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                      Newsletter List ({brevoContacts.newsletterEmails.length})
+                    </p>
+                    <div className="mt-1 max-h-36 overflow-auto rounded border border-zinc-200 bg-zinc-50 p-2 text-xs dark:border-zinc-700 dark:bg-zinc-800">
+                      {brevoContacts.newsletterEmails.length ? (
+                        brevoContacts.newsletterEmails.map((email) => (
+                          <p key={`nl-${email}`} className="truncate text-zinc-700 dark:text-zinc-200">{email}</p>
+                        ))
+                      ) : (
+                        <p className="text-zinc-500">Nuk ka kontakte.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                      Users List ({brevoContacts.userEmails.length})
+                    </p>
+                    <div className="mt-1 max-h-36 overflow-auto rounded border border-zinc-200 bg-zinc-50 p-2 text-xs dark:border-zinc-700 dark:bg-zinc-800">
+                      {brevoContacts.userEmails.length ? (
+                        brevoContacts.userEmails.map((email) => (
+                          <p key={`user-${email}`} className="truncate text-zinc-700 dark:text-zinc-200">{email}</p>
+                        ))
+                      ) : (
+                        <p className="text-zinc-500">Nuk ka kontakte.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

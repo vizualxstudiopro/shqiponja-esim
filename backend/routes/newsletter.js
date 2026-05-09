@@ -12,6 +12,56 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://shqiponjaesim.com';
 const BRAND_RED = '#C8102E';
 const NEWSLETTER_LIST_ID = process.env.BREVO_NEWSLETTER_LIST_ID;
 
+function createBrevoRequest(apiKey) {
+  return function brevoRequest(method, path, body) {
+    return new Promise((resolve, reject) => {
+      const data = body ? JSON.stringify(body) : null;
+      const headers = {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+      };
+      if (data) headers['Content-Length'] = Buffer.byteLength(data);
+      const req = require('https').request(
+        { hostname: 'api.brevo.com', port: 443, path, method, headers },
+        (r) => {
+          let chunks = '';
+          r.on('data', c => { chunks += c; });
+          r.on('end', () => {
+            try { resolve({ status: r.statusCode, body: JSON.parse(chunks) }); }
+            catch { resolve({ status: r.statusCode, body: chunks }); }
+          });
+        }
+      );
+      req.on('error', reject);
+      if (data) req.write(data);
+      req.end();
+    });
+  };
+}
+
+async function getBrevoListEmails(brevoRequest, listId, max = 300) {
+  if (!listId) return [];
+  const limit = 100;
+  let offset = 0;
+  const emails = [];
+  while (emails.length < max) {
+    const path = `/v3/contacts/lists/${encodeURIComponent(listId)}/contacts?limit=${limit}&offset=${offset}`;
+    const r = await brevoRequest('GET', path);
+    if (r.status !== 200) {
+      throw new Error(`List contacts failed (${listId}): ${r.status} ${JSON.stringify(r.body)}`);
+    }
+    const contacts = Array.isArray(r.body?.contacts) ? r.body.contacts : [];
+    if (!contacts.length) break;
+    for (const c of contacts) {
+      if (c?.email) emails.push(c.email);
+      if (emails.length >= max) break;
+    }
+    if (contacts.length < limit) break;
+    offset += limit;
+  }
+  return Array.from(new Set(emails));
+}
+
 function buildWelcomeNewsletterHtml(unsubscribeUrl, locale) {
   const isSq = locale !== 'en';
   return `<!DOCTYPE html>
@@ -253,31 +303,7 @@ router.post('/brevo-setup', authMiddleware, adminOnly, async (req, res) => {
   if (!BREVO_API_KEY) {
     return res.status(400).json({ error: 'BREVO_API_KEY nuk është vendosur' });
   }
-
-  function brevoRequest(method, path, body) {
-    return new Promise((resolve, reject) => {
-      const data = body ? JSON.stringify(body) : null;
-      const headers = {
-        'api-key': BREVO_API_KEY,
-        'Content-Type': 'application/json',
-      };
-      if (data) headers['Content-Length'] = Buffer.byteLength(data);
-      const req = require('https').request(
-        { hostname: 'api.brevo.com', port: 443, path, method, headers },
-        (r) => {
-          let chunks = '';
-          r.on('data', c => { chunks += c; });
-          r.on('end', () => {
-            try { resolve({ status: r.statusCode, body: JSON.parse(chunks) }); }
-            catch { resolve({ status: r.statusCode, body: chunks }); }
-          });
-        }
-      );
-      req.on('error', reject);
-      if (data) req.write(data);
-      req.end();
-    });
-  }
+  const brevoRequest = createBrevoRequest(BREVO_API_KEY);
 
   async function getOrCreateFolderId() {
     // Try to get existing folders
@@ -360,6 +386,32 @@ router.post('/brevo-setup', authMiddleware, adminOnly, async (req, res) => {
     });
   } catch (err) {
     console.error('[BREVO SETUP] Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/newsletter/brevo-contacts — Admin only
+// Reads first contacts from configured Brevo lists so admin can see synced emails.
+router.get('/brevo-contacts', authMiddleware, adminOnly, async (req, res) => {
+  const BREVO_API_KEY = process.env.BREVO_API_KEY;
+  const newsletterListId = process.env.BREVO_NEWSLETTER_LIST_ID;
+  const usersListId = process.env.BREVO_USERS_LIST_ID;
+  if (!BREVO_API_KEY) return res.status(400).json({ error: 'BREVO_API_KEY nuk është vendosur' });
+
+  try {
+    const brevoRequest = createBrevoRequest(BREVO_API_KEY);
+    const [newsletterEmails, userEmails] = await Promise.all([
+      getBrevoListEmails(brevoRequest, newsletterListId),
+      getBrevoListEmails(brevoRequest, usersListId),
+    ]);
+    res.json({
+      newsletterListId: newsletterListId ? Number(newsletterListId) : null,
+      usersListId: usersListId ? Number(usersListId) : null,
+      newsletterEmails,
+      userEmails,
+    });
+  } catch (err) {
+    console.error('[BREVO CONTACTS] Error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
