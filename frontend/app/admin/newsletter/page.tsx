@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import {
   adminGetNewsletterSubscribers,
@@ -127,6 +127,25 @@ export default function AdminNewsletterPage() {
       }
     }
   }, [preview, bodyHtml]);
+
+  const brevoCombinedSubscribers = useMemo(() => {
+    if (!brevoContacts) return [] as Array<{ email: string; source: "newsletter" | "users" | "both" }>;
+
+    const map = new Map<string, "newsletter" | "users" | "both">();
+    for (const email of brevoContacts.newsletterEmails) {
+      map.set(email, "newsletter");
+    }
+    for (const email of brevoContacts.userEmails) {
+      const prev = map.get(email);
+      map.set(email, prev === "newsletter" ? "both" : "users");
+    }
+
+    return Array.from(map.entries())
+      .map(([email, source]) => ({ email, source }))
+      .sort((a, b) => a.email.localeCompare(b.email));
+  }, [brevoContacts]);
+
+  const isShowingBrevoList = brevoCombinedSubscribers.length > 0;
 
   const canSend = subject.trim().length >= 3 && bodyHtml.trim().length >= 10;
 
@@ -384,7 +403,7 @@ export default function AdminNewsletterPage() {
                 <span className="text-sm font-semibold">Abonentët</span>
               </div>
               <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                {total}
+                {isShowingBrevoList ? brevoCombinedSubscribers.length : total}
               </span>
             </div>
 
@@ -392,6 +411,20 @@ export default function AdminNewsletterPage() {
               <div className="flex justify-center p-8">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-shqiponja border-t-transparent" />
               </div>
+            ) : isShowingBrevoList ? (
+              <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                {brevoCombinedSubscribers.map((s) => (
+                  <li key={`brevo-${s.email}`} className="flex items-center justify-between gap-2 px-4 py-2.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{s.email}</p>
+                      <p className="text-xs text-zinc-400">Brevo kontakt</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                      {s.source === "both" ? "NL+USR" : s.source === "newsletter" ? "NL" : "USR"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             ) : subscribers.length === 0 ? (
               <p className="p-6 text-center text-sm text-zinc-400">Ende nuk ka abonentë</p>
             ) : (
