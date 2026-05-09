@@ -1,10 +1,9 @@
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
-  console.warn('[AUTH] WARNING: JWT_SECRET not set in production! Using random secret (tokens will not persist across restarts).');
+  console.warn('[AUTH] WARNING: JWT_SECRET not set in production! Falling back to dev secret; set JWT_SECRET immediately.');
 }
-const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? crypto.randomBytes(64).toString('hex') : 'shqiponja-dev-secret');
+const JWT_SECRET = process.env.JWT_SECRET || 'shqiponja-dev-secret';
 
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
