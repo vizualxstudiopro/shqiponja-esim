@@ -160,13 +160,7 @@ export default function AdminNewsletterPage() {
                 <p className="text-green-600 dark:text-green-500">
                   Registered Users → List ID: <strong>{setupResult.usersListId}</strong> ({setupResult.usersSynced} kontakte)
                 </p>
-                <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3 dark:bg-amber-900/20 dark:border-amber-800">
-                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Vendos këto në Railway → Variables:</p>
-                  <code className="mt-1 block text-xs text-amber-800 dark:text-amber-300">
-                    BREVO_NEWSLETTER_LIST_ID={setupResult.newsletterListId}<br />
-                    BREVO_USERS_LIST_ID={setupResult.usersListId}
-                  </code>
-                </div>
+                <p className="text-green-600 dark:text-green-500 text-xs">✓ Variablat Railway janë vendosur automatikisht.</p>
               </div>
             </div>
           </div>
