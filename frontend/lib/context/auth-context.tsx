@@ -35,13 +35,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+function readStoredToken() {
+  return sessionStorage.getItem("token") || localStorage.getItem("token");
+}
+
+function storeToken(token: string, rememberMe: boolean) {
+  localStorage.removeItem("token");
+  sessionStorage.removeItem("token");
+  if (rememberMe) {
+    localStorage.setItem("token", token);
+  } else {
+    sessionStorage.setItem("token", token);
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const savedToken = readStoredToken();
     if (savedToken) {
       setToken(savedToken);
     } else {
@@ -107,11 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (res.requiresSms2FA) {
       return { requiresSms2FA: true, maskedPhone: res.maskedPhone };
     }
-    if (rememberMe) {
-      localStorage.setItem("token", res.token);
-    } else {
-      sessionStorage.setItem("token", res.token);
-    }
+    storeToken(res.token, !!rememberMe);
     setToken(res.token);
     setUser(res.user);
     return {};
@@ -119,28 +129,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function register(name: string, email: string, password: string) {
     const res = await apiRegister(name, email, password);
-    localStorage.setItem("token", res.token);
+    storeToken(res.token, true);
     setToken(res.token);
     setUser(res.user);
   }
 
   async function loginWithGoogle(idToken: string) {
     const res = await apiOauthGoogle(idToken);
-    localStorage.setItem("token", res.token);
+    storeToken(res.token, true);
     setToken(res.token);
     setUser(res.user);
   }
 
   async function loginWithMicrosoft(code: string, redirectUri: string) {
     const res = await apiOauthMicrosoft(code, redirectUri);
-    localStorage.setItem("token", res.token);
+    storeToken(res.token, true);
     setToken(res.token);
     setUser(res.user);
   }
 
   async function loginWithFacebook(code: string, redirectUri: string) {
     const res = await apiOauthFacebook(code, redirectUri);
-    localStorage.setItem("token", res.token);
+    storeToken(res.token, true);
     setToken(res.token);
     setUser(res.user);
   }
@@ -148,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function loginWithApple(jwtToken: string) {
     // Backend already validated with Apple — we just receive the JWT
     const u = await getMe(jwtToken);
-    localStorage.setItem("token", jwtToken);
+    storeToken(jwtToken, true);
     setToken(jwtToken);
     setUser(u);
   }
