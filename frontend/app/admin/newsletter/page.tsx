@@ -115,6 +115,24 @@ export default function AdminNewsletterPage() {
     }
   }
 
+  async function loadBrevoContacts() {
+    if (!token) return;
+    setBrevoContactsLoading(true);
+    setBrevoContactsError(null);
+    try {
+      const contacts = await adminGetBrevoContacts(token);
+      setBrevoContacts(contacts);
+    } catch (err: unknown) {
+      setBrevoContactsError(err instanceof Error ? err.message : "Gabim i panjohur");
+    } finally {
+      setBrevoContactsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadBrevoContacts();
+  }, [token]);
+
   // Live preview in iframe
   useEffect(() => {
     if (preview && iframeRef.current) {
