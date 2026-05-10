@@ -5,6 +5,21 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 31536000,
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.shqiponjaesim.com",
+          },
+        ],
+        destination: "https://shqiponjaesim.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
