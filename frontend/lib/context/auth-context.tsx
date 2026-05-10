@@ -63,14 +63,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const savedToken = readStoredToken();
     if (savedToken) {
       setToken(savedToken);
-    } else {
-      setLoading(false);
     }
+    setHydrated(true);
   }, []);
 
   const logout = useCallback(() => {
@@ -81,6 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
+
     if (token) {
       // Decode JWT immediately so user is never null while getMe is in-flight
       try {
@@ -121,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, hydrated]);
 
   async function login(email: string, password: string, totpCode?: string, smsCode?: string, rememberMe?: boolean): Promise<{ requires2FA?: boolean; requiresSms2FA?: boolean; maskedPhone?: string }> {
     const res = await apiLogin(email, password, totpCode, smsCode);
