@@ -44,7 +44,9 @@ function decodeJwtPayload(token: string) {
   if (!part) throw new Error("Missing JWT payload");
   const normalized = part.replace(/-/g, "+").replace(/_/g, "/");
   const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
-  return JSON.parse(atob(padded));
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
 }
 
 function storeToken(token: string, rememberMe: boolean) {
