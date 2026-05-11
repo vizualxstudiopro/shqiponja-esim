@@ -16,7 +16,7 @@ export default function Footer() {
           <div className="space-y-3">
             <p className="text-sm font-bold text-zinc-900 dark:text-white">Shqiponja eSIM</p>
             <div className="space-y-1">
-              <span className="block text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">OPERATED BY</span>
+              <span className="block text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{t("footer.operatedBy")}</span>
               <img
                 src="/vala-tech-optimized.svg"
                 alt="Vala Tech 2026 LLC"
@@ -33,7 +33,7 @@ export default function Footer() {
             >
               2232 Dell Range Blvd, Suite 303 1440<br />
               Cheyenne, WY 82009<br />
-              United States
+              {t("footer.addressCountry")}
             </a>
             <a
               href="tel:+13072262252"
@@ -95,11 +95,11 @@ export default function Footer() {
               {t("footer.legal")}
             </p>
             <nav className="flex flex-col gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-              <Link href="/terms" className="transition hover:text-shqiponja">Kushtet e Përdorimit</Link>
-              <Link href="/privacy" className="transition hover:text-shqiponja">Politika e Privatësisë</Link>
-              <Link href="/refund" className="transition hover:text-shqiponja">Politika e Kthimeve</Link>
-              <Link href="/cookies" className="transition hover:text-shqiponja">Cookie Policy</Link>
-              <Link href="/imprint" className="transition hover:text-shqiponja">Të Dhënat e Kompanisë</Link>
+              <Link href="/terms" className="transition hover:text-shqiponja">{t("footer.terms")}</Link>
+              <Link href="/privacy" className="transition hover:text-shqiponja">{t("footer.privacy")}</Link>
+              <Link href="/refund" className="transition hover:text-shqiponja">{t("footer.refund")}</Link>
+              <Link href="/cookies" className="transition hover:text-shqiponja">{t("footer.cookies")}</Link>
+              <Link href="/imprint" className="transition hover:text-shqiponja">{t("footer.companyDetails")}</Link>
               <a
                 href="https://wyobiz.wyo.gov/Business/FilingDetails.aspx?eFNum=013208247006077089105158092103067039009123053107"
                 target="_blank"
