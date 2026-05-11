@@ -184,6 +184,8 @@ const translations = {
     "footer.legalNameLabel": "Emri Ligjor",
     "footer.einLabel": "EIN",
     "footer.payWith": "Paguaj me siguri",
+    "footer.paymentsComingSoon": "Integrimi i pagesave vjen së shpejti.",
+    "footer.appsComingSoon": "Aplikacionet iOS dhe Android vijnë së shpejti.",
     "footer.navigation": "Navigimi",
     "footer.legal": "Ligjore",
 
@@ -840,6 +842,8 @@ const translations = {
     "footer.legalNameLabel": "Legal Name",
     "footer.einLabel": "EIN",
     "footer.payWith": "Pay securely with",
+    "footer.paymentsComingSoon": "Payment integration is coming soon.",
+    "footer.appsComingSoon": "iOS and Android apps are coming soon.",
     "footer.navigation": "Navigation",
     "footer.legal": "Legal",
 

@@ -7,6 +7,31 @@ import { useI18n } from "@/lib/i18n-context";
 export default function Footer() {
   const { t } = useI18n();
   const companyEin = process.env.NEXT_PUBLIC_COMPANY_EIN || "37-2233850";
+  const paymentMethods = [
+    { name: "Visa", src: "/payments/visa.svg" },
+    { name: "Mastercard", src: "/payments/mastercard.svg" },
+    { name: "Maestro", src: "/payments/maestro.svg" },
+    { name: "PayPal", src: "/payments/paypal.svg" },
+    { name: "Stripe", src: "/payments/stripe.svg" },
+  ];
+  const appPlatforms = [
+    {
+      name: "iOS",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+          <path d="M15.68 1.98c.04 1.08-.32 2.12-.98 2.95-.8.94-2.07 1.66-3.17 1.57-.14-1.05.31-2.14.95-2.9.73-.87 2.02-1.52 3.2-1.62Zm3.91 16.19c-.51 1.17-.76 1.69-1.42 2.7-.92 1.39-2.21 3.12-3.8 3.13-1.41.01-1.77-.92-3.68-.91-1.91.01-2.31.93-3.72.92-1.59-.01-2.82-1.57-3.74-2.96-2.57-3.91-2.84-8.49-1.25-10.93 1.13-1.74 2.92-2.76 4.6-2.76 1.72 0 2.8.95 4.22.95 1.38 0 2.22-.95 4.21-.95 1.5 0 3.1.82 4.22 2.24-3.71 2.03-3.11 7.32.36 8.57Z" />
+        </svg>
+      ),
+    },
+    {
+      name: "Android",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+          <path d="M7.47 5.35 6.1 2.98a.5.5 0 0 1 .18-.68.5.5 0 0 1 .68.18l1.4 2.43A10.1 10.1 0 0 1 12 4.25c1.28 0 2.49.24 3.64.66l1.4-2.43a.5.5 0 1 1 .86.5l-1.38 2.37A7.47 7.47 0 0 1 19.5 11H4.5a7.47 7.47 0 0 1 2.97-5.65ZM9 8.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm6 0a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM4 12h2v6.25A1.75 1.75 0 0 0 7.75 20H8v2a1 1 0 1 0 2 0v-2h4v2a1 1 0 1 0 2 0v-2h.25A1.75 1.75 0 0 0 18 18.25V12h2v5a1 1 0 1 0 2 0v-5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v5a1 1 0 1 0 2 0v-5Z" />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <footer className="border-t border-zinc-100 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -132,14 +157,11 @@ export default function Footer() {
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
               {t("footer.payWith")}
             </p>
+            <p className="max-w-xs text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+              {t("footer.paymentsComingSoon")}
+            </p>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-2">
-              {[
-                { name: "Visa", src: "/payments/visa.svg" },
-                { name: "Mastercard", src: "/payments/mastercard.svg" },
-                { name: "Maestro", src: "/payments/maestro.svg" },
-                { name: "PayPal", src: "/payments/paypal.svg" },
-                { name: "Stripe", src: "/payments/stripe.svg" },
-              ].map((payment) => (
+              {paymentMethods.map((payment) => (
                 <div
                   key={payment.name}
                   className="rounded-xl border border-zinc-200/80 bg-white p-1.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
@@ -154,6 +176,23 @@ export default function Footer() {
                   />
                 </div>
               ))}
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                {t("footer.appsComingSoon")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {appPlatforms.map((platform) => (
+                  <div
+                    key={platform.name}
+                    className="inline-flex items-center gap-2 rounded-full border border-zinc-200/80 bg-zinc-50 px-3 py-2 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  >
+                    {platform.icon}
+                    <span>{platform.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Airalo badge */}
