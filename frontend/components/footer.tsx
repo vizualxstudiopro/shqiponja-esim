@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n-context";
 
 export default function Footer() {
   const { t } = useI18n();
+  const companyEin = process.env.NEXT_PUBLIC_COMPANY_EIN || "37-2233850";
 
   return (
     <footer className="border-t border-zinc-100 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -24,6 +25,21 @@ export default function Footer() {
                 loading="lazy"
                 decoding="async"
               />
+            </div>
+            <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50 p-3 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-300">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500">
+                {t("footer.legalInfo")}
+              </p>
+              <p>
+                <span className="font-semibold text-zinc-900 dark:text-white">{t("footer.legalNameLabel")}:</span>{" "}
+                VALA TECH 2026 LLC
+              </p>
+              {companyEin ? (
+                <p className="mt-1">
+                  <span className="font-semibold text-zinc-900 dark:text-white">{t("footer.einLabel")}:</span>{" "}
+                  {companyEin}
+                </p>
+              ) : null}
             </div>
             <a
               href="https://www.google.com/maps/search/?api=1&query=2232+Dell+Range+Blvd%2C+Suite+303+1440%2C+Cheyenne%2C+WY+82009"
