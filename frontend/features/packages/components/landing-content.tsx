@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useI18n } from "@/lib/i18n-context";
 import { Smartphone, Search, CheckCircle, XCircle, ChevronDown, X, ListChecks, Mail } from "lucide-react";
-import { subscribeNewsletter } from "@/lib/api";
+import { subscribeNewsletter, type EsimPackage } from "@/lib/api";
 
 import Link from "next/link";
 
@@ -40,6 +40,10 @@ const operators = [
   "AT&T",
   "Turkcell",
 ];
+
+type LandingContentProps = {
+  initialPackages?: EsimPackage[];
+};
 
 function StepIcon1() {
   return (
@@ -283,7 +287,7 @@ for (const [brand, models] of Object.entries(ESIM_DEVICES)) {
   }
 }
 
-export default function LandingContent() {
+export default function LandingContent({ initialPackages }: LandingContentProps) {
   const { t } = useI18n();
   const touristRef = useReveal();
   const packagesRef = useReveal();
@@ -440,7 +444,7 @@ export default function LandingContent() {
             </p>
           </div>
 
-          <PackageGrid />
+          <PackageGrid initialPackages={initialPackages} />
         </div>
       </section>
 

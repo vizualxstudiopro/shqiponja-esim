@@ -6,6 +6,10 @@ import { getPackages, searchPackages, type EsimPackage } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
 import { useCurrency } from "@/lib/currency-context";
 
+type PackageGridProps = {
+  initialPackages?: EsimPackage[];
+};
+
 type Tab = "popular" | "balkans" | "europe" | "asia" | "middle_east" | "africa" | "americas" | "oceania" | "global";
 
 function FlagIcon({ countryCode, emoji, size = "2.5rem" }: { countryCode?: string; emoji?: string; size?: string }) {
@@ -72,24 +76,25 @@ const TAB_CONFIG: { key: Tab; icon: React.ReactNode; filterKey?: string }[] = [
   },
 ];
 
-export default function PackageGrid() {
+export default function PackageGrid({ initialPackages }: PackageGridProps) {
   const { t } = useI18n();
   const { formatPrice, currency } = useCurrency();
   const [tab, setTab] = useState<Tab>("popular");
   const [search, setSearch] = useState("");
-  const [packages, setPackages] = useState<EsimPackage[]>([]);
+  const [packages, setPackages] = useState<EsimPackage[]>(initialPackages ?? []);
   const [searchResults, setSearchResults] = useState<EsimPackage[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialPackages === undefined);
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(false);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
+    if (initialPackages !== undefined) return;
     getPackages()
       .then((data) => setPackages(data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [initialPackages]);
 
   // Group packages by category
   const grouped = useMemo(() => {

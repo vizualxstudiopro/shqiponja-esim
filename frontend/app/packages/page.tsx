@@ -59,7 +59,7 @@ export default async function PackagesPage() {
               Zgjidh paketën perfekte për udhëtimin tënd
             </p>
           </div>
-          <PackageGrid />
+          <PackageGrid initialPackages={packages} />
         </div>
       </main>
       <Footer />

@@ -1,8 +1,10 @@
 import Navbar from "@/components/navbar";
 import HeroSection from "@/components/hero-section";
 import LandingContent from "@/components/landing-content";
+import { getPackages } from "@/lib/api";
 
-export default function Home() {
+export default async function Home() {
+  const packages = await getPackages();
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -30,7 +32,7 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <Navbar />
       <HeroSection />
-      <LandingContent />
+      <LandingContent initialPackages={packages} />
     </div>
   );
 }
