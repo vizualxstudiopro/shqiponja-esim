@@ -39,7 +39,7 @@ const translations = {
 
     // Testimonials
     "testimonials.title": "Çfarë thonë klientët tanë",
-    "testimonials.subtitle": "Klientë nga e gjithë bota na besojnë për internet pa ndërprerje kudo në botë.",
+    "testimonials.subtitle": "Udhëtarë nga e gjithë bota na besojnë për internet pa ndërprerje kudo në botë.",
     "testimonials.review1": "E aktivizova eSIM-in para se të nisja fluturimin për në Greqi. Sapo mbërrita, interneti ishte gati. Fantastike!",
     "testimonials.review2": "Çmimet janë shumë të mira krahasuar me roaming-un. Tani e përdor çdo herë kur udhëtoj.",
     "testimonials.review3": "Si shqiptar në diasporë, kjo është zgjidhja perfekte kur kthehem në Shqipëri. Rekomandoj 100%.",
