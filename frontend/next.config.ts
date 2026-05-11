@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import path from "node:path";
 
 const nextConfig: NextConfig = {
+  generateBuildId: async () => {
+    return `build-${Date.now()}`;
+  },
   turbopack: {
     root: path.resolve(__dirname),
   },
