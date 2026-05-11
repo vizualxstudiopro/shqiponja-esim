@@ -6,7 +6,7 @@ Platformë e-commerce për shitjen e paketave eSIM ndërkombëtare. Ndërtuar me
 
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS v4
 - **Backend:** Express 5, better-sqlite3, JWT, bcryptjs
-- **Pagesa:** Lemon Squeezy Checkout + Webhooks
+- **Pagesa:** Checkout i çaktivizuar përkohësisht gjatë migrimit në Stripe
 - **Email:** Nodemailer (dev: console log)
 
 ## Struktura
@@ -80,7 +80,7 @@ Backend lejon kërkesa vetëm nga `FRONTEND_URL` (default `http://localhost:3000
 ## Features
 
 - Katalog paketash eSIM me kërkim & filtrim
-- Blerje me Lemon Squeezy Checkout
+- Blerje e çaktivizuar përkohësisht gjatë migrimit të pagesave
 - Gjenerim QR Code pas pagesës
 - Regjistrim / Kyçje me JWT
 - Verifikim email-i

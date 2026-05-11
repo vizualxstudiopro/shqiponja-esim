@@ -361,7 +361,7 @@ const translations = {
     "privacy.gdpr.title": "Të Drejtat Tuaja GDPR",
     "privacy.gdpr.text": "Ju keni të drejtë për akses, korrigjim dhe fshirje të të dhënave tuaja personale. Për ushtrimin e këtyre të drejtave, na kontaktoni në",
     "privacy.payments.title": "Pagesat",
-    "privacy.payments.text": "Pagesat procesohen nga Stripe dhe PayPal. Ne nuk ruajmë të dhëna të kartave bankare në sistemet tona.",
+    "privacy.payments.text": "Pagesat procesohen nga ofrues të certifikuar të pagesave. Ne nuk ruajmë të dhëna të kartave bankare në sistemet tona.",
     "privacy.payments.nosell": "Nuk i shesim, japim me qira, ose ndajmë të dhënat tuaja personale me palë të treta për qëllime marketingu.",
 
     // Cookies
@@ -1011,7 +1011,7 @@ const translations = {
     "privacy.gdpr.title": "Your GDPR Rights",
     "privacy.gdpr.text": "You have the right to access, correct and delete your personal data. To exercise these rights, contact us at",
     "privacy.payments.title": "Payments",
-    "privacy.payments.text": "Payments are processed by Stripe and PayPal. We do not store card data in our systems.",
+    "privacy.payments.text": "Payments are processed by certified payment providers. We do not store card data in our systems.",
     "privacy.payments.nosell": "We do not sell, rent or share your personal data with third parties for marketing purposes.",
 
     // Cookies

@@ -55,7 +55,7 @@ export default function Settings() {
           icon={Shield}
           title="Payment Gateway"
           items={[
-            { label: "Provider", value: "Lemon Squeezy" },
+            { label: "Provider", value: "Stripe (në konfigurim)" },
             { label: "API Key", value: "••••••••" },
             { label: "Store ID", value: "336530" },
             { label: "Webhook Secret", value: "••••••••" },

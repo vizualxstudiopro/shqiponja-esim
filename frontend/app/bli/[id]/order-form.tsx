@@ -80,7 +80,7 @@ export default function OrderForm({ packageId, price, packageName }: Props) {
         } catch { /* localStorage unavailable */ }
       }
 
-      // Redirect to checkout URL (Lemon Squeezy hosted page or direct order page in dev mode)
+      // Redirect to the hosted checkout URL returned by the backend.
       if (result.url) {
         window.location.href = result.url;
         return;

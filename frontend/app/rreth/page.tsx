@@ -78,7 +78,7 @@ export default function AboutPage() {
             <li><strong>{isEn ? "Transparency" : "Transparencë"}</strong> — {isEn ? "Clear prices, no hidden fees" : "Çmime të qarta, pa tarifa të fshehura"}</li>
             <li><strong>{isEn ? "Quality" : "Cilësi"}</strong> — {isEn ? "Coverage in 190+ countries with 4G/5G network" : "Mbulim në 190+ vende me rrjet 4G/5G"}</li>
             <li><strong>{isEn ? "Support" : "Mbështetje"}</strong> — {isEn ? "Dedicated customer team, 24/7" : "Ekip i dedikuar për klientët, 24/7"}</li>
-            <li><strong>{isEn ? "Reliability" : "Besueshmëri"}</strong> — {isEn ? "Secure payments via Stripe and PayPal" : "Pagesa të sigurta përmes Stripe dhe PayPal"}</li>
+            <li><strong>{isEn ? "Reliability" : "Besueshmëri"}</strong> — {isEn ? "Secure payments through trusted payment infrastructure" : "Pagesa të sigurta përmes infrastrukturës së besueshme të pagesave"}</li>
           </ul>
         </section>
 

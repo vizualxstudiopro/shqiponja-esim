@@ -31,8 +31,6 @@ export default function CookiesPage() {
           <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{t("cookies.s3.title")}</h2>
           <p>{t("cookies.s3.text")}</p>
           <ul className="list-disc space-y-1 pl-5">
-            <li>Stripe</li>
-            <li>PayPal</li>
             <li>Google</li>
             <li>Meta</li>
             <li>Airalo</li>
