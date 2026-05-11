@@ -37,6 +37,8 @@ function createApp() {
   app.use(morgan('short'));
   app.use(apiLimiter);
 
+  app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -75,6 +77,7 @@ function createApp() {
   app.use('/api/referrals', require('../routes/referrals'));
   app.use('/api/contact', require('../routes/contact'));
   app.use('/api/webhooks', require('../routes/webhooks'));
+  app.use('/api/stripe/webhook', require('../routes/stripe-webhook'));
   app.use('/api/twilio', require('../routes/twilio'));
   app.use('/api/newsletter', require('../routes/newsletter'));
 

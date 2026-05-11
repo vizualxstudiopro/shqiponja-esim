@@ -6,7 +6,7 @@ Platformë e-commerce për shitjen e paketave eSIM ndërkombëtare. Ndërtuar me
 
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS v4
 - **Backend:** Express 5, better-sqlite3, JWT, bcryptjs
-- **Pagesa:** Checkout i çaktivizuar përkohësisht gjatë migrimit në Stripe
+- **Pagesa:** Stripe Checkout i përgatitur në backend; aktivizohet pasi të vendosen env vars të Stripe
 - **Email:** Nodemailer (dev: console log)
 
 ## Struktura
@@ -31,6 +31,8 @@ Krijo `.env`:
 ```env
 PORT=3001
 JWT_SECRET=your-secret-here
+STRIPE_SECRET_KEY=your-stripe-secret-key
+STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
 FRONTEND_URL=http://localhost:3000
 ADMIN_EMAIL=admin@shqiponja.com
 SMTP_HOST=smtp.example.com
@@ -80,7 +82,8 @@ Backend lejon kërkesa vetëm nga `FRONTEND_URL` (default `http://localhost:3000
 ## Features
 
 - Katalog paketash eSIM me kërkim & filtrim
-- Blerje e çaktivizuar përkohësisht gjatë migrimit të pagesave
+- Checkout Stripe i gatshëm në backend
+- Aktivizimi live i pagesave pasi të vendosen env vars të Stripe
 - Gjenerim QR Code pas pagesës
 - Regjistrim / Kyçje me JWT
 - Verifikim email-i
@@ -110,6 +113,8 @@ Backend lejon kërkesa vetëm nga `FRONTEND_URL` (default `http://localhost:3000
 |---|---|---|
 | `PORT` | Port i serverit | `3001` |
 | `JWT_SECRET` | Secret për JWT tokens | *(kërkohet në produksion)* |
+| `STRIPE_SECRET_KEY` | Stripe secret key për krijimin e Checkout Session | — |
+| `STRIPE_WEBHOOK_SECRET` | Secret për verifikimin e Stripe webhooks | — |
 | `FRONTEND_URL` | URL e frontend | `http://localhost:3000` |
 | `ADMIN_EMAIL` | Email i admin | `admin@shqiponja-esim.com` |
 | `ADMIN_DEFAULT_PASSWORD` | Fjalëkalimi fillestar i admin | `admin123` |
@@ -125,3 +130,23 @@ Backend lejon kërkesa vetëm nga `FRONTEND_URL` (default `http://localhost:3000
 | Variable | Përshkrim | Default |
 |---|---|---|
 | `NEXT_PUBLIC_API_URL` | URL e backend API | `http://localhost:3001` |
+
+## Stripe Activation
+
+Backend-i tani krijon Stripe Checkout Sessions dhe pranon Stripe webhook events, por pagesat reale kërkojnë këto env vars:
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+Webhook URL që duhet vendosur në Stripe:
+
+```text
+https://your-backend-domain/api/stripe/webhook
+```
+
+Pasi t'i marrësh env-të:
+
+1. vendosi në Railway,
+2. ekzekuto migrimet e databazës,
+3. bëj një checkout test,
+4. verifiko që webhook-u shënon porosinë si të paguar dhe nis fulfillment-in.

@@ -76,10 +76,20 @@ async function run() {
       package_id            INTEGER NOT NULL REFERENCES packages(id),
       user_id               INTEGER REFERENCES users(id),
       email                 TEXT    NOT NULL,
+      customer_name         TEXT,
+      phone                 TEXT,
       status                TEXT    NOT NULL DEFAULT 'pending',
       payment_status        TEXT    NOT NULL DEFAULT 'unpaid',
       qr_data               TEXT,
-      ls_order_id            TEXT,
+      ls_order_id           TEXT,
+      payment_provider      TEXT,
+      stripe_checkout_session_id TEXT,
+      stripe_payment_intent_id TEXT,
+      paid_at               TIMESTAMPTZ,
+      access_token          TEXT,
+      promo_code_id         INTEGER,
+      discount_amount       REAL DEFAULT 0,
+      final_price           REAL,
       airalo_order_id       TEXT,
       iccid                 TEXT,
       esim_status           TEXT,
@@ -90,6 +100,53 @@ async function run() {
   `);
   console.log('✔ Table "orders" created');
 
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS promo_codes (
+      id                SERIAL PRIMARY KEY,
+      code              TEXT NOT NULL UNIQUE,
+      discount_type     TEXT NOT NULL CHECK (discount_type IN ('percent', 'fixed')),
+      discount_value    REAL NOT NULL,
+      min_order         REAL,
+      max_uses          INTEGER,
+      used_count        INTEGER NOT NULL DEFAULT 0,
+      active            INTEGER NOT NULL DEFAULT 1,
+      expires_at        TIMESTAMPTZ,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  console.log('✔ Table "promo_codes" created');
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS webhook_logs (
+      id                SERIAL PRIMARY KEY,
+      source            TEXT NOT NULL,
+      external_event_id TEXT,
+      event_type        TEXT,
+      order_id          INTEGER REFERENCES orders(id),
+      payload           TEXT,
+      status            TEXT NOT NULL DEFAULT 'received',
+      error             TEXT,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  console.log('✔ Table "webhook_logs" created');
+
+  await client.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'orders_promo_code_id_fkey'
+      ) THEN
+        ALTER TABLE orders
+        ADD CONSTRAINT orders_promo_code_id_fkey
+        FOREIGN KEY (promo_code_id) REFERENCES promo_codes(id);
+      END IF;
+    END $$;
+  `);
+  console.log('✔ Orders promo foreign key ensured');
+
   // ─── 2. Indexes ────────────────────────────────────────────────────
   await client.query(`
     CREATE INDEX IF NOT EXISTS idx_users_email      ON users(email);
@@ -97,6 +154,9 @@ async function run() {
     CREATE INDEX IF NOT EXISTS idx_packages_airalo   ON packages(airalo_package_id);
     CREATE INDEX IF NOT EXISTS idx_packages_country  ON packages(country_code);
     CREATE INDEX IF NOT EXISTS idx_orders_iccid      ON orders(iccid);
+    CREATE INDEX IF NOT EXISTS idx_orders_access_token ON orders(access_token);
+    CREATE INDEX IF NOT EXISTS idx_orders_stripe_checkout ON orders(stripe_checkout_session_id);
+    CREATE INDEX IF NOT EXISTS idx_webhook_logs_external_event_id ON webhook_logs(external_event_id);
   `);
   console.log('✔ Indexes created');
 

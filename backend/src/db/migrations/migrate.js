@@ -128,8 +128,18 @@ async function migrate() {
   try {
     await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_name TEXT`);
     await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone TEXT`);
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_provider TEXT`);
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_checkout_session_id TEXT`);
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT`);
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ`);
   } catch (e) {
     // Columns likely already exist
+  }
+
+  try {
+    await db.query(`ALTER TABLE webhook_logs ADD COLUMN IF NOT EXISTS external_event_id TEXT`);
+  } catch (e) {
+    // Column likely already exists
   }
 
   // Promo codes table
