@@ -5,7 +5,6 @@ import {
   Receipt,
   UsersRound,
   Package,
-  Webhook,
   Settings,
   LogOut,
   Tag,
@@ -21,7 +20,6 @@ const links = [
   { to: "/packages", label: "Paketat", icon: Package },
   { to: "/promo-codes", label: "Promo Kodet", icon: Tag },
   { to: "/referrals", label: "Referimet", icon: UserPlus },
-  { to: "/webhooks", label: "Webhook Log", icon: Webhook },
   { to: "/settings", label: "Konfigurimet", icon: Settings },
 ];
 

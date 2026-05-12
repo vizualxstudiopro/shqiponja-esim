@@ -58,7 +58,6 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
 });
 
 // GET /api/orders/:id - Get a single order
-// Requires auth (owner/admin) OR matching ls_order_id
 router.get('/:id', orderLimiter, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const order = (await db.query(`

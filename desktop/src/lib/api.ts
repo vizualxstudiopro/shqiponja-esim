@@ -78,7 +78,6 @@ export interface Order {
   email: string;
   status: string;
   payment_status: string;
-  ls_order_id: string | null;
   qr_data: string | null;
   created_at: string;
   package_name: string;

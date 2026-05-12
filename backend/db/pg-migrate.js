@@ -81,7 +81,6 @@ async function run() {
       status                TEXT    NOT NULL DEFAULT 'pending',
       payment_status        TEXT    NOT NULL DEFAULT 'unpaid',
       qr_data               TEXT,
-      ls_order_id           TEXT,
       payment_provider      TEXT,
       stripe_checkout_session_id TEXT,
       stripe_payment_intent_id TEXT,

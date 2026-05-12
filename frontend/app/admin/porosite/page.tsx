@@ -262,7 +262,6 @@ export default function AdminOrdersPage() {
                   <InfoField label={t("admin.price")} value={`€${Number(detail.package_price).toFixed(2)}`} />
                   <InfoField label={t("admin.payment")} value={detail.payment_status} badge />
                   <InfoField label={t("admin.status")} value={detail.status} badge />
-                  <InfoField label="Payment ID" value={detail.ls_order_id || "—"} mono />
                 </div>
                 <div className="mt-5 rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
                   <h3 className="text-sm font-bold">📲 eSIM Info</h3>

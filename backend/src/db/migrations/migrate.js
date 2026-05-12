@@ -55,7 +55,6 @@ async function migrate() {
       status              TEXT    NOT NULL DEFAULT 'pending',
       payment_status      TEXT    NOT NULL DEFAULT 'unpaid',
       qr_data             TEXT,
-      ls_order_id         TEXT,
       airalo_order_id     TEXT,
       iccid               TEXT,
       esim_status         TEXT,
@@ -81,7 +80,7 @@ async function migrate() {
   await db.query(`
     CREATE TABLE IF NOT EXISTS webhook_logs (
       id              SERIAL PRIMARY KEY,
-      source          TEXT    NOT NULL DEFAULT 'lemonsqueezy',
+      source          TEXT    NOT NULL DEFAULT 'unknown',
       event_type      TEXT,
       order_id        INTEGER,
       payload         TEXT,
@@ -110,11 +109,11 @@ async function migrate() {
     // Column likely already exists
   }
 
-  // Add ls_order_id column if missing
+  // Remove legacy external payment order column if it exists
   try {
-    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS ls_order_id TEXT`);
+    await db.query(`ALTER TABLE orders DROP COLUMN IF EXISTS ls_order_id`);
   } catch (e) {
-    // Column likely already exists
+    // Ignore migration edge-cases on older environments
   }
 
   // Add access_token column for secure unauthenticated order access
