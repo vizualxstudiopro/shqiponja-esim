@@ -32,8 +32,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: `${baseUrl}/`, lastModified, changeFrequency: "weekly", priority: 1.0 },
     { url: `${baseUrl}/packages`, lastModified, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/about-us`, lastModified, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${baseUrl}/compatibility`, lastModified, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/rreth`, lastModified, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/instalimi`, lastModified, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/faq`, lastModified, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/kontakti`, lastModified, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/cookies`, lastModified, changeFrequency: "yearly", priority: 0.3 },
     { url: `${baseUrl}/imprint`, lastModified, changeFrequency: "yearly", priority: 0.3 },
     { url: `${baseUrl}/terms`, lastModified, changeFrequency: "yearly", priority: 0.3 },
     { url: `${baseUrl}/privacy`, lastModified, changeFrequency: "yearly", priority: 0.3 },

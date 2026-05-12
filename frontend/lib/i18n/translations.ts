@@ -682,7 +682,7 @@ const translations = {
 
     // Trust badges
     "trust.title": "Why Shqiponja eSIM?",
-    "trust.subtitle": "Thousands of customers trust us for fast internet worldwide.",
+    "trust.subtitle": "Customers from around the world trust us for fast internet wherever they travel.",
     "trust.instant": "Instant Activation",
     "trust.instantDesc": "Get your QR code immediately after payment — no waiting, no shipping.",
     "trust.secure": "Secure Payment",
@@ -697,7 +697,7 @@ const translations = {
 
     // Testimonials
     "testimonials.title": "What our customers say",
-    "testimonials.subtitle": "Thousands of travelers trust us for seamless internet worldwide.",
+    "testimonials.subtitle": "Travelers from around the world trust us for seamless internet wherever they go.",
     "testimonials.review1": "I activated the eSIM before my flight to Greece. As soon as I landed, the internet was ready. Fantastic!",
     "testimonials.review2": "The prices are much better compared to roaming. Now I use it every time I travel.",
     "testimonials.review3": "As an Albanian in the diaspora, this is the perfect solution when I visit home. 100% recommend.",
@@ -829,7 +829,7 @@ const translations = {
     "cta.btn": "View Packages →",
 
     // Footer
-    "footer.rights": "© 2026 Shqiponja eSIM. Operated by VALA TECH 2026 LLC. All rights reserved.",
+    "footer.rights": "© 2026 Shqiponja eSIM. All rights reserved.",
     "footer.operatedBy": "Operated by",
     "footer.terms": "Terms of Use",
     "footer.privacy": "Privacy",

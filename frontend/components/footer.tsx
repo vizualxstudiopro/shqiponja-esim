@@ -16,7 +16,8 @@ export default function Footer() {
   ];
   const appPlatforms = [
     {
-      name: "iOS",
+      name: "App Store",
+      subtitle: "iOS - soon",
       icon: (
         <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
           <path d="M15.68 1.98c.04 1.08-.32 2.12-.98 2.95-.8.94-2.07 1.66-3.17 1.57-.14-1.05.31-2.14.95-2.9.73-.87 2.02-1.52 3.2-1.62Zm3.91 16.19c-.51 1.17-.76 1.69-1.42 2.7-.92 1.39-2.21 3.12-3.8 3.13-1.41.01-1.77-.92-3.68-.91-1.91.01-2.31.93-3.72.92-1.59-.01-2.82-1.57-3.74-2.96-2.57-3.91-2.84-8.49-1.25-10.93 1.13-1.74 2.92-2.76 4.6-2.76 1.72 0 2.8.95 4.22.95 1.38 0 2.22-.95 4.21-.95 1.5 0 3.1.82 4.22 2.24-3.71 2.03-3.11 7.32.36 8.57Z" />
@@ -24,7 +25,8 @@ export default function Footer() {
       ),
     },
     {
-      name: "Android",
+      name: "Google Play",
+      subtitle: "Android - soon",
       icon: (
         <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
           <path d="M7.47 5.35 6.1 2.98a.5.5 0 0 1 .18-.68.5.5 0 0 1 .68.18l1.4 2.43A10.1 10.1 0 0 1 12 4.25c1.28 0 2.49.24 3.64.66l1.4-2.43a.5.5 0 1 1 .86.5l-1.38 2.37A7.47 7.47 0 0 1 19.5 11H4.5a7.47 7.47 0 0 1 2.97-5.65ZM9 8.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm6 0a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM4 12h2v6.25A1.75 1.75 0 0 0 7.75 20H8v2a1 1 0 1 0 2 0v-2h4v2a1 1 0 1 0 2 0v-2h.25A1.75 1.75 0 0 0 18 18.25V12h2v5a1 1 0 1 0 2 0v-5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v5a1 1 0 1 0 2 0v-5Z" />
@@ -186,10 +188,16 @@ export default function Footer() {
                 {appPlatforms.map((platform) => (
                   <div
                     key={platform.name}
-                    className="inline-flex items-center gap-2 rounded-full border border-zinc-200/80 bg-zinc-50 px-3 py-2 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                    className="inline-flex min-w-[148px] items-center gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-950 px-3 py-2 text-left text-white shadow-sm dark:border-zinc-700"
                   >
-                    {platform.icon}
-                    <span>{platform.name}</span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 text-white">
+                      {platform.icon}
+                    </span>
+                    <span className="flex flex-col leading-tight">
+                      <span className="text-[10px] uppercase tracking-[0.16em] text-white/55">Coming Soon</span>
+                      <span className="text-xs font-semibold text-white">{platform.name}</span>
+                      <span className="text-[11px] text-white/65">{platform.subtitle}</span>
+                    </span>
                   </div>
                 ))}
               </div>
