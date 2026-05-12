@@ -25,6 +25,21 @@ const nextConfig: NextConfig = {
         destination: "https://shqiponjaesim.com/:path*",
         permanent: true,
       },
+      {
+        source: "/kushtet",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/privatesia",
+        destination: "/privacy",
+        permanent: true,
+      },
+      {
+        source: "/rimbursimet",
+        destination: "/refund",
+        permanent: true,
+      },
     ];
   },
   async headers() {

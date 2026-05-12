@@ -210,11 +210,11 @@ export default function OrderForm({ packageId, price, packageName }: Props) {
         />
         <label htmlFor="terms" className="text-sm text-zinc-600 dark:text-zinc-400">
           {t("buy.termsAgree")}{" "}
-          <Link href="/kushtet" className="text-shqiponja underline hover:text-shqiponja-dark">
+          <Link href="/terms" className="text-shqiponja underline hover:text-shqiponja-dark">
             {t("buy.termsLink")}
           </Link>{" "}
           {t("buy.andText")}{" "}
-          <Link href="/privatesia" className="text-shqiponja underline hover:text-shqiponja-dark">
+          <Link href="/privacy" className="text-shqiponja underline hover:text-shqiponja-dark">
             {t("buy.privacyLink")}
           </Link>
         </label>
