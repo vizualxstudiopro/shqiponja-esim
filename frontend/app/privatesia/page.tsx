@@ -56,12 +56,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.children.title")}</h2>
-            <p className="mt-2">{t("privacy.children.text")} <a href="mailto:info@shqiponjaesim.com" className="text-shqiponja hover:underline">info@shqiponjaesim.com</a> {t("privacy.children.suffix")}</p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{t("privacy.supervisory.title")}</h2>
-            <p className="mt-2">{t("privacy.supervisory.text")}</p>
+            <p className="mt-2">{t("privacy.children.text")}</p>
           </section>
 
           <section>
