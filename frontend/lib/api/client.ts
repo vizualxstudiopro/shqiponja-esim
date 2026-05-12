@@ -768,35 +768,6 @@ export async function disableSms2FA(token: string): Promise<{ ok: boolean }> {
   return res.json();
 }
 
-/* ─── Admin: Webhook Logs ─── */
-
-export interface WebhookLog {
-  id: number;
-  source: string;
-  event_type: string;
-  order_id: number | null;
-  payload_preview: string;
-  payload?: string;
-  status: string;
-  error: string | null;
-  created_at: string;
-}
-
-export interface PaginatedWebhookLogs { logs: WebhookLog[]; total: number; page: number; totalPages: number }
-export async function adminGetWebhookLogs(token: string, page = 1, status = ''): Promise<PaginatedWebhookLogs> {
-  const params = new URLSearchParams({ page: String(page) });
-  if (status) params.set('status', status);
-  const res = await fetchWithTimeout(`${API_URL}/api/admin/webhook-logs?${params}`, { headers: authHeaders(token), cache: "no-store" });
-  if (!res.ok) throw new Error("Nuk ke qasje");
-  return res.json();
-}
-
-export async function adminGetWebhookLogDetail(token: string, id: number): Promise<WebhookLog> {
-  const res = await fetchWithTimeout(`${API_URL}/api/admin/webhook-logs/${id}`, { headers: authHeaders(token), cache: "no-store" });
-  if (!res.ok) throw new Error("Nuk ke qasje");
-  return res.json();
-}
-
 /* ─── Admin: Customers ─── */
 
 export interface Customer {
