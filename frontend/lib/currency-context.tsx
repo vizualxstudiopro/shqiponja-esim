@@ -41,7 +41,15 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Load saved preference
     const saved = localStorage.getItem("currency") as CurrencyCode | null;
-    if (saved && SYMBOLS[saved]) setCurrencyState(saved);
+    if (saved && SYMBOLS[saved]) {
+      // Keep EUR as the default storefront/checkout currency even if older sessions saved ALL.
+      if (saved === "ALL") {
+        localStorage.setItem("currency", "EUR");
+        setCurrencyState("EUR");
+      } else {
+        setCurrencyState(saved);
+      }
+    }
 
     getExchangeRates()
       .then((data) => {

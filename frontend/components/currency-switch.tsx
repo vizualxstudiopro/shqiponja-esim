@@ -5,8 +5,8 @@ import { useState, useRef, useEffect } from "react";
 
 const CURRENCIES: { code: CurrencyCode; label: string; symbol: string }[] = [
   { code: "EUR", label: "EUR", symbol: "€" },
-  { code: "ALL", label: "ALL", symbol: "Lek" },
   { code: "USD", label: "USD", symbol: "$" },
+  { code: "ALL", label: "ALL", symbol: "Lek" },
   { code: "GBP", label: "GBP", symbol: "£" },
 ];
 

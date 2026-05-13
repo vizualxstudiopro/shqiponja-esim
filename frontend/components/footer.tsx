@@ -159,9 +159,6 @@ export default function Footer() {
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
               {t("footer.payWith")}
             </p>
-            <p className="max-w-xs text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-              {t("footer.paymentsComingSoon")}
-            </p>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-2">
               {paymentMethods.map((payment) => (
                 <div
