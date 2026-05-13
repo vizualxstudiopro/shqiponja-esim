@@ -5,8 +5,9 @@ const Stripe = require('stripe');
 const db = require('../db');
 
 const router = express.Router();
-const { apiLimiter } = require('../middleware/rate-limit');
+const { checkoutIntentLimiter } = require('../middleware/rate-limit');
 const { validateCheckout, sanitizeString } = require('../middleware/validate');
+const { assertOrderAmountAllowed } = require('../src/services/fraudPrevention');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 const JWT_SECRET = process.env.JWT_SECRET || 'shqiponja-dev-secret';
@@ -51,7 +52,7 @@ function getOptionalUserId(req) {
   }
 }
 
-router.post('/', apiLimiter, validateCheckout, async (req, res) => {
+router.post('/', checkoutIntentLimiter, validateCheckout, async (req, res) => {
   const stripe = getStripe();
   if (!stripe) {
     return res.status(503).json({
@@ -68,6 +69,7 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     const packagePrice = Number(pkg.price) || 0;
     const { promo, discountAmount, finalPrice } = await resolvePromo(promoCode, packagePrice);
     if (finalPrice <= 0) return res.status(400).json({ error: 'Çmimi final i pavlefshëm' });
+    assertOrderAmountAllowed(finalPrice);
 
     const accessToken = crypto.randomBytes(24).toString('hex');
     const userId = getOptionalUserId(req);
@@ -101,6 +103,7 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
       mode: 'payment',
       success_url: orderUrl,
       cancel_url: orderUrl,
+      billing_address_collection: 'required',
       customer_email: email,
       client_reference_id: String(orderId),
       metadata: {
@@ -126,6 +129,7 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
       payment_intent_data: {
         metadata: {
           order_id: String(orderId),
+          client_ip: req.ip,
         },
       },
     });
@@ -134,7 +138,10 @@ router.post('/', apiLimiter, validateCheckout, async (req, res) => {
     return res.json({ url: session.url, orderId, accessToken });
   } catch (err) {
     console.error('[STRIPE CHECKOUT] Error:', err.message);
-    return res.status(500).json({ error: err.message || 'Gabim gjatë krijimit të checkout-it' });
+    return res.status(err.statusCode || 500).json({
+      error: err.message || 'Gabim gjatë krijimit të checkout-it',
+      code: err.code || 'CHECKOUT_CREATE_FAILED',
+    });
   }
 });
 

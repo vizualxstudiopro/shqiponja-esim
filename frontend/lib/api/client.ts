@@ -903,6 +903,42 @@ export async function adminUpdateReferralStatus(token: string, id: number, statu
   return res.json();
 }
 
+/* ─── Admin: Webhook Logs ─── */
+
+export interface AdminWebhookLog {
+  id: number;
+  source: string;
+  event_type: string;
+  order_id: number | null;
+  status: "received" | "success" | "failed";
+  error: string | null;
+  created_at: string;
+  payload_preview?: string;
+  payload?: string;
+  external_event_id?: string | null;
+}
+
+export interface AdminWebhookLogList {
+  logs: AdminWebhookLog[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function adminGetWebhookLogs(token: string, page = 1, status = ""): Promise<AdminWebhookLogList> {
+  const params = new URLSearchParams({ page: String(page) });
+  if (status) params.set("status", status);
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/webhook-logs?${params}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminGetWebhookLog(token: string, id: number): Promise<AdminWebhookLog> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/webhook-logs/${id}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Log-u nuk u gjet" })); throw new Error(e.error); }
+  return res.json();
+}
+
 /* ─── Referrals ─── */
 
 export interface ReferralStats {

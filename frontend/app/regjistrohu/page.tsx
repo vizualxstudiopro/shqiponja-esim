@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import OAuthButtons from "@/components/oauth-buttons";
 import Logo from "@/components/logo";
@@ -12,12 +12,14 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const { t } = useI18n();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const referralCode = useMemo(() => searchParams.get("ref")?.trim().toUpperCase() || "", [searchParams]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -30,7 +32,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(name, email, password);
+      await register(name, email, password, referralCode || undefined);
       router.push("/");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Diçka shkoi keq");
@@ -50,6 +52,11 @@ export default function RegisterPage() {
           <p className="mt-1 text-sm text-zinc-500">
             {t("auth.registerSubtitle")}
           </p>
+          {referralCode && (
+            <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300">
+              Referral aktiv: {referralCode}
+            </p>
+          )}
         </div>
 
         {error && (

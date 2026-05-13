@@ -5,6 +5,28 @@ const { orderConfirmationTemplate, paymentReceiptTemplate, generateInvoicePdfBuf
 const airalo = require('../../lib/airaloService');
 const { processReferralRewardForOrder } = require('./referralRewards');
 
+async function incrementPromoUsageIfNeeded(orderId) {
+  const result = await db.query(
+    `UPDATE promo_codes
+     SET used_count = used_count + 1
+     WHERE id = (
+       SELECT promo_code_id
+       FROM orders
+       WHERE id = $1
+         AND promo_code_id IS NOT NULL
+     )
+       AND id IN (
+         SELECT promo_code_id
+         FROM orders
+         WHERE id = $1
+           AND promo_code_id IS NOT NULL
+       )`,
+    [Number(orderId)]
+  );
+
+  return result.rowCount > 0;
+}
+
 async function fulfillPaidOrder({ orderId, providerOrderId, provider = 'stripe', customerEmail, customerPhone, paymentIntentId }) {
   const order = (await db.query('SELECT * FROM orders WHERE id = $1', [Number(orderId)])).rows[0];
   if (!order) throw new Error(`Order not found: ${orderId}`);
@@ -73,6 +95,8 @@ async function fulfillPaidOrder({ orderId, providerOrderId, provider = 'stripe',
       Number(orderId),
     ]
   );
+
+  await incrementPromoUsageIfNeeded(Number(orderId));
 
   await processReferralRewardForOrder(Number(orderId));
 

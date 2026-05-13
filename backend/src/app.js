@@ -5,6 +5,7 @@ const morgan = require('morgan');
 
 const { apiLimiter } = require('./middleware/rate-limit');
 const { eurToAllRate, getRates } = require('./services/exchangeRates');
+const stripeWebhook = require('../routes/stripe-webhook');
 
 function createApp() {
   const app = express();
@@ -37,6 +38,7 @@ function createApp() {
   app.use(morgan('short'));
   app.use(apiLimiter);
 
+  app.post('/stripe-webhook', express.raw({ type: 'application/json' }), stripeWebhook.handleStripeWebhook);
   app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 
   app.use(express.json());
@@ -77,7 +79,7 @@ function createApp() {
   app.use('/api/referrals', require('../routes/referrals'));
   app.use('/api/contact', require('../routes/contact'));
   app.use('/api/webhooks', require('../routes/webhooks'));
-  app.use('/api/stripe/webhook', require('../routes/stripe-webhook'));
+  app.use('/api/stripe/webhook', stripeWebhook.router);
   app.use('/api/twilio', require('../routes/twilio'));
   app.use('/api/newsletter', require('../routes/newsletter'));
 

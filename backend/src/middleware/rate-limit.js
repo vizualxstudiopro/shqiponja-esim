@@ -27,6 +27,15 @@ const orderLimiter = rateLimit({
   message: { error: 'Shumë kërkesa. Provo përsëri pas disa minutash.' },
 });
 
+// Payment creation limiter for checkout attempts
+const checkoutIntentLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Janë arritur maksimumi 5 tentativa pagese për këtë IP në 1 orë.' },
+});
+
 // Contact form limiter
 const contactLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -36,4 +45,4 @@ const contactLimiter = rateLimit({
   message: { error: 'Shumë kërkesa nga forma e kontaktit. Provo përsëri pas disa minutash.' },
 });
 
-module.exports = { authLimiter, apiLimiter, orderLimiter, contactLimiter };
+module.exports = { authLimiter, apiLimiter, orderLimiter, checkoutIntentLimiter, contactLimiter };

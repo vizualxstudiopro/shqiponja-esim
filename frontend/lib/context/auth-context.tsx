@@ -11,6 +11,7 @@ import {
 import {
   login as apiLogin,
   register as apiRegister,
+  applyReferralCode as apiApplyReferralCode,
   oauthGoogle as apiOauthGoogle,
   oauthMicrosoft as apiOauthMicrosoft,
   oauthFacebook as apiOauthFacebook,
@@ -24,7 +25,7 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string, totpCode?: string, smsCode?: string, rememberMe?: boolean) => Promise<{ requires2FA?: boolean; requiresSms2FA?: boolean; maskedPhone?: string }>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   loginWithMicrosoft: (code: string, redirectUri: string) => Promise<void>;
   loginWithFacebook: (code: string, redirectUri: string) => Promise<void>;
@@ -139,8 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {};
   }
 
-  async function register(name: string, email: string, password: string) {
+  async function register(name: string, email: string, password: string, referralCode?: string) {
     const res = await apiRegister(name, email, password);
+
+    if (referralCode?.trim()) {
+      await apiApplyReferralCode(res.token, referralCode.trim().toUpperCase());
+    }
+
     storeToken(res.token, true);
     setToken(res.token);
     setUser(res.user);

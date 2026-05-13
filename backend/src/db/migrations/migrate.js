@@ -90,6 +90,20 @@ async function migrate() {
     )
   `);
 
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS payment_fraud_events (
+      id                  SERIAL PRIMARY KEY,
+      order_id            INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+      stripe_payment_intent_id TEXT,
+      card_fingerprint    TEXT,
+      event_type          TEXT    NOT NULL,
+      ip_address          TEXT,
+      event_date          DATE    NOT NULL DEFAULT CURRENT_DATE,
+      metadata            TEXT,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   console.log('✔ Database tables ensured');
 
   // Add highlight column if missing (for tables created before highlight feature)
@@ -234,6 +248,7 @@ async function migrate() {
     CREATE INDEX IF NOT EXISTS idx_packages_country ON packages(country_code);
     CREATE INDEX IF NOT EXISTS idx_orders_iccid ON orders(iccid);
     CREATE INDEX IF NOT EXISTS idx_order_sms_alerts_order_threshold ON order_sms_alerts(order_id, threshold_percent);
+    CREATE INDEX IF NOT EXISTS idx_payment_fraud_events_card_date ON payment_fraud_events(card_fingerprint, event_date);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_packages_airalo_unique ON packages(airalo_package_id);
   `);
   console.log('✔ Database indexes ensured');

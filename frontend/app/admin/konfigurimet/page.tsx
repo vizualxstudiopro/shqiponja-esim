@@ -1,8 +1,7 @@
 "use client";
 
-import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { Shield, Key, Mail, Globe, Server, AlertTriangle } from "lucide-react";
+import { Shield, Key, Mail, Globe, Server, AlertTriangle, Webhook } from "lucide-react";
 
 function ConfigCard({ icon: Icon, title, items }: { icon: React.ComponentType<{ className?: string }>; title: string; items: { label: string; value: string }[] }) {
   return (
@@ -25,6 +24,9 @@ function ConfigCard({ icon: Icon, title, items }: { icon: React.ComponentType<{ 
 
 export default function AdminSettingsPage() {
   const { locale } = useI18n();
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.shqiponjaesim.com";
+  const webhookUrl = `${apiBaseUrl.replace(/\/$/, "")}/stripe-webhook`;
+  const legacyWebhookUrl = `${apiBaseUrl.replace(/\/$/, "")}/api/stripe/webhook`;
 
   return (
     <div>
@@ -52,10 +54,21 @@ export default function AdminSettingsPage() {
           icon={Shield}
           title="Payment Gateway"
           items={[
-            { label: "Provider", value: "Stripe (në konfigurim)" },
+            { label: "Provider", value: "Stripe (aktiv)" },
             { label: "Secret Key", value: "••••••••" },
             { label: "Publishable Key", value: "••••••••" },
             { label: "Webhook Secret", value: "••••••••" },
+          ]}
+        />
+
+        <ConfigCard
+          icon={Webhook}
+          title="Stripe Webhook"
+          items={[
+            { label: "Endpoint primar", value: webhookUrl },
+            { label: "Endpoint kompatibil", value: legacyWebhookUrl },
+            { label: "Event", value: "checkout.session.completed" },
+            { label: "Parser", value: "express.raw(application/json)" },
           ]}
         />
 
@@ -91,6 +104,19 @@ export default function AdminSettingsPage() {
             { label: "2FA", value: "TOTP Enabled" },
           ]}
         />
+      </div>
+
+      <div className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="flex items-center gap-2 text-sm font-bold">
+          <Webhook className="h-4 w-4 text-shqiponja" />
+          {locale === "sq" ? "Udhëzime për Stripe Webhook" : "Stripe Webhook Setup"}
+        </div>
+        <div className="mt-3 space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
+          <p>{locale === "sq" ? "1. Në Stripe Dashboard hap Developers > Webhooks dhe shto endpoint-in primar më sipër." : "1. In Stripe Dashboard open Developers > Webhooks and add the primary endpoint above."}</p>
+          <p>{locale === "sq" ? "2. Zgjidh event-in checkout.session.completed." : "2. Select the checkout.session.completed event."}</p>
+          <p>{locale === "sq" ? "3. Kopjo Signing Secret në Railway si STRIPE_WEBHOOK_SECRET." : "3. Copy the Signing Secret into Railway as STRIPE_WEBHOOK_SECRET."}</p>
+          <p>{locale === "sq" ? "4. Sigurohu që Checkout Session dërgon metadata.airalo_package_id ose order_id." : "4. Ensure the Checkout Session sends metadata.airalo_package_id or order_id."}</p>
+        </div>
       </div>
     </div>
   );

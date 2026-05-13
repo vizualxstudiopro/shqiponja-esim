@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { useEffect, useState, type ReactNode } from "react";
 import Logo from "@/components/logo";
-import { LayoutDashboard, Package, Receipt, Users, ShieldCheck, ArrowLeft, X, Menu, UsersRound, Settings, Tag, UserPlus, RefreshCw, Mail } from "lucide-react";
+import { LayoutDashboard, Package, Receipt, Users, ShieldCheck, ArrowLeft, X, Menu, UsersRound, Settings, Tag, UserPlus, RefreshCw, Mail, Webhook } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -28,6 +28,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: "/admin/klientet", label: t("admin.customers"), icon: UsersRound },
     { href: "/admin/promo-kodet", label: t("admin.promo.title"), icon: Tag },
     { href: "/admin/referimet", label: t("admin.ref.title"), icon: UserPlus },
+    { href: "/admin/webhook-logs", label: "Webhook Logs", icon: Webhook },
     { href: "/admin/perdoruesit", label: t("admin.users"), icon: Users },
     { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
     { href: "/admin/siguria", label: t("admin.security"), icon: ShieldCheck },
