@@ -18,13 +18,14 @@ export default function AdminWebhookLogsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
+  const [eventTypeFilter, setEventTypeFilter] = useState("");
   const [error, setError] = useState("");
 
   const loadLogs = useCallback(() => {
     if (!token) return;
     setLoading(true);
     setError("");
-    adminGetWebhookLogs(token, page, statusFilter)
+    adminGetWebhookLogs(token, page, statusFilter, eventTypeFilter)
       .then((data) => {
         setLogs(data.logs);
         setTotal(data.total);
@@ -32,7 +33,7 @@ export default function AdminWebhookLogsPage() {
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Gabim gjatë marrjes së log-eve"))
       .finally(() => setLoading(false));
-  }, [token, page, statusFilter]);
+  }, [token, page, statusFilter, eventTypeFilter]);
 
   useEffect(() => {
     loadLogs();
@@ -40,7 +41,7 @@ export default function AdminWebhookLogsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [statusFilter]);
+  }, [statusFilter, eventTypeFilter]);
 
   async function openLog(logId: number) {
     if (!token) return;
@@ -95,7 +96,7 @@ export default function AdminWebhookLogsPage() {
         </div>
       )}
 
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -105,6 +106,16 @@ export default function AdminWebhookLogsPage() {
           <option value="received">Received</option>
           <option value="success">Success</option>
           <option value="failed">Failed</option>
+        </select>
+        <select
+          value={eventTypeFilter}
+          onChange={(e) => setEventTypeFilter(e.target.value)}
+          className="rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+        >
+          <option value="">Të gjitha event-et</option>
+          <option value="checkout.session.completed">checkout.session.completed</option>
+          <option value="payment_intent.payment_failed">payment_intent.payment_failed</option>
+          <option value="payment_intent.succeeded">payment_intent.succeeded</option>
         </select>
       </div>
 

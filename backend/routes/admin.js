@@ -473,6 +473,7 @@ router.get('/webhook-logs', async (req, res) => {
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
     const offset = (page - 1) * limit;
     const statusFilter = req.query.status || '';
+    const eventTypeFilter = String(req.query.event_type || '').trim();
 
     let where = '1=1';
     const params = [];
@@ -480,6 +481,11 @@ router.get('/webhook-logs', async (req, res) => {
     if (['success', 'failed', 'received'].includes(statusFilter)) {
       where += ` AND status = $${paramIdx}`;
       params.push(statusFilter);
+      paramIdx++;
+    }
+    if (eventTypeFilter) {
+      where += ` AND event_type = $${paramIdx}`;
+      params.push(eventTypeFilter);
       paramIdx++;
     }
 

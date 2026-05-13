@@ -925,9 +925,10 @@ export interface AdminWebhookLogList {
   totalPages: number;
 }
 
-export async function adminGetWebhookLogs(token: string, page = 1, status = ""): Promise<AdminWebhookLogList> {
+export async function adminGetWebhookLogs(token: string, page = 1, status = "", eventType = ""): Promise<AdminWebhookLogList> {
   const params = new URLSearchParams({ page: String(page) });
   if (status) params.set("status", status);
+  if (eventType) params.set("event_type", eventType);
   const res = await fetchWithTimeout(`${API_URL}/api/admin/webhook-logs?${params}`, { headers: authHeaders(token), cache: "no-store" });
   if (!res.ok) throw new Error("Nuk ke qasje");
   return res.json();
