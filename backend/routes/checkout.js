@@ -9,7 +9,6 @@ const { checkoutIntentLimiter } = require('../middleware/rate-limit');
 const { validateCheckout, sanitizeString } = require('../middleware/validate');
 const { assertOrderAmountAllowed } = require('../src/services/fraudPrevention');
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 const JWT_SECRET = process.env.JWT_SECRET || 'shqiponja-dev-secret';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 
@@ -98,44 +97,33 @@ router.post('/', checkoutIntentLimiter, validateCheckout, async (req, res) => {
     ]);
 
     const orderId = insertResult.rows[0].id;
-    const orderUrl = `${FRONTEND_URL}/porosi/${orderId}/${accessToken}`;
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      success_url: orderUrl,
-      cancel_url: orderUrl,
-      billing_address_collection: 'required',
-      customer_email: email,
-      client_reference_id: String(orderId),
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(finalPrice * 100),
+      currency: (pkg.currency || 'EUR').toLowerCase(),
+      receipt_email: email,
+      description: pkg.name,
       metadata: {
         order_id: String(orderId),
         package_id: String(packageId),
+        airalo_package_id: pkg.airalo_package_id || '',
         customer_name: name || '',
+        customer_email: email,
         phone: safePhone || '',
         promo_code: promo?.code || '',
+        client_ip: req.ip,
       },
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: (pkg.currency || 'EUR').toLowerCase(),
-            unit_amount: Math.round(finalPrice * 100),
-            product_data: {
-              name: pkg.name,
-              description: `${pkg.region} • ${pkg.data} • ${pkg.duration}`,
-            },
-          },
-        },
-      ],
-      payment_intent_data: {
-        metadata: {
-          order_id: String(orderId),
-          client_ip: req.ip,
-        },
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: 'never',
       },
     });
 
-    await db.query('UPDATE orders SET stripe_checkout_session_id = $1 WHERE id = $2', [session.id, orderId]);
-    return res.json({ url: session.url, orderId, accessToken });
+    await db.query('UPDATE orders SET stripe_payment_intent_id = $1 WHERE id = $2', [paymentIntent.id, orderId]);
+    return res.json({
+      clientSecret: paymentIntent.client_secret,
+      orderId,
+      accessToken,
+    });
   } catch (err) {
     console.error('[STRIPE CHECKOUT] Error:', err.message);
     return res.status(err.statusCode || 500).json({

@@ -246,6 +246,18 @@ async function handleStripeWebhook(req, res) {
       const piOrderId = Number(paymentIntent.metadata?.order_id || 0) || null;
       if (piOrderId) {
         await db.query('UPDATE orders SET stripe_payment_intent_id = $1 WHERE id = $2', [paymentIntent.id, piOrderId]);
+
+        const order = (await db.query('SELECT id, payment_status FROM orders WHERE id = $1', [piOrderId])).rows[0];
+        if (order && order.payment_status !== 'paid') {
+          await fulfillPaidOrder({
+            orderId: piOrderId,
+            providerOrderId: paymentIntent.id,
+            provider: 'stripe',
+            customerEmail: paymentIntent.metadata?.customer_email || paymentIntent.receipt_email || undefined,
+            customerPhone: paymentIntent.metadata?.phone || undefined,
+            paymentIntentId: paymentIntent.id,
+          });
+        }
       }
     }
 

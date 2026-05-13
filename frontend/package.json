@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.3.0",
+    "@stripe/stripe-js": "^9.5.0",
     "flag-icons": "^7.5.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.7.0",

@@ -188,6 +188,7 @@ export async function getPackageById(id: number): Promise<EsimPackage | null> {
 
 export interface CheckoutResponse {
   url?: string;
+  clientSecret?: string;
   orderId?: number;
   order?: Order;
   accessToken?: string;
