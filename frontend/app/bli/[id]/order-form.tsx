@@ -153,6 +153,8 @@ function PaymentFields({
 
       try {
         const result = await checkout(packageId, email.trim() || event.payerEmail || "", name.trim(), phone.trim() || undefined, promoCode);
+        console.log("API response:", result);
+        console.log("Client secret:", result.clientSecret);
         if (!result.clientSecret || !result.orderId || !result.accessToken) {
           throw new Error("Pagesa nuk mund të inicializohet.");
         }
@@ -225,6 +227,8 @@ function PaymentFields({
 
     try {
       const result = await checkout(packageId, email.trim(), name.trim(), phone.trim() || undefined, promoCode);
+      console.log("API response:", result);
+      console.log("Client secret:", result.clientSecret);
       if (!result.clientSecret || !result.orderId || !result.accessToken) {
         throw new Error("Pagesa nuk mund të inicializohet.");
       }

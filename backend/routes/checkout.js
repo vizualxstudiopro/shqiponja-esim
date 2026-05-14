@@ -97,6 +97,12 @@ router.post('/', checkoutIntentLimiter, validateCheckout, async (req, res) => {
     ]);
 
     const orderId = insertResult.rows[0].id;
+    console.log('Creating payment intent:', {
+      amount: Math.round(finalPrice * 100),
+      currency: (pkg.currency || 'EUR').toLowerCase(),
+      packageId,
+    });
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(finalPrice * 100),
       currency: (pkg.currency || 'EUR').toLowerCase(),
@@ -117,6 +123,8 @@ router.post('/', checkoutIntentLimiter, validateCheckout, async (req, res) => {
         allow_redirects: 'never',
       },
     });
+
+    console.log('Stripe response:', paymentIntent);
 
     await db.query('UPDATE orders SET stripe_payment_intent_id = $1 WHERE id = $2', [paymentIntent.id, orderId]);
     return res.json({
