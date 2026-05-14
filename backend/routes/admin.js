@@ -662,6 +662,14 @@ router.post('/orders/:id/provision', async (req, res) => {
     const order = (await db.query('SELECT * FROM orders WHERE id = $1', [id])).rows[0];
     if (!order) return res.status(404).json({ error: 'Porosia nuk u gjet' });
 
+    // GUARD: Nuk lejojmë provision pa pagese të konfirmuar nga Stripe
+    if (order.payment_status !== 'paid') {
+      return res.status(402).json({
+        error: `Porosia #${id} nuk është paguar (statusi: ${order.payment_status}). Provision kërkon payment_status=paid.`,
+        code: 'ORDER_NOT_PAID',
+      });
+    }
+
     await fulfillPaidOrder({
       orderId: id,
       providerOrderId: order.stripe_checkout_session_id || null,

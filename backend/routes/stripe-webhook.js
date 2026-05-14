@@ -255,6 +255,7 @@ async function handleStripeWebhook(req, res) {
             customerEmail: session.customer_details?.email || session.customer_email || undefined,
             customerPhone: session.customer_details?.phone || session.metadata?.phone || undefined,
             paymentIntentId: session.payment_intent || undefined,
+            _skipPaymentCheck: true, // Stripe ka konfirmuar pagesen
           });
         } else {
           const error = new Error('checkout.session.completed pa metadata.airalo_package_id dhe pa order_id');
@@ -279,6 +280,7 @@ async function handleStripeWebhook(req, res) {
             customerEmail: paymentIntent.metadata?.customer_email || paymentIntent.receipt_email || undefined,
             customerPhone: paymentIntent.metadata?.phone || undefined,
             paymentIntentId: paymentIntent.id,
+            _skipPaymentCheck: true, // Stripe ka konfirmuar pagesen
           });
         }
       }

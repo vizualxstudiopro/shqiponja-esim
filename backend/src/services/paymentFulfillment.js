@@ -125,9 +125,19 @@ async function sendPaidOrderEmails({ orderId, customerEmail }) {
   }
 }
 
-async function fulfillPaidOrder({ orderId, providerOrderId, provider = 'stripe', customerEmail, customerPhone, paymentIntentId }) {
+async function fulfillPaidOrder({ orderId, providerOrderId, provider = 'stripe', customerEmail, customerPhone, paymentIntentId, _skipPaymentCheck = false }) {
   const order = (await db.query('SELECT * FROM orders WHERE id = $1', [Number(orderId)])).rows[0];
   if (!order) throw new Error(`Order not found: ${orderId}`);
+
+  // SAFETY GUARD: Refuzo çdo përpjekje për të fulfilluar një porosi të papaguar
+  // Ky kontroll kalohet vetëm nga stripe-webhook (pasi Stripe ka konfirmuar pagesen)
+  if (order.payment_status !== 'paid' && !_skipPaymentCheck) {
+    const err = new Error(`SECURITY: Tried to fulfill unpaid order #${orderId} (payment_status=${order.payment_status}). Refusing Airalo purchase.`);
+    err.statusCode = 402;
+    err.code = 'ORDER_NOT_PAID';
+    console.error('[FULFILL SECURITY]', err.message);
+    throw err;
+  }
 
   // Dedup guard: if already paid AND eSIM already provisioned, nothing to do
   if (order.payment_status === 'paid' && (order.iccid || order.qr_code_url)) {

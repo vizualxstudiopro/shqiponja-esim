@@ -310,10 +310,15 @@ export default function AdminOrdersPage() {
                       <CheckCircle className="h-4 w-4" /> Mark as Completed
                     </button>
                   )}
-                  {!detail.iccid && (
+                  {!detail.iccid && detail.payment_status === "paid" && (
                     <button onClick={handleProvisionEsim} disabled={provisioning} className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 transition disabled:opacity-50">
                       <Wrench className="h-4 w-4" /> {provisioning ? "Duke provizionuar..." : "Provision via Airalo"}
                     </button>
+                  )}
+                  {!detail.iccid && detail.payment_status !== "paid" && (
+                    <div className="flex items-center gap-2 rounded-lg border border-amber-600/40 bg-amber-900/20 px-4 py-2 text-sm text-amber-400">
+                      <Wrench className="h-4 w-4" /> Provision kërkon pagese (payment_status=paid)
+                    </div>
                   )}
                   {(detail.esim_status === "awaiting_esim" || detail.esim_status === "provisioning_failed") && (
                     <button onClick={() => setFulfillOpen(true)} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition">
