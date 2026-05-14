@@ -272,7 +272,7 @@ function resetPasswordTemplate(name, resetUrl) {
   `, 'Rivendos fjalëkalimin tënd');
 }
 
-async function orderConfirmationTemplate({ orderId, packageFlag, packageName, price, iccid, qrData, qrCodeUrl }) {
+async function orderConfirmationTemplate({ orderId, packageFlag, packageName, price, iccid, qrData, qrCodeUrl, accessToken }) {
   const priceDisplay = price ? `€${Number(price).toFixed(2)}` : '';
   // Generate QR as embedded base64 data URI (no external API dependency)
   let qrImageSrc = qrCodeUrl || null;
@@ -359,7 +359,7 @@ async function orderConfirmationTemplate({ orderId, packageFlag, packageName, pr
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px">
       <tr><td align="center">
-        <a href="${FRONTEND_URL}/porosi/${orderId}" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Porosinë</a>
+        <a href="${FRONTEND_URL}/porosi/${orderId}${accessToken ? `?token=${accessToken}` : ''}" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Porosinë</a>
       </td></tr>
     </table>
     <p style="margin:14px 0 0;font-size:13px;color:#71717a;text-align:center">
@@ -392,7 +392,7 @@ function welcomeEmailTemplate(name) {
   `, 'Mirësevini në Shqiponja eSIM!');
 }
 
-function paymentReceiptTemplate({ orderId, packageName, packageFlag, price, email, date }) {
+function paymentReceiptTemplate({ orderId, packageName, packageFlag, price, email, date, accessToken }) {
   const priceDisplay = price ? `€${Number(price).toFixed(2)}` : '';
   const dateDisplay = date ? new Date(date).toLocaleDateString('sq-AL', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
   return baseLayout(`
@@ -440,7 +440,7 @@ function paymentReceiptTemplate({ orderId, packageName, packageFlag, price, emai
     </table>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
       <tr><td align="center">
-        <a href="${FRONTEND_URL}/porosi/${orderId}" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Porosinë</a>
+        <a href="${FRONTEND_URL}/porosi/${orderId}${accessToken ? `?token=${accessToken}` : ''}" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Porosinë</a>
       </td></tr>
     </table>
   `, 'Fatura e pagesës — Shqiponja eSIM');
@@ -568,7 +568,7 @@ function contactAdminTemplate(name, email, message) {
   `, 'Mesazh i ri nga forma e kontaktit');
 }
 
-async function esimReadyTemplate({ orderId, packageFlag, packageName, price, iccid, qrData, qrCodeUrl }) {
+async function esimReadyTemplate({ orderId, packageFlag, packageName, price, iccid, qrData, qrCodeUrl, accessToken }) {
   const priceDisplay = price ? `€${Number(price).toFixed(2)}` : '';
   let qrImageSrc = qrCodeUrl || null;
   if (!qrImageSrc && qrData) {
@@ -643,7 +643,7 @@ async function esimReadyTemplate({ orderId, packageFlag, packageName, price, icc
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px">
       <tr><td align="center">
-        <a href="${FRONTEND_URL}/porosi/${orderId}" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Porosinë</a>
+        <a href="${FRONTEND_URL}/porosi/${orderId}${accessToken ? `?token=${accessToken}` : ''}" class="btn" style="display:inline-block;background:${BRAND_RED};color:#ffffff;padding:14px 32px;border-radius:9999px;text-decoration:none;font-weight:700;font-size:15px">Shiko Porosinë</a>
       </td></tr>
     </table>
     <p style="margin:14px 0 0;font-size:13px;color:#71717a;text-align:center">

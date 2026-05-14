@@ -685,7 +685,7 @@ router.post('/orders/:id/provision', async (req, res) => {
 
 router.post('/orders/:id/resend-esim', async (req, res) => {
   const { sendTransactionalEmail } = require('../lib/emailService');
-  const { orderConfirmationTemplate } = require('../lib/email');
+  const { orderConfirmationTemplate } = require('../src/utils/email');
   try {
     const id = parseInt(req.params.id, 10);
     if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
@@ -703,10 +703,11 @@ router.post('/orders/:id/resend-esim', async (req, res) => {
         orderId: order.id,
         packageFlag: order.package_flag,
         packageName: order.package_name,
-        price: order.price,
+        price: order.final_price || order.price,
         iccid: order.iccid,
         qrData: order.qr_data,
         qrCodeUrl: order.qr_code_url,
+        accessToken: order.access_token || null,
       }),
       logLabel: 'RESEND eSIM',
       senderType: 'noreply',
