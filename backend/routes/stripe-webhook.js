@@ -2,7 +2,7 @@ const express = require('express');
 const Stripe = require('stripe');
 const db = require('../db');
 const airalo = require('../lib/airaloService');
-const { fulfillPaidOrder } = require('../src/services/paymentFulfillment');
+const { fulfillPaidOrder, sendPaidOrderEmails } = require('../src/services/paymentFulfillment');
 const { assertCardAttemptsAllowed, recordFailedCardAttempt } = require('../src/services/fraudPrevention');
 
 const router = express.Router();
@@ -218,6 +218,10 @@ async function handleStripeWebhook(req, res) {
               'UPDATE orders SET stripe_payment_intent_id = COALESCE($1, stripe_payment_intent_id) WHERE id = $2',
               [String(session.payment_intent || ''), savedOrderId]
             );
+            await sendPaidOrderEmails({
+              orderId: savedOrderId,
+              customerEmail: session.customer_details?.email || session.customer_email || undefined,
+            });
           }
         } else if (orderId) {
           await db.query(

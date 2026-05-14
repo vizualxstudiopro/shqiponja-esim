@@ -1069,6 +1069,19 @@ export async function adminFulfillEsim(
   return res.json();
 }
 
+/* ─── Admin: Provision eSIM via Airalo (auto) ─── */
+export async function adminProvisionEsim(
+  token: string,
+  orderId: number
+): Promise<{ ok: boolean; order: Order }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${orderId}/provision`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Provizioni dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
 /* ─── Newsletter ─── */
 export async function subscribeNewsletter(email: string, locale: string): Promise<{ ok: boolean }> {
   const res = await fetchWithTimeout(`${API_URL}/api/newsletter/subscribe`, {

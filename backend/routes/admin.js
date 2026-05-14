@@ -652,6 +652,37 @@ router.post('/orders/:id/fulfill', async (req, res) => {
   }
 });
 
+/* ─── PROVISION eSIM via Airalo (manual trigger) ─── */
+router.post('/orders/:id/provision', async (req, res) => {
+  const { fulfillPaidOrder } = require('../src/services/paymentFulfillment');
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+
+    const order = (await db.query('SELECT * FROM orders WHERE id = $1', [id])).rows[0];
+    if (!order) return res.status(404).json({ error: 'Porosia nuk u gjet' });
+
+    await fulfillPaidOrder({
+      orderId: id,
+      providerOrderId: order.stripe_checkout_session_id || null,
+      provider: order.payment_provider || 'stripe',
+      customerEmail: order.email,
+      customerPhone: order.phone || null,
+      paymentIntentId: order.stripe_payment_intent_id || null,
+    });
+
+    const updated = (await db.query(`
+      SELECT o.*, p.name AS package_name, p.flag AS package_flag
+      FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1
+    `, [id])).rows[0];
+
+    res.json({ ok: true, order: updated });
+  } catch (err) {
+    console.error('Provision eSIM error:', err);
+    res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
+  }
+});
+
 router.post('/orders/:id/resend-esim', async (req, res) => {
   const { sendTransactionalEmail } = require('../lib/emailService');
   const { orderConfirmationTemplate } = require('../lib/email');

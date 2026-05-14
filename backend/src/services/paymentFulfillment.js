@@ -27,6 +27,87 @@ async function incrementPromoUsageIfNeeded(orderId) {
   return result.rowCount > 0;
 }
 
+async function sendPaidOrderEmails({ orderId, customerEmail }) {
+  const updatedOrder = (await db.query(
+    `SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price
+     FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1`,
+    [Number(orderId)]
+  )).rows[0];
+
+  if (!updatedOrder) return;
+
+  const toEmail = customerEmail || updatedOrder.email;
+  const effectivePrice = updatedOrder.final_price || updatedOrder.price;
+  const provisioningFailed = updatedOrder.status === 'awaiting_esim';
+
+  if (provisioningFailed) {
+    await sendTransactionalEmail({
+      toEmail,
+      subject: 'Pagesa u konfirmua — eSIM po përgatitet — Shqiponja eSIM',
+      html: await orderConfirmationTemplate({
+        orderId,
+        packageFlag: updatedOrder.package_flag,
+        packageName: updatedOrder.package_name,
+        price: effectivePrice,
+        iccid: null,
+        qrData: null,
+        qrCodeUrl: null,
+      }),
+      logLabel: 'ORDER EMAIL (awaiting eSIM)',
+      senderType: 'noreply',
+    });
+    return;
+  }
+
+  await sendTransactionalEmail({
+    toEmail,
+    subject: 'Porosia jote — Shqiponja eSIM',
+    html: await orderConfirmationTemplate({
+      orderId,
+      packageFlag: updatedOrder.package_flag,
+      packageName: updatedOrder.package_name,
+      price: effectivePrice,
+      iccid: updatedOrder.iccid,
+      qrData: updatedOrder.qr_data,
+      qrCodeUrl: updatedOrder.qr_code_url,
+    }),
+    logLabel: 'ORDER EMAIL',
+    senderType: 'noreply',
+  });
+
+  const invoicePdfBuffer = await generateInvoicePdfBuffer({
+    orderId,
+    packageName: updatedOrder.package_name,
+    packageFlag: updatedOrder.package_flag,
+    price: effectivePrice,
+    email: toEmail,
+    date: new Date(),
+  });
+
+  await sendTransactionalEmail({
+    toEmail,
+    subject: 'Fatura e pagesës — Shqiponja eSIM 🧾',
+    html: paymentReceiptTemplate({
+      orderId,
+      packageName: updatedOrder.package_name,
+      packageFlag: updatedOrder.package_flag,
+      price: effectivePrice,
+      email: toEmail,
+      date: new Date(),
+    }),
+    logLabel: 'PAYMENT RECEIPT',
+    senderType: 'invoice',
+    replyTo: 'invoice@shqiponjaesim.com',
+    attachments: [
+      {
+        filename: `invoice-${String(orderId).padStart(5, '0')}.pdf`,
+        content: invoicePdfBuffer,
+        contentType: 'application/pdf',
+      },
+    ],
+  });
+}
+
 async function fulfillPaidOrder({ orderId, providerOrderId, provider = 'stripe', customerEmail, customerPhone, paymentIntentId }) {
   const order = (await db.query('SELECT * FROM orders WHERE id = $1', [Number(orderId)])).rows[0];
   if (!order) throw new Error(`Order not found: ${orderId}`);
@@ -100,82 +181,7 @@ async function fulfillPaidOrder({ orderId, providerOrderId, provider = 'stripe',
 
   await processReferralRewardForOrder(Number(orderId));
 
-  const updatedOrder = (await db.query(
-    `SELECT o.*, p.name AS package_name, p.flag AS package_flag, p.price
-     FROM orders o JOIN packages p ON p.id = o.package_id WHERE o.id = $1`,
-    [Number(orderId)]
-  )).rows[0];
-
-  if (!updatedOrder) return;
-  const toEmail = customerEmail || updatedOrder.email;
-  const effectivePrice = updatedOrder.final_price || updatedOrder.price;
-
-  if (provisioningFailed) {
-    await sendTransactionalEmail({
-      toEmail,
-      subject: 'Pagesa u konfirmua — eSIM po përgatitet — Shqiponja eSIM',
-      html: await orderConfirmationTemplate({
-        orderId,
-        packageFlag: updatedOrder.package_flag,
-        packageName: updatedOrder.package_name,
-        price: effectivePrice,
-        iccid: null,
-        qrData: null,
-        qrCodeUrl: null,
-      }),
-      logLabel: 'ORDER EMAIL (awaiting eSIM)',
-      senderType: 'noreply',
-    });
-    return;
-  }
-
-  await sendTransactionalEmail({
-    toEmail,
-    subject: 'Porosia jote — Shqiponja eSIM',
-    html: await orderConfirmationTemplate({
-      orderId,
-      packageFlag: updatedOrder.package_flag,
-      packageName: updatedOrder.package_name,
-      price: effectivePrice,
-      iccid: updatedOrder.iccid,
-      qrData: updatedOrder.qr_data,
-      qrCodeUrl: updatedOrder.qr_code_url,
-    }),
-    logLabel: 'ORDER EMAIL',
-    senderType: 'noreply',
-  });
-
-  const invoicePdfBuffer = await generateInvoicePdfBuffer({
-    orderId,
-    packageName: updatedOrder.package_name,
-    packageFlag: updatedOrder.package_flag,
-    price: effectivePrice,
-    email: toEmail,
-    date: new Date(),
-  });
-
-  await sendTransactionalEmail({
-    toEmail,
-    subject: 'Fatura e pagesës — Shqiponja eSIM 🧾',
-    html: paymentReceiptTemplate({
-      orderId,
-      packageName: updatedOrder.package_name,
-      packageFlag: updatedOrder.package_flag,
-      price: effectivePrice,
-      email: toEmail,
-      date: new Date(),
-    }),
-    logLabel: 'PAYMENT RECEIPT',
-    senderType: 'invoice',
-    replyTo: 'invoice@shqiponjaesim.com',
-    attachments: [
-      {
-        filename: `invoice-${String(orderId).padStart(5, '0')}.pdf`,
-        content: invoicePdfBuffer,
-        contentType: 'application/pdf',
-      },
-    ],
-  });
+  await sendPaidOrderEmails({ orderId, customerEmail });
 }
 
-module.exports = { fulfillPaidOrder };
+module.exports = { fulfillPaidOrder, sendPaidOrderEmails };

@@ -9,6 +9,7 @@ import {
   adminGetOrderDetail,
   adminResendEsim,
   adminFulfillEsim,
+  adminProvisionEsim,
   type Order,
   type OrderDetail,
   type PaginatedOrders,
@@ -31,6 +32,7 @@ export default function AdminOrdersPage() {
   const [detail, setDetail] = useState<OrderDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [provisioning, setProvisioning] = useState(false);
   const [fulfillOpen, setFulfillOpen] = useState(false);
   const [fulfilling, setFulfilling] = useState(false);
   const [fulfillForm, setFulfillForm] = useState({ iccid: "", qr_data: "", qr_code_url: "", activation_code: "" });
@@ -99,6 +101,21 @@ export default function AdminOrdersPage() {
       toast(err instanceof Error ? err.message : "Error", "error");
     } finally {
       setResending(false);
+    }
+  }
+
+  async function handleProvisionEsim() {
+    if (!token || !detail) return;
+    setProvisioning(true);
+    try {
+      const result = await adminProvisionEsim(token, detail.id);
+      setDetail(prev => prev ? { ...prev, ...result.order } : null);
+      setOrders(prev => prev.map(o => o.id === detail.id ? { ...o, status: result.order.status, payment_status: result.order.payment_status, iccid: result.order.iccid } : o));
+      toast("eSIM u provizionua dhe email-i u dërgua!", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Provizioni dështoi", "error");
+    } finally {
+      setProvisioning(false);
     }
   }
 
@@ -293,9 +310,14 @@ export default function AdminOrdersPage() {
                       <CheckCircle className="h-4 w-4" /> Mark as Completed
                     </button>
                   )}
-                  {(detail.esim_status === "awaiting_esim" || detail.esim_status === "provisioning_failed" || !detail.iccid) && (
+                  {!detail.iccid && (
+                    <button onClick={handleProvisionEsim} disabled={provisioning} className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 transition disabled:opacity-50">
+                      <Wrench className="h-4 w-4" /> {provisioning ? "Duke provizionuar..." : "Provision via Airalo"}
+                    </button>
+                  )}
+                  {(detail.esim_status === "awaiting_esim" || detail.esim_status === "provisioning_failed") && (
                     <button onClick={() => setFulfillOpen(true)} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition">
-                      <Wrench className="h-4 w-4" /> Fulfill eSIM
+                      <Wrench className="h-4 w-4" /> Fulfill eSIM Manually
                     </button>
                   )}
                   <button onClick={handleResendEsim} disabled={resending || (!detail.qr_data && !detail.qr_code_url)} className="flex items-center gap-2 rounded-lg bg-shqiponja px-4 py-2 text-sm font-semibold text-white hover:bg-shqiponja/90 transition disabled:opacity-50">
