@@ -82,6 +82,23 @@ interface PaymentFieldsProps {
   loading: boolean;
 }
 
+function getCheckoutErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof (error as { message?: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
+
+  return "Pagesa dështoi.";
+}
+
 function PaymentFields({
   packageId,
   packageName,
@@ -185,7 +202,7 @@ function PaymentFields({
         event.complete("success");
         router.push(`/porosi/${result.orderId}/${result.accessToken}`);
       } catch (err) {
-        onError(err instanceof Error ? err.message : "Pagesa dështoi.");
+        onError(getCheckoutErrorMessage(err));
       } finally {
         onLoading(false);
       }
@@ -254,7 +271,7 @@ function PaymentFields({
 
       router.push(`/porosi/${result.orderId}/${result.accessToken}`);
     } catch (err) {
-      onError(err instanceof Error ? err.message : "Pagesa dështoi.");
+      onError(getCheckoutErrorMessage(err));
     } finally {
       onLoading(false);
     }
