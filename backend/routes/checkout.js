@@ -99,40 +99,11 @@ router.post('/', checkoutIntentLimiter, validateCheckout, async (req, res) => {
 
     const orderId = insertResult.rows[0].id;
 
-    // Stripe Checkout Session — hosted by Stripe (GPay, Apple Pay, Card, Terms, Promo)
-    const sessionParams = {
-      mode: 'payment',
-      line_items: [{
-        price_data: {
-          currency: (pkg.currency || 'EUR').toLowerCase(),
-          product_data: {
-            name: pkg.name,
-            description: `eSIM ${pkg.data} — ${pkg.duration} ditë`,
-          },
-          unit_amount: Math.round(finalPrice * 100),
-        },
-        quantity: 1,
-      }],
-      customer_email: email,
-      billing_address_collection: 'required',
-      phone_number_collection: { enabled: true },
-      // allow_promotion_codes only when no DB promo already applied (mutually exclusive with discounts)
-      ...(promo ? {} : { allow_promotion_codes: true }),
-      consent_collection: { terms_of_service: 'required' },
-      custom_text: {
-        terms_of_service_acceptance: {
-          message: `Duke klikuar Bli Tani, pranon [Kushtet e Shërbimit](${FRONTEND_URL}/kushtet) dhe [Politikën e Privatësisë](${FRONTEND_URL}/privatesia).`,
-        },
-        submit: {
-          message: `Porosi për ${pkg.name}`,
-        },
-      },
-      // 'sq' (shqip) nuk mbështetet nga Stripe; 'auto' lexon preferencën e browserit
-      locale: 'auto',
-      automatic_payment_methods: { enabled: true },
-      success_url: `${FRONTEND_URL}/porosi/${orderId}?token=${accessToken}&checkout=success`,
-      cancel_url: `${FRONTEND_URL}/bli/${pkg.id}?cancelled=1`,
-      client_reference_id: String(orderId),
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(finalPrice * 100),
+      currency: (pkg.currency || 'EUR').toLowerCase(),
+      receipt_email: email,
+      description: pkg.name,
       metadata: {
         order_id: String(orderId),
         package_id: String(packageId),
@@ -143,16 +114,12 @@ router.post('/', checkoutIntentLimiter, validateCheckout, async (req, res) => {
         promo_code: promo?.code || '',
         client_ip: req.ip,
       },
-    };
+      automatic_payment_methods: { enabled: true },
+    });
 
-    const session = await stripe.checkout.sessions.create(sessionParams);
+    await db.query('UPDATE orders SET stripe_payment_intent_id = $1 WHERE id = $2', [paymentIntent.id, orderId]);
 
-    await db.query(
-      'UPDATE orders SET stripe_checkout_session_id = $1 WHERE id = $2',
-      [session.id, orderId]
-    );
-
-    return res.json({ url: session.url, orderId, accessToken });
+    return res.json({ clientSecret: paymentIntent.client_secret, orderId, accessToken });
   } catch (err) {
     console.error('[STRIPE CHECKOUT] Error:', err.message);
     return res.status(err.statusCode || 500).json({
