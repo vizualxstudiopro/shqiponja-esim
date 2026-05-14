@@ -495,7 +495,9 @@ async function generateInvoicePdfBuffer({ orderId, packageName, packageFlag, pri
     doc.moveTo(48, startY + 14).lineTo(547, startY + 14).strokeColor('#e5e7eb').stroke();
 
     // Single item row
-    const desc = `${packageFlag || ''} ${packageName || 'eSIM Package'}`.trim();
+    // PDFKit doesn't support emoji — strip them to avoid garbled characters
+    const stripEmoji = (str) => str.replace(/[\u{1F300}-\u{1FFFF}]|\p{Emoji_Presentation}/gu, '').trim();
+    const desc = `${stripEmoji(packageFlag || '')} ${packageName || 'eSIM Package'}`.trim();
     const rowY = startY + 26;
     doc.fillColor('#111827').font('Helvetica').fontSize(11);
     doc.text(desc, 48, rowY, { width: 285 });

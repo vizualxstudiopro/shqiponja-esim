@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const Stripe = require('stripe');
 const db = require('../db');
 const airalo = require('../lib/airaloService');
@@ -45,21 +46,23 @@ async function saveCompletedStripeOrder({ customerEmail, localPackageId, stripeS
            airalo_order_id = COALESCE($6, airalo_order_id),
            status = $7,
            payment_status = $8,
+           esim_status = $9,
            paid_at = COALESCE(paid_at, NOW())
-       WHERE id = $9`,
-      [customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId || null, 'paid', 'paid', Number(existingOrder.id)]
+       WHERE id = $10`,
+      [customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId || null, 'completed', 'paid', iccid ? 'active' : null, Number(existingOrder.id)]
     );
 
     return Number(existingOrder.id);
   }
 
+  const accessToken = crypto.randomBytes(24).toString('hex');
   const insert = await db.query(
     `INSERT INTO orders (
       email, package_id, stripe_checkout_session_id, iccid, qr_code_url,
-      airalo_order_id, status, payment_status, payment_provider, paid_at
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
+      airalo_order_id, status, payment_status, payment_provider, esim_status, access_token, paid_at
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW())
     RETURNING id`,
-    [customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId || null, 'paid', 'paid', 'stripe']
+    [customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId || null, 'completed', 'paid', 'stripe', iccid ? 'active' : null, accessToken]
   );
 
   return Number(insert.rows[0].id);
@@ -119,9 +122,10 @@ async function processCompletedCheckoutSession(session) {
            status = $6,
            payment_status = $7,
            payment_provider = $8,
+           esim_status = $9,
            paid_at = NOW()
-       WHERE id = $9`,
-      [customerEmail, stripeSessionId, iccid, qrCodeUrl, airaloOrderId, 'paid', 'paid', 'stripe', orderId]
+       WHERE id = $10`,
+      [customerEmail, stripeSessionId, iccid, qrCodeUrl, airaloOrderId, 'completed', 'paid', 'stripe', iccid ? 'active' : null, orderId]
     );
 
     return orderId;
