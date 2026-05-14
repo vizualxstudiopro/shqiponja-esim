@@ -1082,6 +1082,54 @@ export async function adminProvisionEsim(
   return res.json();
 }
 
+/* ─── Admin: Webhook Logs ─── */
+
+export interface WebhookLog {
+  id: number;
+  source: string;
+  event_type: string | null;
+  order_id: number | null;
+  status: string;
+  error: string | null;
+  created_at: string;
+  payload_preview?: string;
+  payload?: string;
+  external_event_id?: string | null;
+}
+
+/** @deprecated Use WebhookLog */
+export type AdminWebhookLog = WebhookLog;
+
+export interface PaginatedWebhookLogs {
+  logs: WebhookLog[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function adminGetWebhookLogs(
+  token: string,
+  page = 1,
+  statusFilter?: string,
+  eventTypeFilter?: string
+): Promise<PaginatedWebhookLogs> {
+  const params = new URLSearchParams({ page: String(page), limit: "20" });
+  if (statusFilter) params.set("status", statusFilter);
+  if (eventTypeFilter) params.set("event_type", eventTypeFilter);
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/webhook-logs?${params}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Nuk ke qasje");
+  return res.json();
+}
+
+export async function adminGetWebhookLog(token: string, id: number): Promise<WebhookLog> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/webhook-logs/${id}`, { headers: authHeaders(token), cache: "no-store" });
+  if (!res.ok) throw new Error("Log nuk u gjet");
+  return res.json();
+}
+
+/** @deprecated Use adminGetWebhookLog */
+export const adminGetWebhookLogDetail = adminGetWebhookLog;
+
 /* ─── Newsletter ─── */
 export async function subscribeNewsletter(email: string, locale: string): Promise<{ ok: boolean }> {
   const res = await fetchWithTimeout(`${API_URL}/api/newsletter/subscribe`, {
