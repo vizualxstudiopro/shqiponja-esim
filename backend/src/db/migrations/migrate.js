@@ -155,6 +155,20 @@ async function migrate() {
     // Column likely already exists
   }
 
+  // Clean up legacy LemonSqueezy webhook logs — no longer used
+  try {
+    await db.query(`DELETE FROM webhook_logs WHERE source IN ('lemonsqueezy', 'unknown') AND created_at < NOW() - INTERVAL '1 day'`);
+  } catch (e) {
+    // Non-critical
+  }
+
+  // Ensure all webhook_logs have source = 'stripe' where source is unknown and event looks like Stripe
+  try {
+    await db.query(`UPDATE webhook_logs SET source = 'stripe' WHERE source = 'unknown' AND event_type LIKE 'payment_intent.%' OR event_type LIKE 'checkout.session.%' OR event_type LIKE 'charge.%'`);
+  } catch (e) {
+    // Non-critical
+  }
+
   // Promo codes table
   await db.query(`
     CREATE TABLE IF NOT EXISTS promo_codes (
