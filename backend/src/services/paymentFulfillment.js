@@ -129,13 +129,23 @@ async function fulfillPaidOrder({ orderId, providerOrderId, provider = 'stripe',
   const order = (await db.query('SELECT * FROM orders WHERE id = $1', [Number(orderId)])).rows[0];
   if (!order) throw new Error(`Order not found: ${orderId}`);
 
-  if (order.payment_status === 'paid') {
+  // Dedup guard: if already paid AND eSIM already provisioned, nothing to do
+  if (order.payment_status === 'paid' && (order.iccid || order.qr_code_url)) {
+    console.log(`[FULFILL] Order #${orderId} already fulfilled — skipping`);
     if (provider === 'stripe' && providerOrderId) {
       await db.query(
         'UPDATE orders SET stripe_checkout_session_id = COALESCE($1, stripe_checkout_session_id), stripe_payment_intent_id = COALESCE($2, stripe_payment_intent_id), payment_provider = COALESCE($3, payment_provider), paid_at = COALESCE(paid_at, NOW()) WHERE id = $4',
         [String(providerOrderId), paymentIntentId ? String(paymentIntentId) : null, provider, Number(orderId)]
       );
     }
+    return;
+  }
+
+  // If paid but no eSIM data — something crashed previously, re-run email at minimum
+  const alreadyPaid = order.payment_status === 'paid';
+  if (alreadyPaid) {
+    console.warn(`[FULFILL] Order #${orderId} is paid but has no eSIM data — re-sending email`);
+    await sendPaidOrderEmails({ orderId, customerEmail });
     return;
   }
 
@@ -194,9 +204,13 @@ async function fulfillPaidOrder({ orderId, providerOrderId, provider = 'stripe',
     ]
   );
 
-  await incrementPromoUsageIfNeeded(Number(orderId));
+  await incrementPromoUsageIfNeeded(Number(orderId)).catch(err =>
+    console.error(`[FULFILL] Order #${orderId} promo increment failed (non-blocking):`, err.message)
+  );
 
-  await processReferralRewardForOrder(Number(orderId));
+  await processReferralRewardForOrder(Number(orderId)).catch(err =>
+    console.error(`[FULFILL] Order #${orderId} referral reward failed (non-blocking):`, err.message)
+  );
 
   await sendPaidOrderEmails({ orderId, customerEmail });
 }

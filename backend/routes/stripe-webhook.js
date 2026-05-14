@@ -29,7 +29,7 @@ async function findLocalPackageId(airaloPackageId) {
   return Number(pkg.id);
 }
 
-async function saveCompletedStripeOrder({ customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId }) {
+async function saveCompletedStripeOrder({ customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId, orderStatus, esimStatus }) {
   const existingOrder = (await db.query(
     'SELECT id FROM orders WHERE stripe_checkout_session_id = $1 LIMIT 1',
     [stripeSessionId]
@@ -41,15 +41,15 @@ async function saveCompletedStripeOrder({ customerEmail, localPackageId, stripeS
        SET email = $1,
            package_id = $2,
            stripe_checkout_session_id = $3,
-           iccid = $4,
-           qr_code_url = $5,
+           iccid = COALESCE($4, iccid),
+           qr_code_url = COALESCE($5, qr_code_url),
            airalo_order_id = COALESCE($6, airalo_order_id),
            status = $7,
            payment_status = $8,
            esim_status = $9,
            paid_at = COALESCE(paid_at, NOW())
        WHERE id = $10`,
-      [customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId || null, 'completed', 'paid', iccid ? 'active' : null, Number(existingOrder.id)]
+      [customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId || null, orderStatus, 'paid', esimStatus, Number(existingOrder.id)]
     );
 
     return Number(existingOrder.id);
@@ -62,7 +62,7 @@ async function saveCompletedStripeOrder({ customerEmail, localPackageId, stripeS
       airalo_order_id, status, payment_status, payment_provider, esim_status, access_token, paid_at
     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW())
     RETURNING id`,
-    [customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId || null, 'completed', 'paid', 'stripe', iccid ? 'active' : null, accessToken]
+    [customerEmail, localPackageId, stripeSessionId, iccid, qrCodeUrl, airaloOrderId || null, orderStatus, 'paid', 'stripe', esimStatus, accessToken]
   );
 
   return Number(insert.rows[0].id);
@@ -99,33 +99,46 @@ async function processCompletedCheckoutSession(session) {
     orderId,
   });
 
-  const airaloResponse = await airalo.createOrder(airaloPackageId, 1, `Stripe session ${stripeSessionId}`);
-  const esim = airaloResponse?.data?.sims?.[0];
-  const qrCodeUrl = esim?.qrcode_url || esim?.qrcode || null;
-  const iccid = esim?.iccid || null;
-  const airaloOrderId = airaloResponse?.data?.id ? String(airaloResponse.data.id) : null;
+  // Try Airalo provisioning — gracefully degrade on failure
+  let iccid = null;
+  let qrCodeUrl = null;
+  let airaloOrderId = null;
+  let provisioningFailed = false;
 
-  if (!iccid && !qrCodeUrl) {
-    const error = new Error('Airalo nuk ktheu as ICCID dhe as QR code URL për këtë porosi');
-    error.statusCode = 500;
-    throw error;
+  try {
+    const airaloResponse = await airalo.createOrder(airaloPackageId, 1, `Stripe session ${stripeSessionId}`);
+    const esim = airaloResponse?.data?.sims?.[0];
+    qrCodeUrl = esim?.qrcode_url || esim?.qrcode || null;
+    iccid = esim?.iccid || null;
+    airaloOrderId = airaloResponse?.data?.id ? String(airaloResponse.data.id) : null;
+
+    if (!iccid && !qrCodeUrl) {
+      provisioningFailed = true;
+      console.error('[STRIPE WEBHOOK] Airalo nuk ktheu ICCID/QR për session:', stripeSessionId);
+    }
+  } catch (err) {
+    provisioningFailed = true;
+    console.error('[STRIPE WEBHOOK] Airalo gabim për session', stripeSessionId, ':', err.message);
   }
+
+  const orderStatus = provisioningFailed ? 'awaiting_esim' : 'completed';
+  const esimStatus = iccid ? 'active' : (provisioningFailed ? 'provisioning_failed' : null);
 
   if (orderId) {
     await db.query(
       `UPDATE orders
        SET email = $1,
            stripe_checkout_session_id = $2,
-           iccid = $3,
-           qr_code_url = $4,
-           airalo_order_id = $5,
+           iccid = COALESCE($3, iccid),
+           qr_code_url = COALESCE($4, qr_code_url),
+           airalo_order_id = COALESCE($5, airalo_order_id),
            status = $6,
            payment_status = $7,
            payment_provider = $8,
            esim_status = $9,
            paid_at = NOW()
        WHERE id = $10`,
-      [customerEmail, stripeSessionId, iccid, qrCodeUrl, airaloOrderId, 'completed', 'paid', 'stripe', iccid ? 'active' : null, orderId]
+      [customerEmail, stripeSessionId, iccid, qrCodeUrl, airaloOrderId, orderStatus, 'paid', 'stripe', esimStatus, orderId]
     );
 
     return orderId;
@@ -139,6 +152,8 @@ async function processCompletedCheckoutSession(session) {
     iccid,
     qrCodeUrl,
     airaloOrderId,
+    orderStatus,
+    esimStatus,
   });
 }
 
