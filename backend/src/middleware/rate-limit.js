@@ -30,10 +30,10 @@ const orderLimiter = rateLimit({
 // Payment creation limiter for checkout attempts
 const checkoutIntentLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 5,
+  max: 20, // 20 tentativa/orë — e mjaftueshme kundër abuzimit, pa bllokuar klientë realë
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Janë arritur maksimumi 5 tentativa pagese për këtë IP në 1 orë.' },
+  message: { error: 'Janë arritur maksimumi 20 tentativa pagese për këtë IP në 1 orë.' },
 });
 
 // Contact form limiter

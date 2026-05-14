@@ -34,8 +34,9 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
   useEffect(() => {
     if (order?.status === "completed" && (order.qr_data || order.qr_code_url)) return;
 
-    // Try immediately on mount (JWT auth may work even without token)
+    // Poll deri sa porosia të bëhet completed, max 5 minuta (100 tentativa * 3s)
     let attempts = 0;
+    const MAX_ATTEMPTS = 100; // 5 minuta
     const tryFetch = async () => {
       try {
         const updated = await getOrderById(orderId, token);
@@ -46,15 +47,14 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
           if (updated.status === "completed" && (updated.qr_data || updated.qr_code_url)) {
             return true; // done
           }
-        } else {
-          attempts++;
-          if (attempts >= 10 && !order) {
-            setLoading(false);
-            setFailed(true);
-            return true; // give up
-          }
         }
       } catch { /* silent */ }
+      attempts++;
+      if (attempts >= MAX_ATTEMPTS) {
+        setLoading(false);
+        setFailed(true);
+        return true; // give up after 5 min
+      }
       return false;
     };
 
@@ -99,7 +99,7 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
     );
   }
 
-  if (failed || !order) {
+  if (failed && !order) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
         <Navbar />
@@ -116,6 +116,53 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
       </div>
     );
   }
+
+  if (failed && order && order.payment_status !== "paid") {
+    // Porosia ekziston por pagesa nuk është konfirmuar brenda 5 minutave
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center px-6 py-32 text-center">
+          <span className="text-6xl">⏳</span>
+          <h1 className="mt-4 text-2xl font-extrabold">Pagesa ende nuk është konfirmuar</h1>
+          <p className="mt-3 max-w-sm text-zinc-500">
+            Nëse para u dedukuan nga karta juaj, ju lutem na kontaktoni me numrin e porosisë <strong>#{orderId}</strong>.
+          </p>
+          <Link
+            href="/kontakti"
+            className="mt-8 inline-block rounded-full bg-shqiponja px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
+          >
+            Na kontakto
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (failed && order && order.payment_status === "paid") {
+    // Pagesa u bë por eSIM vonon (awaiting_esim)
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center px-6 py-32 text-center">
+          <span className="text-6xl">🔄</span>
+          <h1 className="mt-4 text-2xl font-extrabold">Pagesa u konfirmua — eSIM po përgatitet</h1>
+          <p className="mt-3 max-w-sm text-zinc-500">
+            Pagesa juaj u regjistrua. eSIM-i po aktivizohet dhe do ta merrni me email brenda pak minutash.
+            Nëse nuk e merrni brenda 30 minutash, na kontaktoni me numrin <strong>#{orderId}</strong>.
+          </p>
+          <Link
+            href="/kontakti"
+            className="mt-8 inline-block rounded-full bg-shqiponja px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-shqiponja/25 hover:bg-shqiponja-dark transition"
+          >
+            Na kontakto
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
