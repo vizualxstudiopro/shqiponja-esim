@@ -162,7 +162,7 @@ export default function OrderPageContent({ order: initialOrder, token: urlToken,
     );
   }
 
-  if (!order) {
+  if (!order) return null;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
