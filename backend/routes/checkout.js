@@ -114,7 +114,7 @@ router.post('/', checkoutIntentLimiter, validateCheckout, async (req, res) => {
         promo_code: promo?.code || '',
         client_ip: req.ip,
       },
-      automatic_payment_methods: { enabled: true },
+      automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
     });
 
     await db.query('UPDATE orders SET stripe_payment_intent_id = $1 WHERE id = $2', [paymentIntent.id, orderId]);

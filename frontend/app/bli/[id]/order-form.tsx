@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   PaymentElement,
   Elements,
@@ -75,8 +76,10 @@ interface PaymentStepProps {
 function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, onError, onBack }: PaymentStepProps) {
   const stripe = useStripe();
   const elements = useElements();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [elementReady, setElementReady] = useState(false);
 
   async function handlePay() {
     if (!stripe || !elements) return;
@@ -88,18 +91,21 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
     setLoading(true);
 
     const origin = typeof window !== "undefined" ? window.location.origin : "https://shqiponjaesim.com";
-    const { error } = await stripe.confirmPayment({
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         return_url: `${origin}/porosi/${orderId}?token=${accessToken}&checkout=success`,
         receipt_email: email,
       },
+      redirect: "if_required",
     });
 
-    // confirmPayment redirects on success — kemi error vetëm nëse dështon
     if (error) {
       onError(error.message || "Pagesa dështoi. Provo përsëri.");
       setLoading(false);
+    } else if (paymentIntent?.status === "succeeded" || paymentIntent?.status === "processing") {
+      // Pagesa nuk kërkoi redirect — navigoj manualisht
+      router.push(`/porosi/${orderId}?token=${accessToken}&checkout=success`);
     }
   }
 
@@ -121,15 +127,24 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
       </div>
 
       {/* Stripe PaymentElement: GPay / Apple Pay / Kartë */}
+      {!elementReady && (
+        <div className="flex items-center justify-center rounded-xl border border-white/10 bg-zinc-800/40 py-8">
+          <svg className="h-5 w-5 animate-spin text-zinc-400" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span className="ml-2 text-sm text-zinc-400">Duke ngarkuar formularin e pagesës...</span>
+        </div>
+      )}
       <PaymentElement
+        onReady={() => setElementReady(true)}
+        onLoadError={(e) => onError("Gabim duke ngarkuar pagesën: " + (e.error?.message || "Provo të rifreskosh faqen."))}
         options={{
-          layout: { type: "accordion", defaultCollapsed: false, radios: false, spacedAccordionItems: true },
+          layout: "tabs",
           fields: {
             billingDetails: {
               name: "auto",
               email: "never",
-              phone: "never",
-              address: "never",
             },
           },
           wallets: { googlePay: "auto", applePay: "auto" },
