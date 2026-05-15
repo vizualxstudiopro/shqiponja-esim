@@ -62,7 +62,7 @@ const appearance = {
   },
 };
 
-/* â”€â”€â”€ Faza 2: Formulari i pagesÃ«s â”€â”€â”€ */
+/* â”€â”€â”€ Faza 2: Formulari i pagesës â”€â”€â”€ */
 interface PaymentStepProps {
   orderId: number;
   accessToken: string;
@@ -84,7 +84,7 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
   async function handlePay() {
     if (!stripe || !elements) return;
     if (!termsAccepted) {
-      onError("Duhet tÃ« pranoni Kushtet e ShÃ«rbimit para pagesÃ«s.");
+      onError("Duhet të pranoni Kushtet e Shërbimit para pagesës.");
       return;
     }
     onError("");
@@ -123,12 +123,12 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
       {/* Emri i paketÃ«s */}
       <div className="rounded-xl border border-white/10 bg-zinc-800/40 px-4 py-3 flex items-center justify-between">
         <div>
-          <p className="text-xs text-zinc-500 uppercase tracking-wider">PaketÃ«</p>
+          <p className="text-xs text-zinc-500 uppercase tracking-wider">Paketë</p>
           <p className="text-sm font-semibold text-white">{packageName}</p>
           <p className="text-xs text-zinc-400">{email}</p>
         </div>
         <div className="text-right">
-          <p className="text-lg font-bold text-white">â‚¬{Number(displayPrice).toFixed(2)}</p>
+          <p className="text-lg font-bold text-white">€{Number(displayPrice).toFixed(2)}</p>
           <button onClick={onBack} className="text-xs text-zinc-500 hover:text-white transition mt-0.5">
             â† Ndrysho
           </button>
@@ -142,12 +142,12 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          <span className="ml-2 text-sm text-zinc-400">Duke ngarkuar formularin e pagesÃ«s...</span>
+          <span className="ml-2 text-sm text-zinc-400">Duke ngarkuar formularin e pagesës...</span>
         </div>
       )}
       <PaymentElement
         onReady={() => setElementReady(true)}
-        onLoadError={(e) => onError("Gabim duke ngarkuar pagesÃ«n: " + (e.error?.message || "Provo tÃ« rifreskosh faqen."))}
+        onLoadError={(e) => onError("Gabim duke ngarkuar pagesën: " + (e.error?.message || "Provo të rifreskosh faqen."))}
         options={{
           layout: "tabs",
           fields: {
@@ -172,11 +172,11 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
         <label htmlFor="terms-pay" className="cursor-pointer text-sm text-zinc-400 leading-relaxed">
           Duke klikuar <strong className="text-white">Bli Tani</strong>, pranoj{" "}
           <Link href="/kushtet" className="text-[#D8001E] hover:underline" target="_blank">
-            Kushtet e ShÃ«rbimit
+            Kushtet e Shërbimit
           </Link>{" "}
           dhe{" "}
           <Link href="/privatesia" className="text-[#D8001E] hover:underline" target="_blank">
-            PolitikÃ«n e PrivatÃ«sisÃ«
+            Politikën e Privatësisë
           </Link>.
         </label>
       </div>
@@ -194,7 +194,7 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
         <span>{loading ? "Duke procesuar..." : `Bli Tani â€” â‚¬${Number(displayPrice).toFixed(2)}`}</span>
       </button>
 
-      <p className="text-center text-xs text-zinc-500">ðŸ”’ Pagesa procÃ«sohet nga Stripe â€¢ SSL â€¢ PCI DSS</p>
+      <p className="text-center text-xs text-zinc-500">ðŸ”’ Pagesa procesohet nga Stripe • SSL • PCI DSS</p>
     </div>
   );
 }
@@ -238,7 +238,7 @@ export default function OrderForm({ packageId, price, packageName }: Props) {
   async function handleContinue(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) {
-      setError(t("buy.emailRequired") || "Email-i Ã«shtÃ« i detyrueshÃ«m.");
+      setError(t("buy.emailRequired") || "Email-i është i detyrueshëm.");
       return;
     }
     setError("");
@@ -248,14 +248,14 @@ export default function OrderForm({ packageId, price, packageName }: Props) {
     try {
       const result = await checkout(packageId, email.trim(), undefined, phone.trim() || undefined, promoApplied?.code);
       if (!result.clientSecret || !result.orderId || !result.accessToken) {
-        throw new Error("Gabim gjatÃ« inicializimit tÃ« pagesÃ«s. Provo pÃ«rsÃ«ri.");
+        throw new Error("Gabim gjatë inicializimit të pagesës. Provo përsëri.");
       }
       try { localStorage.setItem(`order_token_${result.orderId}`, result.accessToken); } catch {}
       setClientSecret(result.clientSecret);
       setOrderId(result.orderId);
       setAccessToken(result.accessToken);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gabim. Provo pÃ«rsÃ«ri.");
+      setError(err instanceof Error ? err.message : "Gabim. Provo përsëri.");
     } finally {
       setLoading(false);
     }
@@ -308,7 +308,7 @@ export default function OrderForm({ packageId, price, packageName }: Props) {
           className={inputClass}
         />
         <p className="mt-1 text-xs text-zinc-500">
-          {t("buy.emailHint") || "eSIM-i dhe QR kodi do tÃ« dÃ«rgohen nÃ« kÃ«tÃ« adresÃ«."}
+          {t("buy.emailHint") || "eSIM-i dhe QR kodi do tÃ« dërgohen në këtë adresë."}
         </p>
       </div>
 
@@ -360,25 +360,25 @@ export default function OrderForm({ packageId, price, packageName }: Props) {
         {promoError && <p className="mt-1.5 text-xs text-[#D8001E]">{promoError}</p>}
         {promoApplied && (
           <p className="mt-1.5 text-xs text-emerald-400">
-            âœ“ {t("promo.applied")} â€” {t("promo.saved")} â‚¬{promoApplied.discountAmount.toFixed(2)}
+            âœ“ {t("promo.applied")} â€” {t("promo.saved")} €{promoApplied.discountAmount.toFixed(2)}
           </p>
         )}
       </div>
 
-      {/* Ã‡mimi (me zbritje) */}
+      {/* Çmimi (me zbritje) */}
       {promoApplied && (
         <div className="rounded-xl border border-emerald-800/40 bg-emerald-900/20 px-4 py-3 space-y-1 text-sm">
           <div className="flex justify-between text-zinc-400">
-            <span>Ã‡mimi bazÃ«</span>
-            <span className="line-through">â‚¬{price.toFixed(2)}</span>
+            <span>Çmimi bazë</span>
+            <span className="line-through">€{price.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-emerald-400">
             <span>Zbritje ({promoApplied.code})</span>
-            <span>-â‚¬{promoApplied.discountAmount.toFixed(2)}</span>
+            <span>-€{promoApplied.discountAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-bold text-white pt-1 border-t border-emerald-800/40">
             <span>Totali</span>
-            <span>â‚¬{promoApplied.finalPrice.toFixed(2)}</span>
+            <span>€{promoApplied.finalPrice.toFixed(2)}</span>
           </div>
         </div>
       )}
@@ -391,7 +391,7 @@ export default function OrderForm({ packageId, price, packageName }: Props) {
 
       {!stripePromise && (
         <div className="rounded-xl border border-yellow-800/40 bg-yellow-900/20 px-4 py-3 text-sm text-yellow-400">
-          Pagesa Ã«shtÃ« e paaktivizuar. Kontakto support.
+          Pagesa është e paaktivizuar. Kontakto support.
         </div>
       )}
 
