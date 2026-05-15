@@ -358,9 +358,21 @@ export default function AdminOrdersPage() {
                 {refundConfirm && (
                   <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-700 dark:bg-red-950/30">
                     <h3 className="text-sm font-bold text-red-800 dark:text-red-300 mb-2">⚠️ Konfirmo Rimbursimin</h3>
-                    <p className="text-sm text-red-700 dark:text-red-400 mb-4">
+                    <p className="text-sm text-red-700 dark:text-red-400 mb-3">
                       Do të rimbursohet porosia <strong>#{detail.id}</strong> ({detail.email}) — shuma <strong>€{Number(detail.package_price).toFixed(2)}</strong> do të kthehet te klienti. Ky veprim nuk mund të kthehet mbrapsht.
                     </p>
+                    {detail.iccid ? (
+                      <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 dark:border-amber-600 dark:bg-amber-950/40">
+                        <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">🔴 eSIM u dërgua te klienti (ICCID: {detail.iccid})</p>
+                        <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                          Kreditet Airalo <strong>NUK kthehen automatikisht</strong>. Pas rimbursimit, kontakto Airalo Support me Airalo Order ID <strong>{detail.airalo_order_id || "—"}</strong> për të kërkuar kthimin e kredive manualisht.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 dark:border-green-700 dark:bg-green-950/40">
+                        <p className="text-xs text-green-700 dark:text-green-400">✅ eSIM nuk u dërgua — kreditet Airalo nuk janë harxhuar.</p>
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       <button onClick={handleRefund} disabled={refunding} className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition disabled:opacity-50">
                         <RotateCcw className="h-4 w-4" /> {refunding ? "Duke procesuar..." : "Po, rimburso"}
