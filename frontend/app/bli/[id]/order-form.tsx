@@ -395,11 +395,11 @@ export default function OrderForm({ packageId, price, packageName }: Props) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
         <span>
-          {loading ? "Duke inicializuar..." : `Vazhdo me PagesÃ«n â€” â‚¬${Number(displayPrice).toFixed(2)}`}
+          {loading ? "Duke inicializuar..." : `Vazhdo me Pagesën — €${Number(displayPrice).toFixed(2)}`}
         </span>
       </button>
 
-      <p className="text-center text-xs text-zinc-500">ðŸ”’ Pagesa procÃ«sohet nga Stripe â€¢ SSL â€¢ PCI DSS</p>
+      <p className="text-center text-xs text-zinc-500">🔒 Pagesa procesohet nga Stripe • SSL • PCI DSS</p>
     </form>
   );
 }

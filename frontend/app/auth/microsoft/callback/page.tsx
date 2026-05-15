@@ -21,7 +21,7 @@ function MicrosoftCallbackInner() {
     loginWithMicrosoft(code, redirectUri)
       .then(() => router.push("/"))
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Microsoft login dÃ«shtoi");
+        setError(err instanceof Error ? err.message : "Microsoft login dështoi");
       });
   }, [code, loginWithMicrosoft, router]);
 
@@ -31,7 +31,7 @@ function MicrosoftCallbackInner() {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="max-w-md w-full rounded-xl border border-red-200 bg-red-50 p-8 text-center dark:bg-red-900/20 dark:border-red-800">
-          <p className="text-red-600 dark:text-red-400 font-medium">Autentifikimi me Microsoft dÃ«shtoi</p>
+          <p className="text-red-600 dark:text-red-400 font-medium">Autentifikimi me Microsoft dështoi</p>
           <p className="mt-2 text-sm text-red-500 dark:text-red-400/80 break-words">{resolvedError}</p>
           <a href="/hyr" className="mt-4 inline-block text-shqiponja hover:underline">
             Kthehu te hyrja

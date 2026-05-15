@@ -17,7 +17,7 @@ function AppleCallbackInner() {
 
     loginWithApple(token)
       .then(() => router.replace("/"))
-      .catch((e) => setError(e instanceof Error ? e.message : "Autentifikimi dÃ«shtoi"));
+      .catch((e) => setError(e instanceof Error ? e.message : "Autentifikimi dështoi"));
   }, [token, callbackError, loginWithApple, router]);
 
   const resolvedError = error || callbackError || (!token ? "Token mungon" : "");
