@@ -11,9 +11,6 @@ export default function Logo({ size = 40, className = "", variant = "full", prio
   const lightSrc = variant === "icon" ? "/navbar-icon-light.png" : "/logo-light.svg";
   const darkSrc = variant === "icon" ? "/navbar-icon-dark.png" : "/logo-dark.svg";
 
-  const blendLight = variant === "icon" ? "mix-blend-multiply" : "";
-  const blendDark = variant === "icon" ? "mix-blend-screen" : "";
-
   return (
     <>
       <Image
@@ -22,7 +19,7 @@ export default function Logo({ size = 40, className = "", variant = "full", prio
         width={size}
         height={size}
         priority={priority}
-        className={`dark:hidden ${blendLight} ${className}`}
+        className={`dark:hidden ${className}`}
       />
       <Image
         src={darkSrc}
@@ -30,7 +27,7 @@ export default function Logo({ size = 40, className = "", variant = "full", prio
         width={size}
         height={size}
         priority={priority}
-        className={`hidden dark:block ${blendDark} ${className}`}
+        className={`hidden dark:block ${className}`}
       />
     </>
   );
