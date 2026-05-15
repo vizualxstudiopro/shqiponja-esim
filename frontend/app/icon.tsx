@@ -6,8 +6,8 @@ export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
 export default function Icon() {
-  const svg = readFileSync(join(process.cwd(), "public", "icon-dark.svg"));
-  const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+  const png = readFileSync(join(process.cwd(), "public", "favicon-browser.png"));
+  const dataUri = `data:image/png;base64,${Buffer.from(png).toString("base64")}`;
 
   return new ImageResponse(
     (

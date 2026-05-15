@@ -6,8 +6,8 @@ export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
 export default function AppleIcon() {
-  const svg = readFileSync(join(process.cwd(), "public", "logo-light.svg"));
-  const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+  const png = readFileSync(join(process.cwd(), "public", "icon-light.png"));
+  const dataUri = `data:image/png;base64,${Buffer.from(png).toString("base64")}`;
 
   return new ImageResponse(
     (
@@ -18,11 +18,9 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "white",
-          borderRadius: 36,
         }}
       >
-        <img src={dataUri} width={160} height={160} />
+        <img src={dataUri} width={180} height={180} />
       </div>
     ),
     { ...size }

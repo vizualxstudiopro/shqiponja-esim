@@ -15,7 +15,7 @@ export default function HeroSection() {
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center px-6 py-28 text-center lg:py-40">
         <Image
-          src="/icon-light.svg"
+          src="/icon-dark.png"
           alt="Shqiponja eSIM Hero"
           width={96}
           height={96}
