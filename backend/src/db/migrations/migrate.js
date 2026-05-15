@@ -279,6 +279,13 @@ async function migrate() {
     )
   `);
 
+  // eSIM activation reminder tracking
+  try {
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS esim_reminder_sent_at TIMESTAMPTZ`);
+  } catch (e) {
+    // Column likely already exists
+  }
+
   // Seed data
   await seed();
   await seedAdmin();

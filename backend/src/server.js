@@ -4,6 +4,7 @@ const { createApp } = require('./app');
 const { migrate } = require('./db/migrations/migrate');
 const airalo = require('./services/airaloService');
 const { checkAndSendUsageSmsAlerts } = require('./services/usageSmsMonitor');
+const { sendEsimActivationReminders } = require('./services/esimActivationReminder');
 const db = require('./db/client');
 
 const PORT = process.env.PORT || 3001;
@@ -88,6 +89,30 @@ async function startServer() {
     setInterval(() => {
       runUsageSmsMonitor('interval').catch(() => {});
     }, AIRALO_USAGE_SMS_INTERVAL_MS);
+
+    // eSIM activation reminder — runs every hour
+    const REMINDER_INTERVAL_MS = 60 * 60 * 1000; // 1 orë
+    let reminderInProgress = false;
+    const runEsimReminder = async (reason = 'cron') => {
+      if (reminderInProgress) return;
+      reminderInProgress = true;
+      try {
+        const result = await sendEsimActivationReminders();
+        if (result.sent > 0 || result.failed > 0) {
+          console.log(`[ESIM REMINDER] checked=${result.checked} sent=${result.sent} failed=${result.failed} (${reason})`);
+        }
+        app.locals.lastEsimReminder = { at: new Date().toISOString(), ...result, error: null };
+      } catch (err) {
+        console.error('[ESIM REMINDER ERROR]', err.message);
+        app.locals.lastEsimReminder = { at: new Date().toISOString(), checked: 0, sent: 0, failed: 0, error: err.message };
+      } finally {
+        reminderInProgress = false;
+      }
+    };
+    app.locals.triggerEsimReminder = runEsimReminder;
+    setTimeout(() => runEsimReminder('startup').catch(() => {}), AIRALO_INITIAL_DELAY_MS + 60_000);
+    setInterval(() => runEsimReminder('interval').catch(() => {}), REMINDER_INTERVAL_MS);
+    console.log('[ESIM REMINDER CRON] eSIM activation reminder enabled (every 1h, sends at 48h mark)');
 
     console.log('[AIRALO CRON] Automatic package sync enabled');
     console.log(`[AIRALO CRON] Interval=${AIRALO_SYNC_INTERVAL_MS}ms, Retry=${AIRALO_RETRY_DELAY_MS}ms`);
