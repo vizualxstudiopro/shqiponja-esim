@@ -10,12 +10,13 @@ import {
   adminResendEsim,
   adminFulfillEsim,
   adminProvisionEsim,
+  adminRefundOrder,
   type Order,
   type OrderDetail,
   type PaginatedOrders,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
-import { Download, Search, ChevronLeft, ChevronRight, Eye, CheckCircle, Send, X, Copy, Wrench } from "lucide-react";
+import { Download, Search, ChevronLeft, ChevronRight, Eye, CheckCircle, Send, X, Copy, Wrench, RotateCcw } from "lucide-react";
 
 export default function AdminOrdersPage() {
   const { token } = useAuth();
@@ -36,6 +37,8 @@ export default function AdminOrdersPage() {
   const [fulfillOpen, setFulfillOpen] = useState(false);
   const [fulfilling, setFulfilling] = useState(false);
   const [fulfillForm, setFulfillForm] = useState({ iccid: "", qr_data: "", qr_code_url: "", activation_code: "" });
+  const [refunding, setRefunding] = useState(false);
+  const [refundConfirm, setRefundConfirm] = useState(false);
 
   const fetchOrders = useCallback(() => {
     if (!token) return;
@@ -116,6 +119,22 @@ export default function AdminOrdersPage() {
       toast(err instanceof Error ? err.message : "Provizioni dështoi", "error");
     } finally {
       setProvisioning(false);
+    }
+  }
+
+  async function handleRefund() {
+    if (!token || !detail) return;
+    setRefunding(true);
+    try {
+      await adminRefundOrder(token, detail.id);
+      setDetail(prev => prev ? { ...prev, payment_status: "refunded", status: "cancelled" } : null);
+      setOrders(prev => prev.map(o => o.id === detail.id ? { ...o, payment_status: "refunded", status: "cancelled" } : o));
+      setRefundConfirm(false);
+      toast("Rimbursimi u procesua me sukses! Klienti do të marrë email.", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Rimbursimi dështoi", "error");
+    } finally {
+      setRefunding(false);
     }
   }
 
@@ -328,7 +347,30 @@ export default function AdminOrdersPage() {
                   <button onClick={handleResendEsim} disabled={resending || (!detail.qr_data && !detail.qr_code_url)} className="flex items-center gap-2 rounded-lg bg-shqiponja px-4 py-2 text-sm font-semibold text-white hover:bg-shqiponja/90 transition disabled:opacity-50">
                     <Send className="h-4 w-4" /> {resending ? "Duke dërguar..." : "Resend eSIM"}
                   </button>
+                  {detail.payment_status === "paid" && (
+                    <button onClick={() => setRefundConfirm(true)} className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition dark:border-red-700 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40">
+                      <RotateCcw className="h-4 w-4" /> Lësho Rimbursim
+                    </button>
+                  )}
                 </div>
+
+                {/* Refund confirmation dialog */}
+                {refundConfirm && (
+                  <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-700 dark:bg-red-950/30">
+                    <h3 className="text-sm font-bold text-red-800 dark:text-red-300 mb-2">⚠️ Konfirmo Rimbursimin</h3>
+                    <p className="text-sm text-red-700 dark:text-red-400 mb-4">
+                      Do të rimbursohet porosia <strong>#{detail.id}</strong> ({detail.email}) — shuma <strong>€{Number(detail.package_price).toFixed(2)}</strong> do të kthehet te klienti. Ky veprim nuk mund të kthehet mbrapsht.
+                    </p>
+                    <div className="flex gap-2">
+                      <button onClick={handleRefund} disabled={refunding} className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition disabled:opacity-50">
+                        <RotateCcw className="h-4 w-4" /> {refunding ? "Duke procesuar..." : "Po, rimburso"}
+                      </button>
+                      <button onClick={() => setRefundConfirm(false)} className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-700">
+                        Anulo
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Fulfill eSIM mini-form */}
                 {fulfillOpen && (

@@ -691,6 +691,71 @@ router.post('/orders/:id/provision', async (req, res) => {
   }
 });
 
+/* ─── REFUND order via Stripe ─── */
+router.post('/orders/:id/refund', async (req, res) => {
+  const Stripe = require('stripe');
+  const { sendTransactionalEmail } = require('../lib/emailService');
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID i pavlefshëm' });
+
+    const order = (await db.query('SELECT * FROM orders WHERE id = $1', [id])).rows[0];
+    if (!order) return res.status(404).json({ error: 'Porosia nuk u gjet' });
+
+    if (order.payment_status === 'refunded') {
+      return res.status(409).json({ error: 'Kjo porosi është rimbursuar tashmë' });
+    }
+    if (order.payment_status !== 'paid') {
+      return res.status(400).json({ error: 'Mund të rimbursohen vetëm porositë e paguara' });
+    }
+    if (!order.stripe_payment_intent_id) {
+      return res.status(400).json({ error: 'Kjo porosi nuk ka PaymentIntent Stripe — rimburso manualisht nga Stripe Dashboard' });
+    }
+
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) return res.status(503).json({ error: 'Stripe nuk është konfiguruar' });
+
+    const stripe = new Stripe(stripeKey);
+    const refund = await stripe.refunds.create({
+      payment_intent: order.stripe_payment_intent_id,
+      reason: 'requested_by_customer',
+      metadata: { order_id: String(id), refunded_by: 'admin' },
+    });
+
+    await db.query(
+      `UPDATE orders SET payment_status = 'refunded', status = 'cancelled', updated_at = NOW() WHERE id = $1`,
+      [id]
+    );
+
+    // Dërgo email konfirmimi klientit
+    try {
+      await sendTransactionalEmail({
+        toEmail: order.email,
+        subject: 'Rimbursimi u konfirmua — Shqiponja eSIM',
+        html: `
+          <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
+            <h2 style="color:#111">Rimbursimi juaj u konfirmua ✅</h2>
+            <p>Porosi #<strong>${id}</strong> — rimbursimi u procesua me sukses nga Stripe.</p>
+            <p>Shuma do të kthehet në llogarinë tuaj brenda <strong>5–10 ditëve pune</strong>, varësisht nga banka.</p>
+            <p style="margin-top:24px;color:#666;font-size:13px">Nëse keni pyetje, na kontaktoni në <a href="mailto:info@shqiponjaesim.com">info@shqiponjaesim.com</a></p>
+          </div>`,
+        logLabel: 'REFUND EMAIL',
+        senderType: 'noreply',
+      });
+    } catch (emailErr) {
+      console.error('[REFUND] Email dërgimi dështoi:', emailErr.message);
+    }
+
+    console.log(`[ADMIN REFUND] Order #${id} refunded. Stripe refund ID: ${refund.id}`);
+    res.json({ ok: true, refundId: refund.id, status: refund.status });
+  } catch (err) {
+    console.error('Refund error:', err);
+    // Stripe error messages are user-readable
+    const msg = err.raw?.message || err.message || 'Gabim serveri';
+    res.status(err.statusCode || 500).json({ error: msg });
+  }
+});
+
 router.post('/orders/:id/resend-esim', async (req, res) => {
   const { sendTransactionalEmail } = require('../lib/emailService');
   const { orderConfirmationTemplate } = require('../src/utils/email');

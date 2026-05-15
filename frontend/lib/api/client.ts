@@ -1082,6 +1082,19 @@ export async function adminProvisionEsim(
   return res.json();
 }
 
+/* ─── Admin: Refund order via Stripe ─── */
+export async function adminRefundOrder(
+  token: string,
+  orderId: number
+): Promise<{ ok: boolean; refundId: string; status: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/${orderId}/refund`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Rimbursimi dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
 /* ─── Admin: Webhook Logs ─── */
 
 /** @deprecated Use adminGetWebhookLog */
