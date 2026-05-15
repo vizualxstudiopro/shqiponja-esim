@@ -1,5 +1,5 @@
 const db = require('../db/client');
-const { sendTransactionalEmail } = require('../lib/emailService');
+const { sendTransactionalEmail } = require('../../lib/emailService');
 
 // Dërgo email recovery pas 1 ore nëse dikush filloi checkout por nuk pagoi
 const ABANDON_AFTER_HOURS = Number(process.env.ABANDONED_CART_HOURS || 1);

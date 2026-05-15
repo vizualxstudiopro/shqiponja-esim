@@ -1,5 +1,5 @@
 const db = require('../db/client');
-const { sendTransactionalEmail } = require('../lib/emailService');
+const { sendTransactionalEmail } = require('../../lib/emailService');
 
 // Dërgo reminder email pas 48 orësh nëse eSIM nuk duket e aktivizuar
 // "Nuk duket e aktivizuar" = iccid ekziston (eSIM u dërgua) por esim_status != 'used'
