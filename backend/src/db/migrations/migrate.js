@@ -286,6 +286,13 @@ async function migrate() {
     // Column likely already exists
   }
 
+  // Abandoned cart recovery tracking
+  try {
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS abandoned_cart_sent_at TIMESTAMPTZ`);
+  } catch (e) {
+    // Column likely already exists
+  }
+
   // Seed data
   await seed();
   await seedAdmin();

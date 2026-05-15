@@ -5,6 +5,7 @@ const { migrate } = require('./db/migrations/migrate');
 const airalo = require('./services/airaloService');
 const { checkAndSendUsageSmsAlerts } = require('./services/usageSmsMonitor');
 const { sendEsimActivationReminders } = require('./services/esimActivationReminder');
+const { sendAbandonedCartReminders } = require('./services/abandonedCartReminder');
 const db = require('./db/client');
 
 const PORT = process.env.PORT || 3001;
@@ -113,6 +114,30 @@ async function startServer() {
     setTimeout(() => runEsimReminder('startup').catch(() => {}), AIRALO_INITIAL_DELAY_MS + 60_000);
     setInterval(() => runEsimReminder('interval').catch(() => {}), REMINDER_INTERVAL_MS);
     console.log('[ESIM REMINDER CRON] eSIM activation reminder enabled (every 1h, sends at 48h mark)');
+
+    // Abandoned cart recovery — runs every 30 min
+    const CART_INTERVAL_MS = 30 * 60 * 1000;
+    let cartReminderInProgress = false;
+    const runAbandonedCart = async (reason = 'cron') => {
+      if (cartReminderInProgress) return;
+      cartReminderInProgress = true;
+      try {
+        const result = await sendAbandonedCartReminders();
+        if (result.sent > 0 || result.failed > 0) {
+          console.log(`[ABANDONED CART] checked=${result.checked} sent=${result.sent} failed=${result.failed} (${reason})`);
+        }
+        app.locals.lastAbandonedCart = { at: new Date().toISOString(), ...result, error: null };
+      } catch (err) {
+        console.error('[ABANDONED CART ERROR]', err.message);
+        app.locals.lastAbandonedCart = { at: new Date().toISOString(), checked: 0, sent: 0, failed: 0, error: err.message };
+      } finally {
+        cartReminderInProgress = false;
+      }
+    };
+    app.locals.triggerAbandonedCart = runAbandonedCart;
+    setTimeout(() => runAbandonedCart('startup').catch(() => {}), AIRALO_INITIAL_DELAY_MS + 90_000);
+    setInterval(() => runAbandonedCart('interval').catch(() => {}), CART_INTERVAL_MS);
+    console.log('[ABANDONED CART CRON] Abandoned cart recovery enabled (every 30min, sends at 1h mark)');
 
     console.log('[AIRALO CRON] Automatic package sync enabled');
     console.log(`[AIRALO CRON] Interval=${AIRALO_SYNC_INTERVAL_MS}ms, Retry=${AIRALO_RETRY_DELAY_MS}ms`);
