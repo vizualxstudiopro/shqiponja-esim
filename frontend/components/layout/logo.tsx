@@ -8,8 +8,8 @@ interface LogoProps {
 }
 
 export default function Logo({ size = 40, className = "", variant = "full", priority = false }: LogoProps) {
-  const lightSrc = variant === "icon" ? "/icon-light.png" : "/logo-light.svg";
-  const darkSrc = variant === "icon" ? "/icon-dark.png" : "/logo-dark.svg";
+  const lightSrc = variant === "icon" ? "/navbar-icon-light.png" : "/logo-light.svg";
+  const darkSrc = variant === "icon" ? "/navbar-icon-dark.png" : "/logo-dark.svg";
 
   return (
     <>
