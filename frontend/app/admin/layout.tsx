@@ -55,7 +55,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <>
       <div className="flex h-14 items-center gap-2 border-b border-zinc-100 px-5 dark:border-zinc-800">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <Logo size={32} variant="icon" /> Admin
+          <Logo size={40} variant="icon" /> Admin
         </Link>
         <button
           onClick={() => setSidebarOpen(false)}
