@@ -101,11 +101,20 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
     });
 
     if (error) {
-      onError(error.message || "Pagesa dÃ«shtoi. Provo pÃ«rsÃ«ri.");
+      onError(error.message || "Pagesa dështoi. Provo përsëri.");
       setLoading(false);
     } else if (paymentIntent?.status === "succeeded" || paymentIntent?.status === "processing") {
-      // Pagesa nuk kÃ«rkoi redirect â€” navigoj manualisht
+      // Pagesa nuk kërkoi redirect — navigoj manualisht
       router.push(`/porosi/${orderId}?token=${accessToken}&checkout=success`);
+    } else if (paymentIntent?.status === "requires_payment_method") {
+      onError("Pagesa u refuzua. Kontrollo kartën ose provo një metodë tjetër pagese.");
+      setLoading(false);
+    } else if (paymentIntent?.status === "requires_action") {
+      onError("Pagesa kërkon verifikim shtesë. Provo përsëri.");
+      setLoading(false);
+    } else {
+      onError("Pagesa nuk u krye. Provo përsëri.");
+      setLoading(false);
     }
   }
 
