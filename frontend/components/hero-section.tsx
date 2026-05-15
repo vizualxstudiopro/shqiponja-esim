@@ -1,11 +1,11 @@
-import Image from "next/image";
+"use client";
 
-/**
- * Server component — renders the hero section with static Albanian text.
- * This ensures the LCP element (h1) is in the HTML from the server,
- * not delayed by client-side JS / i18n hydration.
- */
+import Image from "next/image";
+import { useI18n } from "@/lib/i18n-context";
+
 export default function HeroSection() {
+  const { t } = useI18n();
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
       {/* Grid background */}
@@ -24,43 +24,43 @@ export default function HeroSection() {
         />
 
         <span className="mb-6 inline-block rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium tracking-widest uppercase text-zinc-300">
-          eSIM NDËRKOMBËTARE — PA KONTRATË
+          {t("hero.badge")}
         </span>
 
         <h1 className="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-          Lidhu me botën menjëherë me{" "}
-          <span className="text-shqiponja">Shqiponja eSIM</span>
+          {t("hero.title1")}{" "}
+          <span className="text-shqiponja">{t("hero.title2")}</span>
         </h1>
 
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
-          Bli paketa eSIM ndërkombëtare nga operatorët më të mëdhenj. Interneti kudo pa roaming, pa SIM fizike.
+          {t("hero.subtitle")}
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
           <a
             href="/#packages"
-            aria-label="Bli tani paketa eSIM"
+            aria-label={t("hero.cta")}
             className="group rounded-full bg-shqiponja px-8 py-3.5 text-base font-semibold text-white shadow-xl shadow-shqiponja/30 hover:bg-shqiponja-dark hover:shadow-shqiponja/50 transition-all duration-300 hover:scale-105"
           >
-            Bli Tani →
+            {t("hero.cta")}
           </a>
           <a
             href="/#how"
-            aria-label="Shiko si funksionon Shqiponja eSIM"
+            aria-label={t("hero.howLink")}
             className="rounded-full border border-white/15 px-8 py-3.5 text-base font-semibold text-white hover:bg-white/5 hover:border-white/30 transition-all duration-300"
           >
-            Si Funksionon?
+            {t("hero.howLink")}
           </a>
         </div>
 
         <div className="mt-16 grid grid-cols-3 gap-8 border-t border-white/10 pt-10 text-center">
           <div>
             <p className="text-2xl font-bold sm:text-3xl">190+</p>
-            <p className="mt-1 text-xs text-zinc-500 uppercase tracking-wide">VENDE</p>
+            <p className="mt-1 text-xs text-zinc-500 uppercase tracking-wide">{t("hero.countries")}</p>
           </div>
           <div>
             <p className="text-2xl font-bold sm:text-3xl">24/7</p>
-            <p className="mt-1 text-xs text-zinc-500 uppercase tracking-wide">MBËSHTETJE</p>
+            <p className="mt-1 text-xs text-zinc-500 uppercase tracking-wide">{t("hero.support")}</p>
           </div>
           <div>
             <p className="text-2xl font-bold sm:text-3xl">99.9%</p>
