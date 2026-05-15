@@ -691,6 +691,21 @@ router.post('/orders/:id/provision', async (req, res) => {
   }
 });
 
+/* ─── DELETE pending/unpaid orders (cleanup) ─── */
+router.delete('/orders/pending', async (req, res) => {
+  try {
+    const result = await db.query(
+      `DELETE FROM orders WHERE payment_status = 'unpaid' RETURNING id`
+    );
+    const deleted = result.rows.map(r => r.id);
+    console.log(`[ADMIN] Deleted ${deleted.length} pending orders: ${deleted.join(', ')}`);
+    res.json({ ok: true, deleted: deleted.length, ids: deleted });
+  } catch (err) {
+    console.error('Delete pending orders error:', err);
+    res.status(500).json({ error: 'Gabim serveri: ' + (err.message || 'Unknown') });
+  }
+});
+
 /* ─── REFUND order via Stripe ─── */
 router.post('/orders/:id/refund', async (req, res) => {
   const Stripe = require('stripe');

@@ -1095,6 +1095,17 @@ export async function adminRefundOrder(
   return res.json();
 }
 
+export async function adminDeletePendingOrders(
+  token: string
+): Promise<{ ok: boolean; deleted: number; ids: number[] }> {
+  const res = await fetchWithTimeout(`${API_URL}/api/admin/orders/pending`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Fshirja dështoi" })); throw new Error(e.error); }
+  return res.json();
+}
+
 /* ─── Admin: Webhook Logs ─── */
 
 /** @deprecated Use adminGetWebhookLog */

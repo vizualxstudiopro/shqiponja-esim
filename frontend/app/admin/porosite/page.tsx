@@ -11,12 +11,13 @@ import {
   adminFulfillEsim,
   adminProvisionEsim,
   adminRefundOrder,
+  adminDeletePendingOrders,
   type Order,
   type OrderDetail,
   type PaginatedOrders,
 } from "@/lib/api";
 import { useToast } from "@/lib/toast-context";
-import { Download, Search, ChevronLeft, ChevronRight, Eye, CheckCircle, Send, X, Copy, Wrench, RotateCcw } from "lucide-react";
+import { Download, Search, ChevronLeft, ChevronRight, Eye, CheckCircle, Send, X, Copy, Wrench, RotateCcw, Trash2 } from "lucide-react";
 
 export default function AdminOrdersPage() {
   const { token } = useAuth();
@@ -39,6 +40,8 @@ export default function AdminOrdersPage() {
   const [fulfillForm, setFulfillForm] = useState({ iccid: "", qr_data: "", qr_code_url: "", activation_code: "" });
   const [refunding, setRefunding] = useState(false);
   const [refundConfirm, setRefundConfirm] = useState(false);
+  const [deletingPending, setDeletingPending] = useState(false);
+  const [deletePendingConfirm, setDeletePendingConfirm] = useState(false);
 
   const fetchOrders = useCallback(() => {
     if (!token) return;
@@ -138,6 +141,21 @@ export default function AdminOrdersPage() {
     }
   }
 
+  async function handleDeletePending() {
+    if (!token) return;
+    setDeletingPending(true);
+    try {
+      const result = await adminDeletePendingOrders(token);
+      setDeletePendingConfirm(false);
+      fetchOrders();
+      toast(`U fshinë ${result.deleted} porosi të papaguara.`, "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Fshirja dështoi", "error");
+    } finally {
+      setDeletingPending(false);
+    }
+  }
+
   async function handleFulfillEsim() {
     if (!token || !detail) return;
     if (!fulfillForm.iccid && !fulfillForm.qr_data && !fulfillForm.qr_code_url) {
@@ -202,9 +220,14 @@ export default function AdminOrdersPage() {
           <h1 className="text-xl sm:text-2xl font-extrabold">{t("admin.orders")}</h1>
           <p className="mt-1 text-sm text-zinc-500">{total} {t("admin.totalSuffix")}</p>
         </div>
-        <button onClick={exportCSV} className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 transition dark:border-zinc-700 dark:hover:bg-zinc-800">
-          <Download className="h-4 w-4" /> {t("admin.exportCSV")}
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={exportCSV} className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 transition dark:border-zinc-700 dark:hover:bg-zinc-800">
+            <Download className="h-4 w-4" /> {t("admin.exportCSV")}
+          </button>
+          <button onClick={() => setDeletePendingConfirm(true)} className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition dark:border-red-800 dark:hover:bg-red-900/20">
+            <Trash2 className="h-4 w-4" /> Fshi Porositë Pending
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -414,6 +437,29 @@ export default function AdminOrdersPage() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Dialog konfirmimi fshirje pending */}
+      {deletePendingConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-zinc-900">
+            <h2 className="text-lg font-bold text-red-600 mb-2">🗑️ Fshi të gjitha porositë pending</h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-4">
+              Do të fshihen <strong>të gjitha porositë me payment_status = unpaid</strong> (klientë që filluan checkout por nuk paguan). Ky veprim <strong>nuk mund të kthehet mbrapsht</strong>.
+            </p>
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 mb-4 dark:border-amber-700 dark:bg-amber-950/30">
+              <p className="text-xs text-amber-700 dark:text-amber-400">⚠️ Porositë e paguara dhe të rimbursuara nuk preken.</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleDeletePending} disabled={deletingPending} className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition disabled:opacity-50">
+                <Trash2 className="h-4 w-4" /> {deletingPending ? "Duke fshirë..." : "Po, fshi tani"}
+              </button>
+              <button onClick={() => setDeletePendingConfirm(false)} className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-700">
+                Anulo
+              </button>
+            </div>
           </div>
         </div>
       )}
