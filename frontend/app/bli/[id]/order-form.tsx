@@ -173,6 +173,9 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
         confirmParams: {
           return_url: `${origin}/porosi/${orderId}?token=${accessToken}&checkout=success`,
           receipt_email: email,
+          payment_method_data: {
+            billing_details: { email },
+          },
         },
         redirect: "if_required",
       });
