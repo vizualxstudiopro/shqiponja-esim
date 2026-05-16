@@ -1,3 +1,7 @@
 # Assets
 
-Place `icon.png` (256x256 or larger) and `icon.ico` here for the Electron app icon.
+Current desktop icons are sourced from `Logo/`.
+
+Electron uses:
+- `Logo/shqiponja esim App icon Android logo/1.png` for the app window icon.
+- `Logo/app-icon.ico` for the Windows installer icon.

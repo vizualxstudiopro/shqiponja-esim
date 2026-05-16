@@ -11,7 +11,7 @@ function createWindow() {
     minWidth: 960,
     minHeight: 600,
     title: "Shqiponja eSIM",
-    icon: path.join(__dirname, "../src/assets/icon.png"),
+    icon: path.join(__dirname, "../src/assets/Logo/shqiponja esim App icon Android logo/1.png"),
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,

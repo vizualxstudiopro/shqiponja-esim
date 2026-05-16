@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
 import { login } from "@/lib/api";
 import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
-import eagleImg from "@/assets/eagle.png";
+import eagleImg from "@/assets/Logo/shqiponja esim App icon Android logo/1.png";
 
 const SAVED_CREDS_KEY = "shqiponja_saved_creds";
 

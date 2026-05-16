@@ -11,7 +11,7 @@ import {
   UserPlus,
   RefreshCw,
 } from "lucide-react";
-import logoImg from "@/assets/logo.png";
+import logoImg from "@/assets/Logo/shqiponja esim navbar transparent/1.png";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
