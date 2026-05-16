@@ -116,6 +116,17 @@ const appearance = {
 
 };
 
+function SecurePaymentNote() {
+  return (
+    <p className="flex items-center justify-center gap-1.5 text-center text-xs text-zinc-500">
+      <svg className="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V7a4.5 4.5 0 0 0-9 0v3.5M6.75 10.5h10.5A1.75 1.75 0 0 1 19 12.25v6A1.75 1.75 0 0 1 17.25 20H6.75A1.75 1.75 0 0 1 5 18.25v-6a1.75 1.75 0 0 1 1.75-1.75Z" />
+      </svg>
+      <span>Pagesa procesohet nga Stripe • SSL • PCI DSS</span>
+    </p>
+  );
+}
+
 /* â”€â”€â”€ Faza 2: Formulari i pagesës â”€â”€â”€ */
 
 interface PaymentStepProps {
@@ -342,7 +353,7 @@ function PaymentStep({ orderId, accessToken, email, displayPrice, packageName, o
 
       </button>
 
-      <p className="text-center text-xs text-zinc-500">🔒 Pagesa procesohet nga Stripe • SSL • PCI DSS</p>
+      <SecurePaymentNote />
 
     </div>
 
@@ -734,7 +745,7 @@ export default function OrderForm({ packageId, price, packageName }: Props) {
 
       </button>
 
-      <p className="text-center text-xs text-zinc-500">🔒 Pagesa procesohet nga Stripe • SSL • PCI DSS</p>
+      <SecurePaymentNote />
 
     </form>
 
