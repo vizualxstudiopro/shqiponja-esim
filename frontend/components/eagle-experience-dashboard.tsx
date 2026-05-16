@@ -14,7 +14,7 @@ interface Stamp {
   isUnlocked: boolean;
 }
 
-interface PassportStampProps extends Stamp {}
+type PassportStampProps = Stamp;
 
 function PassportStamp({ country, date, icon, isUnlocked }: PassportStampProps) {
   return (
@@ -136,7 +136,7 @@ export default function EagleExperienceDashboard() {
               <AvatarCard label={enkela?.name ?? "Enkela"} accent="#e8333a" />
               <h2 className="mb-4 text-center text-2xl font-bold">Miresevjen, Besmir!</h2>
               <p className="mb-8 text-center text-sm italic text-gray-400">
-                "Pasaporta jote po mbushet. Fluturo ne sa me shume shtete per te fituar statusin 'Shqiponja e Arte'."
+                &quot;Pasaporta jote po mbushet. Fluturo ne sa me shume shtete per te fituar statusin &apos;Shqiponja e Arte&apos;.&quot;
               </p>
               <div className="rounded-2xl bg-black/20 p-4 text-center">
                 <div className="mb-1 text-xs uppercase text-gray-500">Statusi Aktual</div>

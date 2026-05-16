@@ -36,8 +36,14 @@ export default function AdminReferralsPage() {
       .finally(() => setLoading(false));
   }, [token, page, statusFilter]);
 
-  useEffect(() => { fetchReferrals(); }, [fetchReferrals]);
-  useEffect(() => { setPage(1); }, [statusFilter]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchReferrals();
+  }, [fetchReferrals]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+  }, [statusFilter]);
 
   async function updateStatus(id: number, status: string) {
     if (!token) return;

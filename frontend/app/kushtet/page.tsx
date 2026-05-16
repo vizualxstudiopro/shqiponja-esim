@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/lib/i18n-context";
 import LegalPageShell from "@/components/legal-page-shell";
+import Link from "next/link";
 
 export default function TermsPage() {
   const { t } = useI18n();
@@ -47,7 +48,7 @@ export default function TermsPage() {
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>{t("terms.disclaimer.item1")}</li>
               <li>{t("terms.disclaimer.item2")}</li>
-              <li>{t("terms.disclaimer.item3pre")} <a href="/#compatibility" className="text-shqiponja hover:underline">{t("terms.disclaimer.item3link")}</a> {t("terms.disclaimer.item3post")}</li>
+              <li>{t("terms.disclaimer.item3pre")} <Link href="/#compatibility" className="text-shqiponja hover:underline">{t("terms.disclaimer.item3link")}</Link> {t("terms.disclaimer.item3post")}</li>
               <li>{t("terms.disclaimer.item4")}</li>
             </ul>
           </section>

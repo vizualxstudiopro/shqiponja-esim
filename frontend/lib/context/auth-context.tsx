@@ -69,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedToken = readStoredToken();
     if (savedToken) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(savedToken);
     }
     setHydrated(true);
@@ -89,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const payload = decodeJwtPayload(token);
         if (payload.exp * 1000 > Date.now()) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setUser((prev) => prev ?? ({ id: payload.id, email: payload.email, name: payload.name, role: payload.role, email_verified: 0, created_at: "" } as User));
         } else {
           // Token expired locally

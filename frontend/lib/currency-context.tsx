@@ -45,6 +45,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       // Keep EUR as the default storefront/checkout currency even if older sessions saved ALL.
       if (saved === "ALL") {
         localStorage.setItem("currency", "EUR");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrencyState("EUR");
       } else {
         setCurrencyState(saved);

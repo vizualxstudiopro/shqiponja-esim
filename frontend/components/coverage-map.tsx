@@ -141,7 +141,11 @@ export default function CoverageMap() {
   const handleMouseMove = (e: React.MouseEvent, country: CoverageCountry) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, data: country });
+    setTooltip({
+      x: Math.min(e.clientX - rect.left + 12, rect.width - 190),
+      y: Math.max(e.clientY - rect.top - 80, 8),
+      data: country,
+    });
   };
 
   const totalCovered = countries.length;
@@ -248,8 +252,8 @@ export default function CoverageMap() {
             <div
               className="pointer-events-none absolute z-20 rounded-xl shadow-lg px-4 py-3 text-sm hidden md:block"
               style={{
-                left: Math.min(tooltip.x + 12, (containerRef.current?.offsetWidth ?? 300) - 190),
-                top: Math.max(tooltip.y - 80, 8),
+                left: tooltip.x,
+                top: tooltip.y,
                 minWidth: 170,
                 background: colors.card,
                 border: `1px solid ${colors.border}`,

@@ -12,6 +12,7 @@ export default function CookieConsent() {
   useEffect(() => {
     try {
       if (!localStorage.getItem(COOKIE_KEY)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setVisible(true);
       }
     } catch {

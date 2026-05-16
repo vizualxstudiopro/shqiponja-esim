@@ -719,12 +719,12 @@ export default function LandingContent({ initialPackages }: LandingContentProps)
         <div ref={ctaRef} className="reveal relative mx-auto max-w-3xl px-6 text-center">
           <h2 className="text-3xl font-extrabold sm:text-4xl">{t("cta.title")}</h2>
           <p className="mx-auto mt-4 max-w-md text-white/80">{t("cta.subtitle")}</p>
-          <a
+          <Link
             href="/#packages"
             className="mt-8 inline-block rounded-full bg-white px-8 py-3.5 text-base font-bold text-shqiponja shadow-lg hover:bg-zinc-100 hover:scale-105 transition-all duration-300"
           >
             {t("cta.btn")}
-          </a>
+          </Link>
         </div>
       </section>
 

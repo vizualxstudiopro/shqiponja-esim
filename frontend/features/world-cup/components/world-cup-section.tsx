@@ -350,7 +350,7 @@ export default function WorldCupSection() {
 
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
-          <a
+          <Link
             href="/#packages"
             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-7 py-3 text-sm font-bold text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/30"
           >
@@ -358,7 +358,7 @@ export default function WorldCupSection() {
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
-          </a>
+          </Link>
         </div>
       </div>
     </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useI18n } from "@/lib/i18n-context";
 
 export default function HeroSection() {
@@ -37,20 +38,20 @@ export default function HeroSection() {
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-          <a
+          <Link
             href="/#packages"
             aria-label={t("hero.cta")}
             className="group rounded-full bg-shqiponja px-8 py-3.5 text-base font-semibold text-white shadow-xl shadow-shqiponja/30 hover:bg-shqiponja-dark hover:shadow-shqiponja/50 transition-all duration-300 hover:scale-105"
           >
             {t("hero.cta")}
-          </a>
-          <a
+          </Link>
+          <Link
             href="/#how"
             aria-label={t("hero.howLink")}
             className="rounded-full border border-white/15 px-8 py-3.5 text-base font-semibold text-white hover:bg-white/5 hover:border-white/30 transition-all duration-300"
           >
             {t("hero.howLink")}
-          </a>
+          </Link>
         </div>
 
         <div className="mt-16 grid grid-cols-3 gap-8 border-t border-white/10 pt-10 text-center">

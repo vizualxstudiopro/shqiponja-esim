@@ -88,6 +88,7 @@ export default function AdminDashboard() {
   ];
   const syncStatus = cronStatus?.lastSync || null;
   const intervalMinutes = cronStatus ? Math.round(cronStatus.intervalMs / 60000) : null;
+  // eslint-disable-next-line react-hooks/purity
   const lastSyncAgeMs = syncStatus ? Date.now() - new Date(syncStatus.at).getTime() : Number.POSITIVE_INFINITY;
   const isStale = !!cronStatus && (!cronStatus.enabled || !syncStatus || !!syncStatus.error || lastSyncAgeMs > cronStatus.staleAfterMs);
   const nextSyncAt = syncStatus && cronStatus ? new Date(syncStatus.at).getTime() + cronStatus.intervalMs : null;

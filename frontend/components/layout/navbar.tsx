@@ -32,7 +32,7 @@ export default function Navbar() {
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
           <Link href="/packages" className="hover:text-shqiponja transition">{t("nav.packages")}</Link>
-          <a href="/#how" className="hover:text-shqiponja transition">{t("nav.how")}</a>
+          <Link href="/#how" className="hover:text-shqiponja transition">{t("nav.how")}</Link>
           <Link href="/instalimi" className="hover:text-shqiponja transition">{t("nav.install")}</Link>
           <Link href="/blog" className="hover:text-shqiponja transition">{t("nav.blog")}</Link>
           <Link href="/rreth" className="hover:text-shqiponja transition">{t("nav.about")}</Link>
@@ -80,7 +80,7 @@ export default function Navbar() {
       {open && (
         <div id="mobile-nav" role="navigation" className="md:hidden border-t border-zinc-100 bg-white px-6 py-4 space-y-3 dark:bg-zinc-950 dark:border-zinc-800">
           <Link href="/packages" onClick={() => setOpen(false)} className="block text-sm font-medium text-zinc-600 hover:text-shqiponja">{t("nav.packages")}</Link>
-          <a href="/#how" onClick={() => setOpen(false)} className="block text-sm font-medium text-zinc-600 hover:text-shqiponja">{t("nav.how")}</a>
+          <Link href="/#how" onClick={() => setOpen(false)} className="block text-sm font-medium text-zinc-600 hover:text-shqiponja">{t("nav.how")}</Link>
           <Link href="/instalimi" onClick={() => setOpen(false)} className="block text-sm font-medium text-zinc-600 hover:text-shqiponja">{t("nav.install")}</Link>
           <Link href="/blog" onClick={() => setOpen(false)} className="block text-sm font-medium text-zinc-600 hover:text-shqiponja">{t("nav.blog")}</Link>
           <Link href="/rreth" onClick={() => setOpen(false)} className="block text-sm font-medium text-zinc-600 hover:text-shqiponja">{t("nav.about")}</Link>

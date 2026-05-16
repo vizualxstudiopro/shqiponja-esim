@@ -145,7 +145,7 @@ export default function EagleAvatarStudio() {
               </div>
               <p className="mb-4 text-xs font-bold uppercase tracking-widest text-gray-500">Roli: Harruat Fjalekalimin?</p>
               <p className="text-sm italic leading-relaxed text-gray-400">
-                "Mos u shqeteso, Besmir. Ndiqi udhezimet ne email per te krijuar nje fjalekalim te ri dhe te sigurt."
+                &quot;Mos u shqeteso, Besmir. Ndiqi udhezimet ne email per te krijuar nje fjalekalim te ri dhe te sigurt.&quot;
               </p>
             </div>
 
@@ -162,7 +162,7 @@ export default function EagleAvatarStudio() {
               </div>
               <p className="mb-4 text-xs font-bold uppercase tracking-widest text-gray-500">Roli: Blerja e Paketave</p>
               <p className="text-sm italic leading-relaxed text-gray-400">
-                "Zgjidh paketen Memedheu dhe une do te te ndihmoj ta aktivizosh ne pak sekonda. Udha e mbare!"
+                &quot;Zgjidh paketen Memedheu dhe une do te te ndihmoj ta aktivizosh ne pak sekonda. Udha e mbare!&quot;
               </p>
             </div>
 
@@ -179,7 +179,7 @@ export default function EagleAvatarStudio() {
               </div>
               <p className="mb-4 text-xs font-bold uppercase tracking-widest text-gray-500">Roli: Mireseardhja</p>
               <p className="text-sm italic leading-relaxed text-gray-400">
-                "Miresevjen ne familjen tone! Jam ketu per te te shoqeruar ne cdo hap te regjistrimit tend te pare."
+                &quot;Miresevjen ne familjen tone! Jam ketu per te te shoqeruar ne cdo hap te regjistrimit tend te pare.&quot;
               </p>
             </div>
           </div>

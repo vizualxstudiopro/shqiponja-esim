@@ -14,23 +14,30 @@ function createApp() {
   app.set('trust proxy', 1);
   app.use(helmet());
 
-  const allowedOrigins = [FRONTEND_URL];
+  const normalizeOrigin = (origin) => String(origin || '').trim().replace(/\/$/, '');
+  const allowedOrigins = new Set([normalizeOrigin(FRONTEND_URL)]);
   if (FRONTEND_URL.includes('://www.')) {
-    allowedOrigins.push(FRONTEND_URL.replace('://www.', '://'));
+    allowedOrigins.add(normalizeOrigin(FRONTEND_URL.replace('://www.', '://')));
   } else if (FRONTEND_URL.includes('://') && !FRONTEND_URL.includes('://www.')) {
-    allowedOrigins.push(FRONTEND_URL.replace('://', '://www.'));
+    allowedOrigins.add(normalizeOrigin(FRONTEND_URL.replace('://', '://www.')));
   }
 
-  // Allow Electron desktop app (dev mode)
-  allowedOrigins.push('http://localhost:5173');
-  allowedOrigins.push('http://localhost:5174');
+  // Allow Electron desktop app (packaged file:// origin) and Vite dev mode.
+  allowedOrigins.add('file://');
+  allowedOrigins.add('http://localhost:5173');
+  allowedOrigins.add('http://localhost:5174');
+
+  for (const origin of String(process.env.CORS_ALLOWED_ORIGINS || '').split(',')) {
+    const normalized = normalizeOrigin(origin);
+    if (normalized) allowedOrigins.add(normalized);
+  }
 
   app.use(cors({
     origin(origin, callback) {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      if (origin.endsWith('.vercel.app')) return callback(null, true);
-      callback(new Error('Not allowed by CORS'));
+      if (origin === 'null') return callback(null, true);
+      if (allowedOrigins.has(normalizeOrigin(origin))) return callback(null, true);
+      callback(null, false);
     },
     credentials: true,
   }));

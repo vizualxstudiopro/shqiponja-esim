@@ -64,7 +64,7 @@ export default function DigitalPassport({ orders }: { orders: Order[] }) {
 
       {stamps.length === 0 ? (
         <div className="mt-4 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-5 text-sm text-zinc-500 dark:border-zinc-600 dark:bg-zinc-900/40 dark:text-zinc-400">
-          Ende s'ke vula. Sapo te perfundosh porosine e pare, Pasaporta nis te mbushet.
+          Ende s&apos;ke vula. Sapo te perfundosh porosine e pare, Pasaporta nis te mbushet.
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

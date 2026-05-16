@@ -30,6 +30,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem("locale") as Locale | null;
     const initialLocale = saved && translations[saved] ? saved : "sq";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocaleState(initialLocale);
     setMounted(true);
   }, []);

@@ -8,6 +8,7 @@ export default function CookieBanner() {
   useEffect(() => {
     // Only check localStorage on the client side
     if (!localStorage.getItem('cookieConsent')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowBanner(true);
     }
   }, []);

@@ -189,7 +189,7 @@ export default function AdminNewsletterPage() {
               <h2 className="text-sm font-bold">Konfiguro Brevo</h2>
             </div>
             <p className="mt-1 text-xs text-zinc-500">
-              Krijon automatikisht listat "Newsletter Subscribers" dhe "Registered Users" në Brevo dhe importon të gjithë kontaktet ekzistues.
+              Krijon automatikisht listat &quot;Newsletter Subscribers&quot; dhe &quot;Registered Users&quot; në Brevo dhe importon të gjithë kontaktet ekzistues.
             </p>
           </div>
           <button
@@ -380,7 +380,7 @@ export default function AdminNewsletterPage() {
             {confirmOpen ? (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
                 <p className="mb-3 text-sm font-medium text-amber-800 dark:text-amber-300">
-                  Po dërgon <strong>{locale === "all" ? total : "?"}</strong> email me subjektin <em>"{subject}"</em>. Vazhdo?
+                  Po dërgon <strong>{locale === "all" ? total : "?"}</strong> email me subjektin <em>&quot;{subject}&quot;</em>. Vazhdo?
                 </p>
                 <div className="flex gap-2">
                   <button
